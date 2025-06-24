@@ -14,9 +14,9 @@
             <flux:navlist variant="outline">
                 <flux:navlist.group :heading="__('Platform')" class="grid">
                     <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
-                    <flux:navlist.item icon="users" :href="route('pelanggan.index')" :current="request()->routeIs('pelanggan.*')" wire:navigate>{{ __('Pelanggan') }}</flux:navlist.item>
-                    <flux:navlist.item icon="shopping-cart" :href="route('transaksi.index')" :current="request()->routeIs('transaksi.*')" wire:navigate>{{ __('Transaksi') }}</flux:navlist.item>
+                    <flux:navlist.item icon="users" :href="route('pelanggan.index')" :current="request()->routeIs('pelanggan.*')" wire:navigate>{{ __('Pelanggan') }}</flux:navlist.item>                  
                     <flux:navlist.item icon="sparkles" :href="route('produk.index')" :current="request()->routeIs('produk.*')" wire:navigate>{{ __('Produk') }}</flux:navlist.item>
+                    <flux:navlist.item icon="shopping-cart" :href="route('transaksi.index')" :current="request()->routeIs('transaksi.*')" wire:navigate>{{ __('Transaksi') }}</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
 
