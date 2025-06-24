@@ -25,6 +25,8 @@ class Transaksi extends Model
         'tanggal_transaksi' => 'datetime'
     ];
 
+    protected $with = ['pelanggan.user', 'produk'];
+
     public function pelanggan()
     {
         return $this->belongsTo(Pelanggan::class);
