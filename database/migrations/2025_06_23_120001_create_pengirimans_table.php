@@ -8,9 +8,9 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('pengirimans', function (Blueprint $table) {
+        Schema::create('pengiriman', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('transaksi_id')->constrained()->onDelete('cascade');
+            $table->foreignId('transaksi_id')->constrained('transaksi')->onDelete('cascade');
             $table->string('status');
             $table->text('deskripsi')->nullable();
             $table->timestamp('tanggal_pengiriman')->nullable();
@@ -20,6 +20,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('pengirimans');
+        Schema::dropIfExists('pengiriman');
     }
 };

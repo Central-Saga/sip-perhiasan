@@ -28,12 +28,12 @@ class DatabaseSeeder extends Seeder
 
         // Run other seeders in specific order
         $this->call([
-            ProdukSeeder::class,          // First seed products
-            PelangganSeeder::class,       // Then seed customers
-            TransaksiSeeder::class,       // Then create transactions
+            PelangganSeeder::class,    // First create pelanggans
+            ProdukSeeder::class,       // Then create products
+            CustomRequestSeeder::class, // Then create custom requests from pelanggans
+            TransaksiSeeder::class,    // Finally create transactions (will also create pembayaran and pengiriman)
             PembayaranSeeder::class,      // Then create payments
             PengirimanSeeder::class,      // Then create shipments
-            CustomRequestSeeder::class,    // Finally custom requests
         ]);
     }
 }

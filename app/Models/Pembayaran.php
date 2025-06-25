@@ -9,6 +9,8 @@ class Pembayaran extends Model
 {
     use HasFactory;
 
+    protected $table = 'pembayaran'; // Explicitly set the table name
+
     protected $fillable = [
         'transaksi_id',
         'metode',

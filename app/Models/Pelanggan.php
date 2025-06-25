@@ -10,6 +10,8 @@ class Pelanggan extends Model
     /** @use HasFactory<\Database\Factories\PelangganFactory> */
     use HasFactory;
 
+    protected $table = 'pelanggan'; // Explicitly set the table name
+
     protected $fillable = [
         'user_id',
         'no_telepon',
@@ -29,5 +31,9 @@ class Pelanggan extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+    public function customRequests()
+    {
+        return $this->hasMany(CustomRequest::class);
     }
 }

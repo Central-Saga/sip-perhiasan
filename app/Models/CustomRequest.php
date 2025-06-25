@@ -8,22 +8,35 @@ use Illuminate\Database\Eloquent\Model;
 class CustomRequest extends Model
 {
     use HasFactory;
-
+   protected $table = 'custom_request'; // Explicitly set the table name
     protected $fillable = [
-        'kode_request',
         'pelanggan_id',
-        'status',
-        'jenis',
         'deskripsi',
-        'referensi'
+        'estimasi_harga',
+        'kategori',
+        'berat',
+        'transaksi_id'
     ];
 
     protected $casts = [
-        'status' => 'string',
+        'estimasi_harga' => 'decimal:2',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime'
     ];
 
+    /**
+     * Get the pelanggan that owns the custom request
+     */
     public function pelanggan()
     {
         return $this->belongsTo(Pelanggan::class);
+    }
+
+    /**
+     * Get the transaksi associated with the custom request
+     */
+    public function transaksi()
+    {
+        return $this->belongsTo(Transaksi::class);
     }
 }

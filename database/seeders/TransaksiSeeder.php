@@ -12,20 +12,28 @@ class TransaksiSeeder extends Seeder
      */
     public function run(): void
     {
-        \App\Models\Transaksi::factory()
-            ->count(30)
-            ->create()
-            ->each(function ($transaksi) {
-                // Create related pembayaran
-                \App\Models\Pembayaran::factory()->create([
-                    'transaksi_id' => $transaksi->id,
-                    'total_bayar' => $transaksi->total_harga
-                ]);
+        // Get all users
+        $users = \App\Models\User::where('role', 'user')->get();
 
-                // Create related pengiriman
-                \App\Models\Pengiriman::factory()->create([
-                    'transaksi_id' => $transaksi->id
-                ]);
-            });
+        foreach ($users as $user) {
+            // Create 1-2 transactions per user
+            \App\Models\Transaksi::factory()
+                ->count(rand(1, 2))
+                ->create([
+                    'user_id' => $user->id
+                ])
+                ->each(function ($transaksi) {
+                    // Create related payment
+                    \App\Models\Pembayaran::factory()->create([
+                        'transaksi_id' => $transaksi->id,
+                        'total_bayar' => $transaksi->total_harga
+                    ]);
+
+                    // Create related shipment if payment exists
+                    \App\Models\Pengiriman::factory()->create([
+                        'transaksi_id' => $transaksi->id
+                    ]);
+                });
+        }
     }
 }

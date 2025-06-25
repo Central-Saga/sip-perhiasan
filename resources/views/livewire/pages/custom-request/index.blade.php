@@ -1,7 +1,5 @@
 <?php
-
 use App\Models\CustomRequest;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use function Livewire\Volt\{state, with};
 
@@ -14,13 +12,13 @@ state([
 with(function() {
     return [
         'customRequests' => CustomRequest::query()
-            ->with('pelanggan') // Eager load the pelanggan relationship
+            ->with(['pelanggan.user'])
             ->when($this->search, function ($query) {
-                $query->where('kode_request', 'like', '%' . $this->search . '%')
-                    ->orWhere('status', 'like', '%' . $this->search . '%')
-                    ->orWhere('jenis', 'like', '%' . $this->search . '%')
-                    ->orWhereHas('pelanggan', function ($query) {
-                        $query->where('nama', 'like', '%' . $this->search . '%');
+                $query->where('deskripsi', 'like', '%' . $this->search . '%')
+                    ->orWhere('kategori', 'like', '%' . $this->search . '%')
+                    ->orWhere('berat', 'like', '%' . $this->search . '%')
+                    ->orWhereHas('pelanggan.user', function ($query) {
+                        $query->where('name', 'like', '%' . $this->search . '%');
                     });
             })
             ->orderBy($this->sortField, $this->sortDirection)
@@ -32,187 +30,244 @@ $delete = function($id) {
     $request = CustomRequest::findOrFail($id);
     $request->delete();
 };
-
 ?>
 
-<div>
-    <div class="p-4 sm:p-6 lg:p-8">
-        <div class="sm:flex sm:items-center">
-            <div class="sm:flex-auto">
-                <div class="flex items-center gap-x-3">
-                    <flux:icon name="sparkles" class="w-8 h-8 text-indigo-600" />
-                    <div>
-                        <h1 class="text-xl font-semibold text-gray-900">Data Custom Request</h1>
-                        <p class="mt-2 text-sm text-gray-700">Kelola permintaan kustom perhiasan dari pelanggan
-                        </p>
-                    </div>
+<div class="max-w-full">
+    <!-- Header with gradient background -->
+    <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-6 mb-6">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="p-3 bg-white rounded-lg shadow-sm">
+                    <flux:icon name="sparkles" class="h-8 w-8 text-indigo-600" />
+                </div>
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-900">Data Custom Request</h2>
+                    <p class="mt-1 text-sm text-gray-600 flex items-center">
+                        <flux:icon name="information-circle" class="h-4 w-4 mr-1 text-gray-400" />
+                        Kelola permintaan kustom perhiasan dari pelanggan
+                    </p>
                 </div>
             </div>
-            <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-                <a href="{{ route('custom-request.create') }}"
-                    class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-lg font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                    <flux:icon name="plus-circle" class="w-5 h-5 mr-2" /> Tambah Custom Request
-                </a>
-            </div>
+            <a href="{{ route('custom-request.create') }}" 
+                class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-500 transition-all duration-200 transform hover:scale-105 hover:shadow-lg">
+                <flux:icon name="plus-circle" class="h-5 w-5 mr-1.5" />
+                Tambah Custom Request
+            </a>
         </div>
+    </div>
 
-        <div class="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div class="w-full sm:w-1/3 relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+    <!-- Search and Stats Cards -->
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
+        <!-- Search Bar -->
+        <div class="lg:col-span-2">
+            <div class="relative">
+                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                     <flux:icon name="magnifying-glass" class="h-5 w-5 text-gray-400" />
                 </div>
-                <x-input type="search" wire:model.live="search" class="pl-10 w-full"
-                    placeholder="Cari kode request, status, atau pelanggan..." />
+                <input wire:model.live="search" 
+                    type="search" 
+                    class="block w-full rounded-lg border-0 py-3 pl-10 pr-4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm transition-all duration-200"
+                    placeholder="Cari berdasarkan deskripsi, kategori, atau pelanggan..." />
             </div>
-            <div class="flex items-center gap-x-4">
-                <div
-                    class="flex items-center space-x-2 text-sm text-gray-600 bg-gray-50 px-4 py-2 rounded-lg border border-gray-200">
-                    <flux:icon name="sparkles" class="w-5 h-5 text-indigo-500" />
-                    <span class="font-medium">Total: {{ $customRequests->total() }} Request</span>
+        </div>
+        
+        <!-- Stats Cards -->
+        <div class="lg:col-span-2 grid grid-cols-2 gap-4">
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Total Request</p>
+                    <p class="text-2xl font-semibold text-indigo-600">{{ $customRequests->total() }}</p>
+                </div>
+                <div class="p-3 bg-indigo-50 rounded-lg">
+                    <flux:icon name="document-text" class="h-6 w-6 text-indigo-600" />
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600">Halaman</p>
+                    <p class="text-2xl font-semibold text-purple-600">{{ $customRequests->currentPage() }}</p>
+                </div>
+                <div class="p-3 bg-purple-50 rounded-lg">
+                    <flux:icon name="view-columns" class="h-6 w-6 text-purple-600" />
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="mt-6 bg-white/50 backdrop-blur-xl rounded-lg border border-gray-200">
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left text-gray-500">
-                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-center">
-                                <div class="flex items-center justify-center">
-                                    <flux:icon name="hashtag" class="w-5 h-5 text-gray-400 mr-2" /> No
-                                </div>
-                            </th>
-                            <th scope="col" class="px-6 py-3">
-                                <div class="flex items-center">
-                                    <flux:icon name="identification" class="w-5 h-5 text-gray-400 mr-2" />
-                                    Kode Request
-                                </div>
-                            </th>
-                            <th scope="col" class="px-6 py-3">
-                                <div class="flex items-center">
-                                    <flux:icon name="user" class="w-5 h-5 text-gray-400 mr-2" /> Pelanggan
-                                </div>
-                            </th>
-                            <th scope="col" class="px-6 py-3">
-                                <div class="flex items-center">
-                                    <flux:icon name="check-circle" class="w-5 h-5 text-gray-400 mr-2" /> Status
-                                </div>
-                            </th>
-                            <th scope="col" class="px-6 py-3">
-                                <div class="flex items-center">
-                                    <flux:icon name="tag" class="w-5 h-5 text-gray-400 mr-2" /> Jenis
-                                </div>
-                            </th>
-                            <th scope="col" class="px-6 py-3">
-                                <div class="flex items-center">
-                                    <flux:icon name="document-text" class="w-5 h-5 text-gray-400 mr-2" />
-                                    Deskripsi
-                                </div>
-                            </th>
-                            <th scope="col" class="px-6 py-3">
-                                <div class="flex items-center">
-                                    <flux:icon name="photo" class="w-5 h-5 text-gray-400 mr-2" /> Referensi
-                                </div>
-                            </th>
-                            <th scope="col" class="px-6 py-3">
-                                <div class="flex items-center">
-                                    <flux:icon name="cog" class="w-5 h-5 text-gray-400 mr-2" /> Aksi
-                                </div>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($customRequests as $request)
-                            <tr class="bg-white border-b hover:bg-gray-50">
-                                <td class="px-6 py-4 text-center">{{ $loop->iteration }}</td>
-                                <td class="px-6 py-4 font-medium text-gray-900">{{ $request->kode_request }}</td>
-                                <td class="px-6 py-4">
-                                    @if($request->pelanggan)
-                                        <div class="flex items-center space-x-3">
-                                            <div class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
-                                                <flux:icon name="user" class="w-4 h-4 text-blue-600" />
-                                            </div>
-                                            <span>{{ $request->pelanggan->nama }}</span>
-                                        </div>
-                                    @else
-                                        <span class="text-gray-400">-</span>
-                                    @endif
-                                </td>
-                                <td class="px-6 py-4">
-                                    <span @class([
-                                        'px-3 py-1 rounded-full text-xs font-medium inline-flex items-center space-x-1',
-                                        'bg-orange-100 text-orange-800' => $request->status === 'PENDING',
-                                        'bg-indigo-100 text-indigo-800' => $request->status === 'PROSES',
-                                        'bg-teal-100 text-teal-800' => $request->status === 'SELESAI',
-                                        'bg-red-100 text-red-800' => $request->status === 'DITOLAK',
-                                    ])>
-                                        <flux:icon name="{{ 
-                                            $request->status === 'SELESAI' ? 'check-circle' : 
-                                            ($request->status === 'PROSES' ? 'cog' :
-                                            ($request->status === 'DITOLAK' ? 'x-circle' : 'clock'))
-                                        }}" class="w-4 h-4" />
-                                        <span>{{ $request->status }}</span>
+    <!-- Enhanced Table -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <div class="flex items-center space-x-1">
+                                <flux:icon name="hashtag" class="h-4 w-4" />
+                                <span>No</span>
+                            </div>
+                        </th>
+                        <th scope="col" class="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <div class="flex items-center space-x-1">
+                                <flux:icon name="calendar" class="h-4 w-4" />
+                                <span>Tanggal</span>
+                            </div>
+                        </th>
+                        <th scope="col" class="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <div class="flex items-center space-x-1">
+                                <flux:icon name="user-circle" class="h-4 w-4" />
+                                <span>Pelanggan</span>
+                            </div>
+                        </th>
+                        <th scope="col" class="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <div class="flex items-center space-x-1">
+                                <flux:icon name="document-text" class="h-4 w-4" />
+                                <span>Deskripsi</span>
+                            </div>
+                        </th>
+                        <th scope="col" class="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <div class="flex items-center space-x-1">
+                                <flux:icon name="tag" class="h-4 w-4" />
+                                <span>Kategori</span>
+                            </div>
+                        </th>
+                        <th scope="col" class="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <div class="flex items-center space-x-1">
+                                <flux:icon name="scale" class="h-4 w-4" />
+                                <span>Berat</span>
+                            </div>
+                        </th>
+                        <th scope="col" class="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <div class="flex items-center space-x-1">
+                                <flux:icon name="currency-dollar" class="h-4 w-4" />
+                                <span>Harga</span>
+                            </div>
+                        </th>
+                        <th scope="col" class="px-4 py-3.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <div class="flex items-center justify-end space-x-1">
+                                <flux:icon name="cog" class="h-4 w-4" />
+                                <span>Aksi</span>
+                            </div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @forelse ($customRequests as $customRequest)
+                        <tr class="hover:bg-gray-50/50 transition duration-150">
+                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-600 text-center">
+                                {{ $loop->iteration }}
+                            </td>
+                            <td class="px-4 py-4 whitespace-nowrap text-sm">
+                                <div class="flex items-center space-x-2">
+                                    <span class="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                                        {{ $customRequest->created_at->format('d/m/Y') }}
                                     </span>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center space-x-3">
-                                        <div class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
-                                            <flux:icon name="sparkles" class="w-4 h-4 text-blue-600" />
+                                    <span class="text-gray-500 text-xs">
+                                        {{ $customRequest->created_at->format('H:i') }}
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-8 w-8">
+                                        <div class="h-8 w-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center">
+                                            <span class="text-xs font-medium text-white">
+                                                {{ strtoupper(substr($customRequest->pelanggan->user->name, 0, 2)) }}
+                                            </span>
                                         </div>
-                                        <span>{{ $request->jenis }}</span>
                                     </div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <span class="text-gray-600">{{ Str::limit($request->deskripsi, 50) }}</span>
-                                </td>
-                                <td class="px-6 py-4">
-                                    @if ($request->referensi)
-                                        <a href="{{ Storage::url($request->referensi) }}" target="_blank"
-                                            class="inline-flex items-center px-3 py-1.5 text-sm text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-150">
-                                            <flux:icon name="photo" class="w-4 h-4 mr-1.5" /> Lihat Gambar
-                                        </a>
-                                    @else
-                                        <span class="text-gray-400">-</span>
-                                    @endif
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="flex items-center space-x-3">
-                                        <a href="{{ route('custom-request.edit', $request) }}"
-                                            class="flex items-center px-3 py-1.5 text-sm text-indigo-700 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors duration-150"
-                                            wire:navigate>
-                                            <flux:icon name="pencil-square" class="w-4 h-4 mr-1.5" /> Edit
-                                        </a>
-                                        <button wire:click="delete({{ $request->id }})"
-                                            class="flex items-center px-3 py-1.5 text-sm text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors duration-150"
-                                            wire:confirm="Apakah anda yakin ingin menghapus data ini?">
-                                            <flux:icon name="trash" class="w-4 h-4 mr-1.5" /> Hapus
-                                        </button>
+                                    <div class="ml-3">
+                                        <p class="text-sm font-medium text-gray-900">
+                                            {{ $customRequest->pelanggan->user->name }}
+                                        </p>
                                     </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="8" class="px-6 py-12 text-center">
-                                    <div class="flex flex-col items-center justify-center text-gray-400">
-                                        <flux:icon name="inbox" class="w-16 h-16 mb-4" />
-                                        <span class="font-medium text-xl">Tidak ada request ditemukan...</span>
-                                        <p class="text-sm mt-2">Silahkan tambahkan request baru</p>
+                                </div>
+                            </td>
+                            <td class="px-4 py-4 max-w-xs">
+                                <div class="relative group">
+                                    <p class="text-sm text-gray-900 truncate">
+                                        {{ $customRequest->deskripsi }}
+                                    </p>
+                                    <div class="hidden group-hover:block absolute z-10 p-2 bg-gray-900 text-white text-xs rounded-lg mt-1 max-w-xs">
+                                        {{ $customRequest->deskripsi }}
                                     </div>
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                                </div>
+                            </td>
+                            <td class="px-4 py-4 whitespace-nowrap">
+                                <span class="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-700/10">
+                                    <flux:icon name="tag" class="h-3 w-3" />
+                                    {{ $customRequest->kategori }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-4 whitespace-nowrap">
+                                <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-700/10">
+                                    <flux:icon name="scale" class="h-3 w-3" />
+                                    {{ number_format($customRequest->berat, 2) }} gr
+                                </span>
+                            </td>
+                            <td class="px-4 py-4 whitespace-nowrap">
+                                <span class="inline-flex items-center gap-1 rounded-full bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 ring-1 ring-inset ring-purple-700/10">
+                                    <flux:icon name="currency-dollar" class="h-3 w-3" />
+                                    Rp {{ number_format($customRequest->estimasi_harga, 0, ',', '.') }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <div class="flex items-center justify-end space-x-2">
+                                    <a href="{{ route('custom-request.edit', $customRequest) }}" 
+                                        class="inline-flex items-center px-2.5 py-1.5 border border-indigo-500 text-indigo-600 hover:bg-indigo-50 rounded-lg transition duration-150"
+                                        wire:navigate>
+                                        <flux:icon name="pencil-square" class="h-4 w-4 mr-1" />
+                                        Edit
+                                    </a>
+                                    <button wire:click="delete({{ $customRequest->id }})" 
+                                        class="inline-flex items-center px-2.5 py-1.5 border border-red-500 text-red-600 hover:bg-red-50 rounded-lg transition duration-150"
+                                        wire:confirm="Apakah anda yakin ingin menghapus data ini?">
+                                        <flux:icon name="trash" class="h-4 w-4 mr-1" />
+                                        Hapus
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="8" class="px-4 py-8">
+                                <div class="flex flex-col items-center justify-center">
+                                    <div class="relative">
+                                        <div class="h-24 w-24 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-full flex items-center justify-center animate-pulse">
+                                            <flux:icon name="inbox" class="h-12 w-12 text-gray-400" />
+                                        </div>
+                                        <div class="absolute -right-2 -bottom-2 h-8 w-8 bg-gray-50 rounded-full flex items-center justify-center border-2 border-white">
+                                            <flux:icon name="plus" class="h-5 w-5 text-gray-400" />
+                                        </div>
+                                    </div>
+                                    <h3 class="mt-4 text-sm font-medium text-gray-900">Belum ada custom request</h3>
+                                    <p class="mt-1 text-sm text-gray-500">Mulai dengan menambahkan request baru</p>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
+    </div>
 
-        <div class="mt-6 border-t border-gray-200 pt-4">
-            <div class="flex items-center justify-between">
-                <div class="text-sm text-gray-500 italic">
-                    <flux:icon name="information-circle" class="w-4 h-4 inline-block mr-1" />
-                    Menampilkan {{ $customRequests->firstItem() ?? 0 }} hingga {{ $customRequests->lastItem() ?? 0 }}
-                    dari {{ $customRequests->total() }} request
+    <!-- Enhanced Pagination -->
+    <div class="mt-6">
+        <div class="bg-white px-4 py-3 flex items-center justify-between border border-gray-200 rounded-lg sm:px-6">
+            <div class="flex-1 flex justify-between sm:hidden">
+                {{ $customRequests->links() }}
+            </div>
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-gray-700 flex items-center space-x-1">
+                        <flux:icon name="document-text" class="h-4 w-4 text-gray-400" />
+                        <span>Menampilkan</span>
+                        <span class="font-medium">{{ $customRequests->firstItem() ?? 0 }}</span>
+                        <span>sampai</span>
+                        <span class="font-medium">{{ $customRequests->lastItem() ?? 0 }}</span>
+                        <span>dari</span>
+                        <span class="font-medium">{{ $customRequests->total() }}</span>
+                        <span>hasil</span>
+                    </p>
                 </div>
                 <div>
                     {{ $customRequests->links() }}

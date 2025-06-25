@@ -10,6 +10,8 @@ class Produk extends Model
     /** @use HasFactory<\Database\Factories\ProdukFactory> */
     use HasFactory;
 
+    protected $table = 'produk'; // Explicitly set the table name to match migration
+
     protected $fillable = [
         'nama_produk',
         'deskripsi',

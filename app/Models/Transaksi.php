@@ -10,6 +10,8 @@ class Transaksi extends Model
     /** @use HasFactory<\Database\Factories\TransaksiFactory> */
     use HasFactory;
 
+    protected $table = 'transaksi'; // Explicitly set the table name
+
     protected $fillable = [
         'pelanggan_id',
         'produk_id',
