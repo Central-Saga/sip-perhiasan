@@ -14,7 +14,6 @@ class Transaksi extends Model
 
     protected $fillable = [
         'pelanggan_id',
-        'produk_id',
         'jumlah',
         'total_harga',
         'status',
@@ -27,17 +26,13 @@ class Transaksi extends Model
         'tanggal_transaksi' => 'datetime'
     ];
 
-    protected $with = ['pelanggan.user', 'produk'];
+    protected $with = ['pelanggan.user'];
 
     public function pembayaran()
     {
         return $this->hasOne(Pembayaran::class);
     }
 
-    public function produk()
-    {
-        return $this->belongsTo(Produk::class);
-    }
     public function pelanggan()
     {
         return $this->belongsTo(Pelanggan::class);
@@ -45,5 +40,22 @@ class Transaksi extends Model
     public function customRequest()
     {
         return $this->hasOne(CustomRequest::class);     
+    }
+    public function detailTransaksi()
+    {
+        return $this->hasMany(DetailTransaksi::class, 'transaksi_id');  
+    }
+
+    // Relasi ke produk melalui detail transaksi
+    public function produk()
+    {
+        return $this->hasManyThrough(
+            Produk::class,
+            DetailTransaksi::class,
+            'transaksi_id', // Foreign key di detail_transaksi
+            'id',           // Foreign key di produk
+            'id',           // Local key di transaksi
+            'produk_id'     // Local key di detail_transaksi
+        );
     }
 }

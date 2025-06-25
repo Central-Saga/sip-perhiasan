@@ -21,9 +21,10 @@ class Produk extends Model
         'kategori',
         'status'
     ];
-
-    public function transaksis()
+    
+    public function detailTransaksi()
     {
-        return $this->hasMany(Transaksi::class);
+        return $this->hasMany(DetailTransaksi::class, foreignKey: 'detail_transaksi_id');
     }
+
 }
