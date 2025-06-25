@@ -12,19 +12,22 @@
                     <form wire:submit="save">
                         <div class="grid grid-cols-6 gap-6">
                             <div class="col-span-6 sm:col-span-4">
-                                <x-label for="kode_pembayaran" value="Kode Pembayaran" />
-                                <x-input id="kode_pembayaran" type="text" class="mt-1 block w-full bg-gray-100" wire:model="kode_pembayaran" readonly />
-                            </div>
-
-                            <div class="col-span-6 sm:col-span-4">
                                 <x-label for="transaksi_id" value="Transaksi" />
                                 <x-select id="transaksi_id" class="mt-1 block w-full" wire:model="transaksi_id">
                                     <option value="">Pilih Transaksi</option>
                                     @foreach($transaksis as $transaksi)
-                                        <option value="{{ $transaksi->id }}">{{ $transaksi->kode_transaksi }}</option>
+                                        <option value="{{ $transaksi->id }}">
+                                            {{ $transaksi->kode_transaksi }} - Rp {{ number_format($transaksi->total_harga, 0, ',', '.') }}
+                                        </option>
                                     @endforeach
                                 </x-select>
                                 <x-input-error for="transaksi_id" class="mt-2" />
+                            </div>
+
+                            <div class="col-span-6 sm:col-span-4">
+                                <x-label for="tanggal_bayar" value="Tanggal Pembayaran" />
+                                <x-input id="tanggal_bayar" type="date" class="mt-1 block w-full" wire:model="tanggal_bayar" />
+                                <x-input-error for="tanggal_bayar" class="mt-2" />
                             </div>
 
                             <div class="col-span-6 sm:col-span-4">
@@ -49,28 +52,32 @@
                                 <x-input-error for="metode" class="mt-2" />
                             </div>
 
-                            <div class="col-span-6 sm:col-span-4">
-                                <x-label for="total" value="Total Pembayaran" />
-                                <x-input id="total" type="number" class="mt-1 block w-full" wire:model="total" />
-                                <x-input-error for="total" class="mt-2" />
-                            </div>
-
-                            <div class="col-span-6 sm:col-span-4">
-                                <x-label for="bukti" value="Bukti Pembayaran" />
-                                @if ($pembayaran->bukti)
+                            <div class="col-span-6 sm:col-span-4" x-data="{ isTransfer: @entangle('metode').value === 'TRANSFER' }">
+                                <x-label for="bukti_transfer" value="Bukti Transfer" />
+                                <div class="mt-2" x-show="isTransfer">
+                                    @if($pembayaran->bukti_transfer)
+                                        <div class="mb-3">
+                                            <img src="{{ Storage::url($pembayaran->bukti_transfer) }}" 
+                                                 alt="Bukti Transfer" 
+                                                 class="w-32 h-32 object-cover rounded-lg shadow-sm" />
+                                        </div>
+                                    @endif
+                                    <x-input id="bukti_transfer" type="file" class="mt-1 block w-full" 
+                                             wire:model="bukti_transfer" accept="image/*,.pdf" />
+                                </div>
+                                <x-input-error for="bukti_transfer" class="mt-2" />
+                                
+                                @if ($bukti_transfer)
                                     <div class="mt-2">
-                                        <a href="{{ Storage::url($pembayaran->bukti) }}" target="_blank" class="text-blue-600 hover:underline">
-                                            Lihat Bukti Sekarang
-                                        </a>
+                                        <img src="{{ $bukti_transfer->temporaryUrl() }}" 
+                                             class="w-32 h-32 object-cover rounded-lg shadow-sm" />
                                     </div>
                                 @endif
-                                <input type="file" wire:model="bukti" class="mt-1 block w-full" accept="image/*"/>
-                                <x-input-error for="bukti" class="mt-2" />
                             </div>
 
-                            <div class="col-span-6 sm:col-span-4">
-                                <x-button type="submit">
-                                    Simpan Perubahan
+                            <div class="col-span-6 flex justify-end">
+                                <x-button type="submit" class="ml-4">
+                                    Simpan
                                 </x-button>
                             </div>
                         </div>

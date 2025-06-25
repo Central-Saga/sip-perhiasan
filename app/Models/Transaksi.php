@@ -29,13 +29,21 @@ class Transaksi extends Model
 
     protected $with = ['pelanggan.user', 'produk'];
 
-    public function pelanggan()
+    public function pembayaran()
     {
-        return $this->belongsTo(Pelanggan::class);
+        return $this->hasOne(Pembayaran::class);
     }
 
     public function produk()
     {
         return $this->belongsTo(Produk::class);
+    }
+    public function pelanggan()
+    {
+        return $this->belongsTo(Pelanggan::class);
+    }
+    public function customRequest()
+    {
+        return $this->hasOne(CustomRequest::class);     
     }
 }

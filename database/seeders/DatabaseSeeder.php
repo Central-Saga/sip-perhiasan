@@ -32,6 +32,7 @@ class DatabaseSeeder extends Seeder
             ProdukSeeder::class,       // Then create products
             CustomRequestSeeder::class, // Then create custom requests from pelanggans
             TransaksiSeeder::class,    // Finally create transactions (will also create pembayaran and pengiriman)
+            DetailTransaksiSeeder::class, // Tambah detail transaksi setelah transaksi
             PembayaranSeeder::class,      // Then create payments
             PengirimanSeeder::class,      // Then create shipments
         ]);
