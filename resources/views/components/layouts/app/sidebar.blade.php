@@ -17,6 +17,9 @@
                     <flux:navlist.item icon="users" :href="route('pelanggan.index')" :current="request()->routeIs('pelanggan.*')" wire:navigate>{{ __('Pelanggan') }}</flux:navlist.item>                  
                     <flux:navlist.item icon="sparkles" :href="route('produk.index')" :current="request()->routeIs('produk.*')" wire:navigate>{{ __('Produk') }}</flux:navlist.item>
                     <flux:navlist.item icon="shopping-cart" :href="route('transaksi.index')" :current="request()->routeIs('transaksi.*')" wire:navigate>{{ __('Transaksi') }}</flux:navlist.item>
+                    <flux:navlist.item icon="paper-airplane" :href="route('pengiriman.index')" :current="request()->routeIs('pengiriman.*')" wire:navigate>{{ __('Pengiriman') }}</flux:navlist.item>
+                    <flux:navlist.item icon="currency-dollar" :href="route('pembayaran.index')" :current="request()->routeIs('pembayaran.*')" wire:navigate>{{ __('Pembayaran') }}</flux:navlist.item>
+                    <flux:navlist.item icon="document-text" :href="route('custom-request.index')" :current="request()->routeIs('custom-request.*')" wire:navigate>{{ __('Custom Request') }}</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
 

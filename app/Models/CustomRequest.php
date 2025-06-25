@@ -10,15 +10,20 @@ class CustomRequest extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
+        'kode_request',
+        'pelanggan_id',
+        'status',
+        'jenis',
         'deskripsi',
-        'estimasi_harga',
-        'kategori',
-        'lokasi'
+        'referensi'
     ];
 
-    public function user()
+    protected $casts = [
+        'status' => 'string',
+    ];
+
+    public function pelanggan()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Pelanggan::class);
     }
 }

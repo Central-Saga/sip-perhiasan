@@ -32,6 +32,21 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('transaksi', 'pages.transaksi.index')->name('transaksi.index');
     Volt::route('transaksi/create', 'pages.transaksi.create')->name('transaksi.create');
     Volt::route('transaksi/{transaksi}/edit', 'pages.transaksi.edit')->name('transaksi.edit');
+
+    // Pengiriman Routes
+    Volt::route('pengiriman', 'pages.pengiriman.index')->name('pengiriman.index');
+    Volt::route('pengiriman/create', 'pages.pengiriman.create')->name('pengiriman.create');
+    Volt::route('pengiriman/{pengiriman}/edit', 'pages.pengiriman.edit')->name('pengiriman.edit');
+
+    // Pembayaran Routes
+    Volt::route('pembayaran', 'pages.pembayaran.index')->name('pembayaran.index');
+    Volt::route('pembayaran/create', 'pages.pembayaran.create')->name('pembayaran.create');
+    Volt::route('pembayaran/{pembayaran}/edit', 'pages.pembayaran.edit')->name('pembayaran.edit');
+
+    // Custom Request Routes
+    Volt::route('custom-request', 'pages.custom-request.index')->name('custom-request.index');
+    Volt::route('custom-request/create', 'pages.custom-request.create')->name('custom-request.create');
+    Volt::route('custom-request/{customRequest}/edit', 'pages.custom-request.edit')->name('custom-request.edit');
 });
 
 require __DIR__.'/auth.php';
