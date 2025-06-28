@@ -1,7 +1,6 @@
 <?php
 
 use App\Models\Pengiriman;
-use Illuminate\Support\Facades\Storage;
 use function Livewire\Volt\{state, with};
 
 state([
@@ -14,12 +13,10 @@ state([
 with(function() {
     return [
         'pengirimans' => Pengiriman::query()
+            ->with('transaksi')
             ->when($this->search, function ($query) {
-                $query->where('kode_pengiriman', 'like', '%' . $this->search . '%')
-                    ->orWhere('status', 'like', '%' . $this->search . '%')
-                    ->orWhere('kurir', 'like', '%' . $this->search . '%')
-                    ->orWhere('no_resi', 'like', '%' . $this->search . '%')
-                    ->orWhere('alamat', 'like', '%' . $this->search . '%');
+                $query->where('status', 'like', '%' . $this->search . '%')
+                    ->orWhere('deskripsi', 'like', '%' . $this->search . '%');
             })
             ->orderBy($this->sortField, $this->sortDirection)
             ->paginate(10)
@@ -39,167 +36,204 @@ $delete = function($id) {
     $pengiriman = Pengiriman::findOrFail($id);
     $pengiriman->delete();
 };
-
 ?>
 
 <div>
-    <div class="p-4 sm:p-6 lg:p-8">
-        <div class="sm:flex sm:items-center">
-            <div class="sm:flex-auto">
-                <div class="flex items-center gap-x-3">
-                    <flux:icon name="paper-airplane" class="w-8 h-8 text-indigo-600" />
+    <div class="max-w-full">
+        <!-- Header with gradient background -->
+        <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-6 mb-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="p-3 bg-white rounded-lg shadow-sm">
+                        <flux:icon name="paper-airplane" class="h-8 w-8 text-indigo-600" />
+                    </div>
                     <div>
-                        <h1 class="text-xl font-semibold text-gray-900">Data Pengiriman</h1>
-                        <p class="mt-2 text-sm text-gray-700">Kelola pengiriman pesanan perhiasan</p>
+                        <h2 class="text-xl font-semibold text-gray-900">Daftar Pengiriman</h2>
+                        <p class="mt-1 text-sm text-gray-600 flex items-center">
+                            <flux:icon name="information-circle" class="h-4 w-4 mr-1 text-gray-400" />
+                            Kelola semua pengiriman pesanan perhiasan
+                        </p>
                     </div>
                 </div>
-            </div>
-            <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-                <a href="{{ route('pengiriman.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-lg font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                    <flux:icon name="plus-circle" class="w-5 h-5 mr-2" />
+                <a href="{{ route('pengiriman.create') }}" 
+                    class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-500 transition-all duration-200 transform hover:scale-105 hover:shadow-lg">
+                    <flux:icon name="plus-circle" class="h-5 w-5 mr-1.5" />
                     Tambah Pengiriman
                 </a>
             </div>
         </div>
 
-        <div class="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div class="w-full sm:w-1/3 relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <flux:icon name="magnifying-glass" class="h-5 w-5 text-gray-400" />
+        <!-- Search and Stats Cards -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
+            <!-- Search Bar -->
+            <div class="lg:col-span-2">
+                <div class="relative">
+                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <flux:icon name="magnifying-glass" class="h-5 w-5 text-gray-400" />
+                    </div>
+                    <input wire:model.live="search" 
+                        type="search" 
+                        class="block w-full rounded-lg border-0 py-3 pl-10 pr-4 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm transition-all duration-200"
+                        placeholder="Cari status atau deskripsi..." />
                 </div>
-                <x-input type="search" 
-                    wire:model.live="search" 
-                    class="pl-10 w-full" 
-                    placeholder="Cari kode pengiriman, status, atau kurir..." />
             </div>
-            <div class="flex items-center gap-x-4">
-                <div class="flex items-center space-x-2 text-sm text-gray-600 bg-gray-50 px-4 py-2 rounded-lg border border-gray-200">
-                    <flux:icon name="truck" class="w-5 h-5 text-indigo-500" />
-                    <span class="font-medium">Total: {{ $pengirimans->total() }} Pengiriman</span>
+            <!-- Stats Cards -->
+            <div class="lg:col-span-2 grid grid-cols-2 gap-4">
+                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Total Pengiriman</p>
+                        <p class="text-2xl font-semibold text-indigo-600">{{ $pengirimans->total() }}</p>
+                    </div>
+                    <div class="p-3 bg-indigo-50 rounded-lg">
+                        <flux:icon name="truck" class="h-6 w-6 text-indigo-600" />
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600">Halaman</p>
+                        <p class="text-2xl font-semibold text-purple-600">{{ $pengirimans->currentPage() }}</p>
+                    </div>
+                    <div class="p-3 bg-purple-50 rounded-lg">
+                        <flux:icon name="view-columns" class="h-6 w-6 text-purple-600" />
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="mt-6 bg-white/50 backdrop-blur-xl rounded-lg border border-gray-200">
-            <x-table>
-                <x-slot name="head">
-                    <x-table.heading sortable wire:click="sortBy('kode_pengiriman')" :direction="$sortField === 'kode_pengiriman' ? $sortDirection : null" class="text-center">
-                        <div class="flex justify-center items-center">
-                            <flux:icon name="identification" class="w-5 h-5 text-gray-400 mr-2" />
-                            Kode
-                        </div>
-                    </x-table.heading>
-                    <x-table.heading sortable wire:click="sortBy('transaksi_id')" :direction="$sortField === 'transaksi_id' ? $sortDirection : null" class="text-center">
-                        <div class="flex justify-center items-center">
-                            <flux:icon name="shopping-cart" class="w-5 h-5 text-gray-400 mr-2" />
-                            Transaksi
-                        </div>
-                    </x-table.heading>
-                    <x-table.heading sortable wire:click="sortBy('status')" :direction="$sortField === 'status' ? $sortDirection : null" class="text-center">
-                        <div class="flex justify-center items-center">
-                            <flux:icon name="check-circle" class="w-5 h-5 text-gray-400 mr-2" />
-                            Status
-                        </div>
-                    </x-table.heading>
-                    <x-table.heading sortable wire:click="sortBy('kurir')" :direction="$sortField === 'kurir' ? $sortDirection : null" class="text-center">
-                        <div class="flex justify-center items-center">
-                            <flux:icon name="truck" class="w-5 h-5 text-gray-400 mr-2" />
-                            Kurir
-                        </div>
-                    </x-table.heading>
-                    <x-table.heading class="text-center">
-                        <div class="flex justify-center items-center">
-                            <flux:icon name="document-text" class="w-5 h-5 text-gray-400 mr-2" />
-                            No. Resi
-                        </div>
-                    </x-table.heading>
-                    <x-table.heading class="text-center">
-                        <div class="flex justify-center items-center">
-                            <flux:icon name="map-pin" class="w-5 h-5 text-gray-400 mr-2" />
-                            Alamat
-                        </div>
-                    </x-table.heading>
-                    <x-table.heading class="text-center relative">
-                        <div class="flex justify-center items-center px-10">
-                            <flux:icon name="cog" class="w-5 h-5 text-gray-400 mr-2" />
-                            Aksi
-                        </div>
-                    </x-table.heading>
-                </x-slot>
-                <x-slot name="body">
-                    @forelse($pengirimans as $pengiriman)
-                        <x-table.row wire:key="{{ $pengiriman->id }}" class="hover:bg-gray-50">
-                            <x-table.cell>
-                                <div class="font-medium text-gray-900">{{ $pengiriman->kode_pengiriman }}</div>
-                            </x-table.cell>
-                            <x-table.cell>
-                                <div class="font-medium text-gray-900">{{ $pengiriman->transaksi->kode_transaksi }}</div>
-                            </x-table.cell>
-                            <x-table.cell>
-                                <x-badge :type="$pengiriman->status === 'SELESAI' ? 'success' : ($pengiriman->status === 'DIKIRIM' ? 'info' : 'warning')">
-                                    <div class="flex items-center space-x-1">
-                                        <flux:icon name="{{ 
-                                            $pengiriman->status === 'SELESAI' ? 'check-circle' : 
-                                            ($pengiriman->status === 'DIKIRIM' ? 'paper-airplane' : 'clock') 
-                                        }}" class="w-4 h-4" />
-                                        <span>{{ $pengiriman->status }}</span>
+        <!-- Enhanced Table -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <div class="flex items-center space-x-1">
+                                    <flux:icon name="shopping-cart" class="h-4 w-4" />
+                                    <span>Transaksi</span>
+                                </div>
+                            </th>
+                            <th class="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <div class="flex items-center space-x-1">
+                                    <flux:icon name="check-circle" class="h-4 w-4" />
+                                    <span>Status</span>
+                                </div>
+                            </th>
+                            <th class="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <div class="flex items-center space-x-1">
+                                    <flux:icon name="document-text" class="h-4 w-4" />
+                                    <span>Deskripsi</span>
+                                </div>
+                            </th>
+                            <th class="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <div class="flex items-center space-x-1">
+                                    <flux:icon name="calendar" class="h-4 w-4" />
+                                    <span>Tanggal Pengiriman</span>
+                                </div>
+                            </th>
+                            <th class="px-4 py-3.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <div class="flex items-center justify-end space-x-1">
+                                    <flux:icon name="cog" class="h-4 w-4" />
+                                    <span>Aksi</span>
+                                </div>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        @forelse($pengirimans as $pengiriman)
+                            <tr class="hover:bg-gray-50/50 transition duration-150">
+                                <td class="px-4 py-4">
+                                    <span class="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-700/10">
+                                        <flux:icon name="shopping-cart" class="h-3 w-3" />
+                                        {{ $pengiriman->transaksi->kode_transaksi ?? '-' }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-4 text-center">
+                                    <span class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset"
+                                        :class="[
+                                            $pengiriman->status === 'SELESAI' ? 'bg-emerald-50 text-emerald-700 ring-emerald-700/10' : '',
+                                            $pengiriman->status === 'DIKIRIM' ? 'bg-blue-50 text-blue-700 ring-blue-700/10' : '',
+                                            $pengiriman->status === 'PENDING' ? 'bg-yellow-50 text-yellow-700 ring-yellow-700/10' : ''
+                                        ]">
+                                        <flux:icon name="{{
+                                            $pengiriman->status === 'SELESAI' ? 'check-circle' :
+                                            ($pengiriman->status === 'DIKIRIM' ? 'paper-airplane' :
+                                            ($pengiriman->status === 'PENDING' ? 'clock' : 'question-mark-circle'))
+                                        }}" class="h-3 w-3" />
+                                        {{ ucfirst(strtolower($pengiriman->status)) }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-4">
+                                    <div class="font-medium text-gray-900 max-w-xs truncate">{{ $pengiriman->deskripsi ?? '-' }}</div>
+                                </td>
+                                <td class="px-4 py-4">
+                                    <div class="flex items-center">
+                                        <flux:icon name="calendar" class="h-4 w-4 text-gray-400 mr-1" />
+                                        <span class="font-medium text-gray-900">{{ $pengiriman->tanggal_pengiriman ? $pengiriman->tanggal_pengiriman->format('d M Y') : '-' }}</span>
+                                        <span class="ml-2 text-xs text-gray-500">{{ $pengiriman->tanggal_pengiriman ? $pengiriman->tanggal_pengiriman->format('H:i') : '' }}</span>
                                     </div>
-                                </x-badge>
-                            </x-table.cell>
-                            <x-table.cell>
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
-                                        <flux:icon name="truck" class="w-4 h-4 text-blue-600" />
+                                </td>
+                                <td class="px-4 py-4 text-right text-sm font-medium">
+                                    <div class="flex items-center justify-end space-x-2">
+                                        <a href="{{ route('pengiriman.edit', $pengiriman) }}" 
+                                            class="inline-flex items-center px-2.5 py-1.5 border border-indigo-500 text-indigo-600 hover:bg-indigo-50 rounded-lg transition duration-150"
+                                            wire:navigate>
+                                            <flux:icon name="pencil-square" class="h-4 w-4 mr-1" />
+                                            Edit
+                                        </a>
+                                        <button wire:click="delete({{ $pengiriman->id }})" 
+                                            class="inline-flex items-center px-2.5 py-1.5 border border-red-500 text-red-600 hover:bg-red-50 rounded-lg transition duration-150"
+                                            onclick="return confirm('Apakah Anda yakin ingin menghapus pengiriman ini?')">
+                                            <flux:icon name="trash" class="h-4 w-4 mr-1" />
+                                            Hapus
+                                        </button>
                                     </div>
-                                    <div class="font-medium text-gray-900">{{ $pengiriman->kurir }}</div>
-                                </div>
-                            </x-table.cell>
-                            <x-table.cell>
-                                <div class="font-medium text-gray-900">{{ $pengiriman->no_resi ?? '-' }}</div>
-                            </x-table.cell>
-                            <x-table.cell>
-                                <div class="font-medium text-gray-900 max-w-xs truncate">{{ $pengiriman->alamat }}</div>
-                            </x-table.cell>
-                            <x-table.cell class="text-center">
-                                <div class="flex items-center justify-center space-x-3">
-                                    <x-button.link href="{{ route('pengiriman.edit', $pengiriman) }}" 
-                                        class="flex items-center px-3 py-1.5 text-sm text-indigo-700 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors duration-150"
-                                        wire:navigate>
-                                        <flux:icon name="pencil-square" class="w-4 h-4 mr-1.5" />
-                                        Edit
-                                    </x-button.link>
-                                    <button wire:click="delete({{ $pengiriman->id }})" 
-                                        class="flex items-center px-3 py-1.5 text-sm text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors duration-150"
-                                        onclick="return confirm('Apakah Anda yakin ingin menghapus pengiriman ini?')">
-                                        <flux:icon name="trash" class="w-4 h-4 mr-1.5" />
-                                        Hapus
-                                    </button>
-                                </div>
-                            </x-table.cell>
-                        </x-table.row>
-                    @empty
-                        <x-table.row>
-                            <x-table.cell colspan="7">
-                                <div class="flex flex-col items-center justify-center py-12 text-gray-400">
-                                    <flux:icon name="inbox" class="w-16 h-16 mb-4" />
-                                    <span class="font-medium text-xl">Tidak ada pengiriman ditemukan...</span>
-                                    <p class="text-sm mt-2">Silahkan tambahkan pengiriman baru</p>
-                                </div>
-                            </x-table.cell>
-                        </x-table.row>
-                    @endforelse
-                </x-slot>
-            </x-table>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="px-4 py-8">
+                                    <div class="flex flex-col items-center justify-center">
+                                        <div class="relative">
+                                            <div class="h-24 w-24 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-full flex items-center justify-center animate-pulse">
+                                                <flux:icon name="inbox" class="h-12 w-12 text-gray-400" />
+                                            </div>
+                                            <div class="absolute -right-2 -bottom-2 h-8 w-8 bg-gray-50 rounded-full flex items-center justify-center border-2 border-white">
+                                                <flux:icon name="plus" class="h-5 w-5 text-gray-400" />
+                                            </div>
+                                        </div>
+                                        <h3 class="mt-4 text-sm font-medium text-gray-900">Belum ada pengiriman</h3>
+                                        <p class="mt-1 text-sm text-gray-500">Mulai dengan menambahkan pengiriman baru</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
 
-        <div class="mt-6 border-t border-gray-200 pt-4">
-            <div class="flex items-center justify-between">
-                <div class="text-sm text-gray-500 italic">
-                    <flux:icon name="information-circle" class="w-4 h-4 inline-block mr-1" />
-                    Menampilkan {{ $pengirimans->firstItem() ?? 0 }} hingga {{ $pengirimans->lastItem() ?? 0 }} dari {{ $pengirimans->total() }} pengiriman
-                </div>
-                <div>
+        <!-- Enhanced Pagination -->
+        <div class="mt-6">
+            <div class="bg-white px-4 py-3 flex items-center justify-between border border-gray-200 rounded-lg sm:px-6">
+                <div class="flex-1 flex justify-between sm:hidden">
                     {{ $pengirimans->links() }}
+                </div>
+                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                    <div>
+                        <p class="text-sm text-gray-700 flex items-center space-x-1">
+                            <flux:icon name="document-text" class="h-4 w-4 text-gray-400" />
+                            <span>Menampilkan</span>
+                            <span class="font-medium">{{ $pengirimans->firstItem() ?? 0 }}</span>
+                            <span>sampai</span>
+                            <span class="font-medium">{{ $pengirimans->lastItem() ?? 0 }}</span>
+                            <span>dari</span>
+                            <span class="font-medium">{{ $pengirimans->total() }}</span>
+                            <span>hasil</span>
+                        </p>
+                    </div>
+                    <div>
+                        {{ $pengirimans->links() }}
+                    </div>
                 </div>
             </div>
         </div>
