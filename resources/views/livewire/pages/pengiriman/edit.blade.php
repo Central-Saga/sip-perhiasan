@@ -1,70 +1,61 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Edit Pengiriman
-        </h2>
-    </x-slot>
-
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
-                <div class="p-6 lg:p-8">
-                    <form wire:submit="save">
-                        <div class="grid grid-cols-6 gap-6">
-                            <div class="col-span-6 sm:col-span-4">
-                                <x-label for="kode_pengiriman" value="Kode Pengiriman" />
-                                <x-input id="kode_pengiriman" type="text" class="mt-1 block w-full bg-gray-100" wire:model="kode_pengiriman" readonly />
-                            </div>
-
-                            <div class="col-span-6 sm:col-span-4">
-                                <x-label for="transaksi_id" value="Transaksi" />
-                                <x-select id="transaksi_id" class="mt-1 block w-full" wire:model="transaksi_id">
-                                    <option value="">Pilih Transaksi</option>
-                                    @foreach($transaksis as $transaksi)
-                                        <option value="{{ $transaksi->id }}">{{ $transaksi->kode_transaksi }}</option>
-                                    @endforeach
-                                </x-select>
-                                <x-input-error for="transaksi_id" class="mt-2" />
-                            </div>
-
-                            <div class="col-span-6 sm:col-span-4">
-                                <x-label for="status" value="Status" />
-                                <x-select id="status" class="mt-1 block w-full" wire:model="status">
-                                    <option value="">Pilih Status</option>
-                                    <option value="PENDING">Pending</option>
-                                    <option value="DIKIRIM">Dikirim</option>
-                                    <option value="SELESAI">Selesai</option>
-                                </x-select>
-                                <x-input-error for="status" class="mt-2" />
-                            </div>
-
-                            <div class="col-span-6 sm:col-span-4">
-                                <x-label for="kurir" value="Kurir" />
-                                <x-input id="kurir" type="text" class="mt-1 block w-full" wire:model="kurir" />
-                                <x-input-error for="kurir" class="mt-2" />
-                            </div>
-
-                            <div class="col-span-6 sm:col-span-4">
-                                <x-label for="no_resi" value="Nomor Resi" />
-                                <x-input id="no_resi" type="text" class="mt-1 block w-full" wire:model="no_resi" />
-                                <x-input-error for="no_resi" class="mt-2" />
-                            </div>
-
-                            <div class="col-span-6 sm:col-span-4">
-                                <x-label for="alamat" value="Alamat" />
-                                <x-textarea id="alamat" class="mt-1 block w-full" wire:model="alamat" />
-                                <x-input-error for="alamat" class="mt-2" />
-                            </div>
-
-                            <div class="col-span-6 sm:col-span-4">
-                                <x-button type="submit">
-                                    Simpan Perubahan
-                                </x-button>
-                            </div>
+@php
+    use App\Models\Transaksi;
+    use App\Models\Pengiriman;
+    $id = request()->route('pengiriman');
+    $pengiriman = Pengiriman::findOrFail($id);
+    $transaksis = Transaksi::all();
+    $statusList = ['pending', 'processing', 'shipped', 'delivered'];
+@endphp
+<div class="py-12 bg-gray-50 min-h-screen">
+    <div class="max-w-7xl mx-auto">
+        <div class="bg-white shadow-xl rounded-2xl p-10">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Edit Pengiriman</h2>
+            <form method="POST" action="{{ route('pengiriman.edit', $pengiriman->id) }}">
+                @csrf
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-6">
+                        <div>
+                            <label for="transaksi_id" class="block text-base font-medium text-gray-700 mb-1">Transaksi</label>
+                            <select id="transaksi_id" name="transaksi_id" class="w-full py-3 px-4 rounded-lg text-base border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 bg-white">
+                                <option value="">Pilih Transaksi</option>
+                                @foreach($transaksis as $transaksi)
+                                    <option value="{{ $transaksi->id }}" {{ old('transaksi_id', $pengiriman->transaksi_id) == $transaksi->id ? 'selected' : '' }}>{{ $transaksi->kode_transaksi }}</option>
+                                @endforeach
+                            </select>
+                            @error('transaksi_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
-                    </form>
+                        <div>
+                            <label for="status" class="block text-base font-medium text-gray-700 mb-1">Status</label>
+                            <select id="status" name="status" class="w-full py-3 px-4 rounded-lg text-base border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 bg-white">
+                                <option value="">Pilih Status</option>
+                                @foreach($statusList as $status)
+                                    <option value="{{ $status }}" {{ old('status', $pengiriman->status) == $status ? 'selected' : '' }}>{{ ucfirst($status) }}</option>
+                                @endforeach
+                            </select>
+                            @error('status') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+                    <div class="space-y-6">
+                        <div>
+                            <label for="deskripsi" class="block text-base font-medium text-gray-700 mb-1">Deskripsi</label>
+                            <input id="deskripsi" type="text" name="deskripsi" class="w-full py-3 px-4 rounded-lg text-base border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 bg-white" value="{{ old('deskripsi', $pengiriman->deskripsi) }}">
+                            @error('deskripsi') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                        </div>
+                        <div>
+                            <label for="tanggal_pengiriman" class="block text-base font-medium text-gray-700 mb-1">Tanggal Pengiriman</label>
+                            <input id="tanggal_pengiriman" type="date" name="tanggal_pengiriman" class="w-full py-3 px-4 rounded-lg text-base border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 bg-white" value="{{ old('tanggal_pengiriman', optional($pengiriman->tanggal_pengiriman)->format('Y-m-d')) }}">
+                            @error('tanggal_pengiriman') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
                 </div>
-            </div>
+                <div class="flex items-center justify-end mt-10 gap-3">
+                    <a href="{{ route('pengiriman.index') }}" class="px-6 py-3 text-indigo-600 border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 rounded-lg font-medium shadow">Batal</a>
+                    <button type="submit" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold shadow-md flex items-center">
+                        <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+                        Simpan Perubahan
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
-</x-app-layout>
+</div>
