@@ -12,6 +12,11 @@ class PelangganSeeder extends Seeder
      */
     public function run(): void
     {
-        \App\Models\Pelanggan::factory()->count(20)->create();
+        // Create customers
+        \App\Models\User::factory()
+            ->count(10)
+            ->create([
+                'role' => 'user' // Using 'user' instead of 'customer' to match DatabaseSeeder's role
+            ]);
     }
 }

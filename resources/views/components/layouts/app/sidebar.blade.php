@@ -2,6 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
     <head>
         @include('partials.head')
+        <!-- Styles harus diletakkan di file Blade utama, bukan di sini -->
     </head>
     <body class="min-h-screen bg-white dark:bg-zinc-800">
         <flux:sidebar sticky stashable class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
@@ -14,6 +15,12 @@
             <flux:navlist variant="outline">
                 <flux:navlist.group :heading="__('Platform')" class="grid">
                     <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
+                    <flux:navlist.item icon="users" :href="route('pelanggan.index')" :current="request()->routeIs('pelanggan.*')" wire:navigate>{{ __('Pelanggan') }}</flux:navlist.item>                  
+                    <flux:navlist.item icon="sparkles" :href="route('produk.index')" :current="request()->routeIs('produk.*')" wire:navigate>{{ __('Produk') }}</flux:navlist.item>
+                    <flux:navlist.item icon="shopping-cart" :href="route('transaksi.index')" :current="request()->routeIs('transaksi.*')" wire:navigate>{{ __('Transaksi') }}</flux:navlist.item>
+                    <flux:navlist.item icon="paper-airplane" :href="route('pengiriman.index')" :current="request()->routeIs('pengiriman.*')" wire:navigate>{{ __('Pengiriman') }}</flux:navlist.item>
+                    <flux:navlist.item icon="currency-dollar" :href="route('pembayaran.index')" :current="request()->routeIs('pembayaran.*')" wire:navigate>{{ __('Pembayaran') }}</flux:navlist.item>
+                    <flux:navlist.item icon="document-text" :href="route('custom-request.index')" :current="request()->routeIs('custom-request.*')" wire:navigate>{{ __('Custom Request') }}</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
 
@@ -127,6 +134,7 @@
 
         {{ $slot }}
 
+        <!-- Scripts harus diletakkan di file Blade utama, bukan di sini -->
         @fluxScripts
     </body>
 </html>

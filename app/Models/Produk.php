@@ -10,6 +10,8 @@ class Produk extends Model
     /** @use HasFactory<\Database\Factories\ProdukFactory> */
     use HasFactory;
 
+    protected $table = 'produk'; // Explicitly set the table name to match migration
+
     protected $fillable = [
         'nama_produk',
         'deskripsi',
@@ -19,9 +21,10 @@ class Produk extends Model
         'kategori',
         'status'
     ];
-
-    public function transaksis()
+    
+    public function detailTransaksi()
     {
-        return $this->hasMany(Transaksi::class);
+        return $this->hasMany(DetailTransaksi::class, foreignKey: 'detail_transaksi_id');
     }
+
 }

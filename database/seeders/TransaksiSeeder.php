@@ -12,20 +12,33 @@ class TransaksiSeeder extends Seeder
      */
     public function run(): void
     {
-        \App\Models\Transaksi::factory()
-            ->count(30)
-            ->create()
-            ->each(function ($transaksi) {
-                // Create related pembayaran
-                \App\Models\Pembayaran::factory()->create([
-                    'transaksi_id' => $transaksi->id,
-                    'total_bayar' => $transaksi->total_harga
-                ]);
+        // Get all pelanggans
+        $pelanggans = \App\Models\Pelanggan::all();
 
-                // Create related pengiriman
-                \App\Models\Pengiriman::factory()->create([
-                    'transaksi_id' => $transaksi->id
-                ]);
-            });
+        foreach ($pelanggans as $pelanggan) {
+            // Create 1-3 transactions per pelanggan
+            \App\Models\Transaksi::factory()
+                ->count(rand(1, 3))
+                ->create([
+                    'user_id' => $pelanggan->user_id,
+                    'pelanggan_id' => $pelanggan->id
+                ])
+                ->each(function ($transaksi) {
+                    // Create related payment
+                    \App\Models\Pembayaran::factory()->create([
+                        'transaksi_id' => $transaksi->id,
+                        'status' => $transaksi->status === 'SELESAI' ? 'SELESAI' : 
+                                  ($transaksi->status === 'DIBATALKAN' ? 'DITOLAK' : 
+                                  ($transaksi->status === 'DIPROSES' ? 'DIBAYAR' : 'PENDING'))
+                    ]);
+
+                    // Create related shipment if payment is completed
+                    if (in_array($transaksi->status, ['DIPROSES', 'SELESAI'])) {
+                        \App\Models\Pengiriman::factory()->create([
+                            'transaksi_id' => $transaksi->id
+                        ]);
+                    }
+                });
+        }
     }
 }

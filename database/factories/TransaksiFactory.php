@@ -16,15 +16,15 @@ class TransaksiFactory extends Factory
      */
     public function definition(): array
     {
+        $pelanggan = \App\Models\Pelanggan::inRandomOrder()->first() ?? \App\Models\Pelanggan::factory()->create();
+        
         return [
-            'user_id' => \App\Models\User::factory(),
-            'produk_id' => \App\Models\Produk::factory(),
-            'jumlah' => fake()->numberBetween(1, 5),
-            'total_harga' => function (array $attributes) {
-                $produk = \App\Models\Produk::find($attributes['produk_id']);
-                return $produk ? $produk->harga * $attributes['jumlah'] : fake()->numberBetween(100000, 10000000);
-            },
-            'status' => fake()->randomElement(['pending', 'processing', 'completed', 'cancelled']),
+            'user_id' => $pelanggan->user_id,
+            'pelanggan_id' => $pelanggan->id,
+            'kode_transaksi' => 'TRX-' . strtoupper(fake()->unique()->bothify('##??##')),
+            'total_harga' => fake()->numberBetween(1000000, 25000000),
+            'status' => fake()->randomElement(['PENDING', 'DIPROSES', 'SELESAI', 'DIBATALKAN']),
+            'tipe_pesanan' => fake()->randomElement(['READY', 'CUSTOM']),
             'tanggal_transaksi' => fake()->dateTimeBetween('-1 month', 'now'),
         ];
     }

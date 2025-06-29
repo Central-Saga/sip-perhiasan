@@ -9,7 +9,7 @@ class Pengiriman extends Model
 {
     use HasFactory;
     
-    protected $table = 'pengirimans';
+    protected $table = 'pengiriman';
 
     protected $fillable = [
         'transaksi_id',

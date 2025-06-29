@@ -8,19 +8,19 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('pembayarans', function (Blueprint $table) {
+        Schema::create('pembayaran', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('transaksi_id')->constrained()->onDelete('cascade');
-            $table->string('metode');
-            $table->decimal('total_bayar', 12, 2);
+            $table->foreignId('transaksi_id')->constrained('transaksi')->onDelete('cascade');
+            $table->enum('metode', ['cash', 'transfer']);
             $table->string('bukti_transfer')->nullable();
-            $table->string('status');
+            $table->enum('status', ['PENDING', 'DIBAYAR', 'SELESAI', 'DITOLAK']);
+            $table->timestamp('tanggal_bayar')->nullable();
             $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('pembayarans');
+        Schema::dropIfExists('pembayaran');
     }
 };

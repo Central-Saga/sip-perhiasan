@@ -8,19 +8,20 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('custom_requests', function (Blueprint $table) {
+        Schema::create('custom_request', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('deskripsi');
+            $table->foreignId('pelanggan_id')->constrained('pelanggan')->onDelete('cascade');
+            $table->text('deskripsi');
             $table->decimal('estimasi_harga', 12, 2);
             $table->string('kategori');
-            $table->string('lokasi');
+            $table->decimal('berat', 8, 2);
+            $table->foreignId('transaksi_id')->nullable()->constrained('transaksi')->onDelete('set null');
             $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('custom_requests');
+        Schema::dropIfExists('custom_request');
     }
 };
