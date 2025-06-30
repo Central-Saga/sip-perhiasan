@@ -28,6 +28,13 @@
                 border: 1.5px solid #facc15;
             }
         }
+        .animate-float {
+            animation: floatY 3.5s ease-in-out infinite;
+        }
+        @keyframes floatY {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-24px); }
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-yellow-50 via-white to-yellow-100 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900 text-[#1b1b18] min-h-screen flex flex-col">
@@ -38,41 +45,42 @@
                 <svg width="36" height="36" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="22" fill="#fef9c3" stroke="#facc15" stroke-width="2"/><ellipse cx="24" cy="30" rx="14" ry="8" fill="#fde68a" opacity=".3"/><ellipse cx="24" cy="22" rx="10" ry="12" fill="#fef08a"/><circle cx="24" cy="20" r="8" fill="#facc15"/><ellipse cx="24" cy="26" rx="6" ry="3" fill="#f59e42"/></svg>
                 <span class="font-extrabold text-xl text-yellow-600 tracking-tight drop-shadow">SIP Perhiasan</span>
             </div>
-            <ul class="flex gap-6 font-semibold text-yellow-700 dark:text-yellow-300 text-base">
+            <ul class="flex gap-6 font-semibold text-yellow-700 dark:text-yellow-300 text-base items-center">
                 <li><a href="#" class="hover:text-yellow-500 transition">Beranda</a></li>
-                <li><a href="#produk" class="hover:text-yellow-500 transition">Produk</a></li>
+                <li><a href="#katalog" class="hover:text-yellow-500 transition">Katalog Produk</a></li>
                 <li><a href="#promo" class="hover:text-yellow-500 transition">Promo</a></li>
-                <li><a href="#testimoni" class="hover:text-yellow-500 transition">Testimoni</a></li>
-                <li><a href="#layanan" class="hover:text-yellow-500 transition">Kontak</a></li>
+                <li><a href="#langganan" class="hover:text-yellow-500 transition">Langganan</a></li>
+                <li><a href="#tentang" class="hover:text-yellow-500 transition">Tentang Kami</a></li>
             </ul>
+            <div class="flex items-center gap-2 ml-4">
+                @auth
+                    <a href="{{ url('/dashboard') }}" class="flex items-center gap-2 px-4 py-2 rounded-full border border-yellow-400 text-yellow-700 dark:text-yellow-200 hover:bg-yellow-100 dark:hover:bg-yellow-700/20 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg>
+                        Profil
+                    </a>
+                @else
+                    <a href="{{ route('login') }}" class="px-4 py-2 rounded-full border border-yellow-400 text-yellow-700 dark:text-yellow-200 hover:bg-yellow-100 dark:hover:bg-yellow-700/20 transition">Masuk</a>
+                    <a href="{{ route('register') }}" class="px-4 py-2 rounded-full bg-yellow-400 text-white font-bold hover:bg-yellow-500 transition">Daftar</a>
+                @endauth
+            </div>
         </div>
     </nav>
 
     <!-- Hero Section -->
-    <section class="hero-bg pt-40 pb-20 min-h-[90vh] flex items-center justify-center text-center px-4 relative overflow-hidden">
+    <section class="hero-bg pt-40 pb-20 min-h-[90vh] flex items-center justify-center px-4 relative overflow-hidden">
         <div class="absolute -top-20 -right-20 w-72 h-72 bg-yellow-100 rounded-full opacity-30 blur-3xl animate-pulse"></div>
         <div class="absolute -bottom-20 -left-20 w-72 h-72 bg-yellow-200 rounded-full opacity-30 blur-3xl animate-pulse"></div>
         <div class="absolute left-1/2 top-1/3 -translate-x-1/2 -z-10 w-96 h-32 bg-yellow-50 rounded-full blur-2xl opacity-40 animate-pulse"></div>
-        <div class="max-w-4xl z-10">
-            <div class="mb-6 flex justify-center">
-                <!-- Ornamen perhiasan SVG -->
-                <svg width="140" height="140" viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="110" cy="110" r="100" fill="#fef9c3"/>
-                    <ellipse cx="110" cy="140" rx="60" ry="40" fill="#fde68a" opacity=".15"/>
-                    <ellipse cx="110" cy="110" rx="50" ry="60" fill="#fef08a"/>
-                    <circle cx="110" cy="100" r="40" fill="#facc15"/>
-                    <ellipse cx="110" cy="120" rx="30" ry="18" fill="#f59e42"/>
-                    <ellipse cx="110" cy="90" rx="18" ry="20" fill="#fff"/>
-                    <ellipse cx="100" cy="95" rx="4" ry="6" fill="#facc15"/>
-                    <ellipse cx="120" cy="95" rx="4" ry="6" fill="#facc15"/>
-                    <rect x="98" y="110" width="24" height="8" rx="4" fill="#fff"/>
-                    <rect x="104" y="112" width="12" height="4" rx="2" fill="#facc15"/>
-                </svg>
+        <div class="max-w-6xl w-full z-10 flex flex-col md:flex-row items-center justify-between gap-10 text-center md:text-left">
+            <div class="flex-1 flex justify-center md:justify-start mb-8 md:mb-0">
+                <img src="/assets/ilustrations/hero-section.png" alt="Hero Icon" class="w-72 h-72 md:w-[420px] md:h-[420px] drop-shadow-xl animate-float" style="min-width:260px; min-height:260px;" loading="lazy" />
             </div>
-            <h1 class="text-5xl md:text-6xl font-extrabold mb-6 text-yellow-700 dark:text-yellow-400 drop-shadow-lg leading-tight">Perhiasan Maskulin Modern</h1>
-            <p class="text-lg md:text-xl max-w-2xl text-yellow-800 dark:text-yellow-200 mb-6 mx-auto">Bukan sekadar aksesoris — ini tentang gaya, kepercayaan diri, dan identitas Anda.</p>
-            <a href="#produk" class="px-8 py-3 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white rounded-full text-lg shadow-lg hover:scale-105 hover:from-yellow-500 hover:to-yellow-700 transition">Mulai Belanja</a>
-            <p class="mt-6 text-yellow-700 dark:text-yellow-300 italic text-sm">✨ Dipercaya oleh 3.000+ pria di seluruh Indonesia</p>
+            <div class="flex-1 flex flex-col items-center md:items-start">
+                <h1 class="text-5xl md:text-6xl font-extrabold mb-6 text-yellow-700 dark:text-yellow-400 drop-shadow-lg leading-tight">Perhiasan Maskulin Modern</h1>
+                <p class="text-lg md:text-xl max-w-2xl text-yellow-800 dark:text-yellow-200 mb-6">Bukan sekadar aksesoris — ini tentang gaya, kepercayaan diri, dan identitas Anda.</p>
+                <a href="#produk" class="px-8 py-3 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white rounded-full text-lg shadow-lg hover:scale-105 hover:from-yellow-500 hover:to-yellow-700 transition mb-4">Mulai Belanja</a>
+                <p class="mt-2 text-yellow-700 dark:text-yellow-300 italic text-sm">✨ Dipercaya oleh 3.000+ pria di seluruh Indonesia</p>
+            </div>
         </div>
     </section>
 
