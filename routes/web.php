@@ -37,7 +37,6 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('pengiriman', 'pages.pengiriman.index')->name('pengiriman.index');
     Volt::route('pengiriman/create', 'pages.pengiriman.create')->name('pengiriman.create');
     Volt::route('pengiriman/{pengiriman}/edit', 'pages.pengiriman.edit')->name('pengiriman.edit');
-    Route::post('pengiriman', [App\Http\Controllers\PengirimanController::class, 'store'])->name('pengiriman.store');
 
     // Pembayaran Routes
     Volt::route('pembayaran', 'pages.pembayaran.index')->name('pembayaran.index');
@@ -49,5 +48,9 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('custom-request/create', 'pages.custom-request.create')->name('custom-request.create');
     Volt::route('custom-request/{customRequest}/edit', 'pages.custom-request.edit')->name('custom-request.edit');
 });
+
+Route::get('/katalog', function () {
+    return view('katalog');
+})->name('katalog');
 
 require __DIR__.'/auth.php';

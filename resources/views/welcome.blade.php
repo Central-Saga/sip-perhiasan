@@ -46,11 +46,8 @@
                 <span class="font-extrabold text-xl text-yellow-600 tracking-tight drop-shadow">SIP Perhiasan</span>
             </div>
             <ul class="flex gap-6 font-semibold text-yellow-700 dark:text-yellow-300 text-base items-center">
-                <li><a href="#" class="hover:text-yellow-500 transition">Beranda</a></li>
-                <li><a href="#katalog" class="hover:text-yellow-500 transition">Katalog Produk</a></li>
-                <li><a href="#promo" class="hover:text-yellow-500 transition">Promo</a></li>
-                <li><a href="#langganan" class="hover:text-yellow-500 transition">Langganan</a></li>
-                <li><a href="#tentang" class="hover:text-yellow-500 transition">Tentang Kami</a></li>
+                <li><a href="/" class="hover:text-yellow-500 transition">Beranda</a></li>
+                <li><a href="{{ route('katalog') }}" class="hover:text-yellow-500 transition">Katalog Produk</a></li>
             </ul>
             <div class="flex items-center gap-2 ml-4">
                 @auth
@@ -135,7 +132,7 @@
     </section>
 
     <!-- Promo Section -->
-    <section id="promo" class="max-w-5xl mx-auto mt-24 px-4">
+    <section id="promo" class="max-w-7xl mx-auto mt-24 px-4">
         <h2 class="text-2xl font-bold text-yellow-700 dark:text-yellow-300 mb-6">Promo Spesial Bulan Ini</h2>
         <div class="glass p-8 flex flex-col md:flex-row items-center justify-between gap-8 border border-yellow-200 dark:border-yellow-700 hover:shadow-yellow-400/60 transition">
             <div class="flex-1">
@@ -153,7 +150,7 @@
     </section>
 
     <!-- Testimoni Section -->
-    <section id="testimoni" class="max-w-5xl mx-auto mt-24 px-4">
+    <section id="testimoni" class="max-w-7xl mx-auto mt-24 px-4">
         <h2 class="text-2xl font-bold text-yellow-700 dark:text-yellow-300 mb-6">Apa Kata Pelanggan Pria?</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div class="glass p-8 border border-yellow-200 dark:border-yellow-700 hover:shadow-yellow-400/60 transition">
@@ -174,7 +171,7 @@
     </section>
 
     <!-- Layanan Pelanggan Section -->
-    <section id="layanan" class="max-w-5xl mx-auto mt-24 px-4 mb-20">
+    <section id="layanan" class="max-w-12xl mx-auto mt-24 px-4 mb-20">
         <h2 class="text-2xl font-bold text-yellow-700 dark:text-yellow-300 mb-6">Layanan Pelanggan</h2>
         <div class="glass p-8 flex flex-col md:flex-row items-center gap-8 border border-yellow-200 dark:border-yellow-700 hover:shadow-yellow-400/60 transition">
             <div class="flex-1">
