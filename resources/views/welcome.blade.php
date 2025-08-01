@@ -1,213 +1,396 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SIP Perhiasan - Toko Perhiasan Modern</title>
-    <link rel="icon" href="/favicon.ico" sizes="any">
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-    <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .hero-bg {
-            background: linear-gradient(120deg, #fef9c3 0%, #fef6e4 60%, #fffbe8 100%);
-            position: relative;
+
+
+@php
+    $produkList = [
+        [
+            'id' => 1,
+            'nama_produk' => 'Cincin Emas Klasik',
+            'harga' => 2750000,
+            'stok' => 8,
+            'foto' => 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80',
+            'kategori' => 'Cincin',
+        ],
+        [
+            'id' => 2,
+            'nama_produk' => 'Kalung Silver Bliss',
+            'harga' => 3200000,
+            'stok' => 5,
+            'foto' => 'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=400&q=80',
+            'kategori' => 'Kalung',
+        ],
+        [
+            'id' => 3,
+            'nama_produk' => 'Gelang Berlian Mewah',
+            'harga' => 4500000,
+            'stok' => 3,
+            'foto' => 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80',
+            'kategori' => 'Gelang',
+        ],
+    ];
+@endphp
+
+@extends('layouts.app')
+
+@section('title', 'Bliss Silversmith - Sistem Informasi Penjualan Perhiasan')
+
+@section('content')
+
+    <!-- Hero Section: Modern Silver & Gold Theme -->
+    <section class="relative py-58 md:py-60 bg-gradient-to-br from-slate-50 via-gray-100 to-slate-200 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 overflow-hidden">
+        <div class="absolute inset-0 overflow-hidden opacity-10">
+            <div class="absolute -inset-x-40 -top-20 h-60 bg-gradient-to-b from-slate-100 to-transparent dark:from-gray-700 rounded-full blur-3xl"></div>
+            <div class="absolute -inset-x-40 -bottom-20 h-60 bg-gradient-to-t from-indigo-100 to-transparent dark:from-indigo-900 rounded-full blur-3xl"></div>
+        </div>
+        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+            <div class="flex-1 flex justify-center md:justify-start mb-4 md:mb-0">
+                <div class="backdrop-blur bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 shadow-xl rounded-3xl p-6 max-w-xl w-full text-center md:text-left">
+                    <div class="inline-flex items-center gap-2 px-4 py-1 bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 rounded-full mb-3">
+                        <i class="fa-solid fa-gem"></i> <span class="text-sm font-semibold">Premium Jewelry Collection</span>
+                    </div>
+                    <h1 class="text-3xl md:text-4xl lg:text-5xl font-extrabold mb-3 tracking-tight leading-tight text-slate-800 dark:text-slate-100" style="letter-spacing:0.5px;">
+                        <span class="block">Koleksi <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-slate-500 dark:from-indigo-400 dark:to-slate-300">Silver & Gold</span></span>
+                        <span class="block text-xl md:text-2xl lg:text-3xl font-medium text-slate-500 dark:text-slate-400">UMKM Bliss Silversmith</span>
+                    </h1>
+                    <p class="text-base md:text-lg mb-4 text-slate-600 dark:text-slate-300 leading-relaxed">
+                        Temukan koleksi perhiasan silver dan emas eksklusif dengan desain modern dan elegan. Pilihan terbaik untuk hadiah, investasi, dan penyempurna gaya.
+                    </p>
+                    <div class="flex flex-col md:flex-row gap-3 md:items-center justify-center md:justify-start">
+                        <a href="{{ route('produk.landing') }}" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-500 hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white font-bold rounded-full shadow-lg transition">
+                            <i class="fa-solid fa-gem"></i> Lihat Koleksi
+                        </a>
+                        <a href="#about" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-transparent border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 font-medium rounded-full transition">
+                            <i class="fa-solid fa-info-circle"></i> Tentang Kami
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="flex-1 flex justify-center items-center relative">
+                <div class="grid grid-cols-2 gap-3 max-w-md">
+                    <div class="space-y-3">
+                        <img src="https://images.unsplash.com/photo-1603561591411-07134e71a2a9?auto=format&fit=crop&w=400&q=80" alt="Silver Jewelry" class="rounded-2xl shadow-xl border-2 border-white dark:border-slate-700 h-44 w-full object-cover transform hover:scale-105 transition duration-500">
+                        <img src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=400&q=80" alt="Gold Jewelry" class="rounded-2xl shadow-xl border-2 border-white dark:border-slate-700 h-28 w-full object-cover transform hover:scale-105 transition duration-500">
+                    </div>
+                    <div class="space-y-3 pt-4">
+                        <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=400&q=80" alt="Gold Ring" class="rounded-2xl shadow-xl border-2 border-white dark:border-slate-700 h-28 w-full object-cover transform hover:scale-105 transition duration-500">
+                        <img src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=400&q=80" alt="Silver Necklace" class="rounded-2xl shadow-xl border-2 border-white dark:border-slate-700 h-44 w-full object-cover transform hover:scale-105 transition duration-500">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section class="w-full py-12 bg-gradient-to-br from-slate-100 via-white to-slate-200 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex items-center justify-center gap-2 mb-3">
+                <span class="h-0.5 w-12 bg-indigo-300 dark:bg-indigo-600 rounded"></span>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-700 dark:text-slate-200 text-center"><i class="fa-solid fa-images text-indigo-400 dark:text-indigo-300"></i> Galeri Perhiasan</h2>
+                <span class="h-0.5 w-12 bg-indigo-300 dark:bg-indigo-600 rounded"></span>
+            </div>
+            <p class="text-center text-slate-500 dark:text-slate-400 mb-8 max-w-2xl mx-auto">Koleksi perhiasan terbaru kami dengan material premium dan pengerjaan detail oleh pengrajin berpengalaman.</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                <div class="rounded-xl overflow-hidden shadow-lg bg-white dark:bg-slate-800 flex flex-col items-center p-4 hover:shadow-xl transition-shadow">
+                    <img src="https://images.unsplash.com/photo-1512428559087-560fa5ceab42?auto=format&fit=crop&w=600&q=80" alt="Galeri 1" class="w-full h-48 object-cover mb-3 rounded-lg">
+                    <span class="font-semibold text-slate-700 dark:text-slate-200">Cincin Emas Elegan</span>
+                </div>
+                <div class="rounded-xl overflow-hidden shadow-lg bg-white dark:bg-slate-800 flex flex-col items-center p-4 hover:shadow-xl transition-shadow">
+                    <img src="https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=600&q=80" alt="Galeri 2" class="w-full h-48 object-cover mb-3 rounded-lg">
+                    <span class="font-semibold text-slate-700 dark:text-slate-200">Kalung Silver Mewah</span>
+                </div>
+                <div class="rounded-xl overflow-hidden shadow-lg bg-white dark:bg-slate-800 flex flex-col items-center p-4 hover:shadow-xl transition-shadow">
+                    <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80" alt="Galeri 3" class="w-full h-48 object-cover mb-3 rounded-lg">
+                    <span class="font-semibold text-slate-700 dark:text-slate-200">Gelang Berlian Eksklusif</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Produk Section -->
+    <section id="produk" class="w-full py-16 bg-white dark:bg-slate-900">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex items-center justify-center gap-2 mb-3">
+                <span class="h-0.5 w-12 bg-indigo-300 dark:bg-indigo-600 rounded"></span>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-700 dark:text-slate-200 text-center"><i class="fa-solid fa-gem text-indigo-400 dark:text-indigo-300"></i> Koleksi Perhiasan</h2>
+                <span class="h-0.5 w-12 bg-indigo-300 dark:bg-indigo-600 rounded"></span>
+            </div>
+            <p class="text-center text-slate-500 dark:text-slate-400 mb-8 max-w-2xl mx-auto">Pilih dan pesan perhiasan impian Anda, langsung dari pengrajin terbaik dengan desain eksklusif.</p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+                @foreach($produkList as $produk)
+                <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-100 dark:border-slate-700 group">
+                    <div class="relative overflow-hidden">
+                        <img src="{{ $produk['foto'] }}" alt="{{ $produk['nama_produk'] }}" class="w-full h-48 object-cover bg-slate-100 dark:bg-slate-700 group-hover:scale-105 transition-transform duration-500">
+                        <span class="absolute top-3 right-3 text-xs bg-indigo-500/90 dark:bg-indigo-600/90 text-white px-3 py-1 rounded-full font-medium shadow-lg backdrop-blur-sm">
+                            {{ $produk['kategori'] }}
+                        </span>
+                    </div>
+                    <div class="p-5 flex flex-col gap-2">
+                        <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100">{{ $produk['nama_produk'] }}</h3>
+                        <div class="flex justify-between items-center">
+                            <p class="text-indigo-600 dark:text-indigo-300 font-semibold text-xl">Rp {{ number_format($produk['harga'],0,',','.') }}</p>
+                            <p class="text-slate-500 dark:text-slate-400 text-sm bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">Stok: {{ $produk['stok'] }}</p>
+                        </div>
+                        <a href="{{ url('/produk/'.$produk['id']) }}" class="mt-2 px-4 py-2.5 bg-indigo-500 hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white rounded-lg font-semibold transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-eye"></i> Lihat Detail
+                        </a>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+            
+            <div class="mt-12 text-center">
+                <a href="{{ route('produk.landing') }}" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-indigo-600 dark:text-indigo-300 font-medium rounded-lg transition-colors">
+                    <i class="fa-solid fa-arrow-right"></i> Lihat Semua Perhiasan
+                </a>
+            </div>
+        </div>
+
+        <!-- Cart Modal -->
+        <div id="cartModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-50">
+            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg w-full max-w-md p-6 relative">
+                <button onclick="closeCart()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+                <h4 class="text-xl font-bold mb-4 text-slate-800 dark:text-slate-200 flex items-center gap-2"><i class="fa-solid fa-cart-shopping text-indigo-500 dark:text-indigo-400"></i> Keranjang Belanja</h4>
+                <div id="cartItems" class="mb-4 max-h-60 overflow-y-auto"></div>
+                <div class="flex justify-between items-center border-t pt-4 border-slate-200 dark:border-slate-700">
+                    <span class="font-bold text-lg text-slate-800 dark:text-slate-200">Total:</span>
+                    <span class="font-bold text-indigo-600 dark:text-indigo-300 text-lg" id="cartTotal">Rp 0</span>
+                </div>
+                <button class="mt-6 w-full px-4 py-3 bg-indigo-500 hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white rounded-lg font-semibold transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-credit-card"></i> Checkout
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="w-full py-16 bg-slate-50 dark:bg-slate-800">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex items-center justify-center gap-2 mb-3">
+                <span class="h-0.5 w-12 bg-indigo-300 dark:bg-indigo-600 rounded"></span>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-700 dark:text-slate-200 text-center"><i class="fa-solid fa-shop text-indigo-400 dark:text-indigo-300"></i> Tentang Kami</h2>
+                <span class="h-0.5 w-12 bg-indigo-300 dark:bg-indigo-600 rounded"></span>
+            </div>
+            <p class="text-center text-slate-500 dark:text-slate-400 mb-8 max-w-2xl mx-auto">Keunggulan dan keahlian kami dalam menghasilkan perhiasan berkualitas tinggi.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                <div class="rounded-xl overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1472851294608-062f824d29cc?auto=format&fit=crop&w=800&q=80" alt="About Us" class="w-full h-auto rounded-lg shadow-lg">
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold text-slate-700 dark:text-slate-200 mb-4">Silversmith Premium</h3>
+                    <p class="text-slate-600 dark:text-slate-300 mb-4">
+                        Kami adalah pengrajin perhiasan silver dan emas dengan pengalaman lebih dari 20 tahun dalam industri. Setiap perhiasan dibuat dengan ketelitian tinggi dan bahan berkualitas premium.
+                    </p>
+                    <p class="text-slate-600 dark:text-slate-300 mb-4">
+                        Komitmen kami adalah memberikan perhiasan berkualitas tinggi dengan design elegan dan modern yang dapat menjadi bagian dari momen spesial Anda.
+                    </p>
+                    <div class="flex flex-wrap gap-4 mt-6">
+                        <a href="#contact" class="px-5 py-2 bg-indigo-500 hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white font-medium rounded-lg shadow transition-colors">Hubungi Kami</a>
+                        <a href="#" class="px-5 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-medium rounded-lg shadow transition-colors">Portofolio</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Features -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16">
+                <div class="bg-white dark:bg-slate-700 rounded-xl p-6 shadow-lg text-center">
+                    <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-indigo-100 dark:bg-indigo-900 mb-4">
+                        <i class="fa-solid fa-medal text-xl text-indigo-500 dark:text-indigo-300"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-2">Kualitas Premium</h3>
+                    <p class="text-slate-600 dark:text-slate-300">Perhiasan dengan material terbaik dan pengerjaan yang teliti untuk hasil terbaik.</p>
+                </div>
+                
+                <div class="bg-white dark:bg-slate-700 rounded-xl p-6 shadow-lg text-center">
+                    <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-indigo-100 dark:bg-indigo-900 mb-4">
+                        <i class="fa-solid fa-gem text-xl text-indigo-500 dark:text-indigo-300"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-2">Desain Eksklusif</h3>
+                    <p class="text-slate-600 dark:text-slate-300">Setiap perhiasan memiliki desain unik dan modern yang mengikuti tren terkini.</p>
+                </div>
+                
+                <div class="bg-white dark:bg-slate-700 rounded-xl p-6 shadow-lg text-center">
+                    <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-indigo-100 dark:bg-indigo-900 mb-4">
+                        <i class="fa-solid fa-certificate text-xl text-indigo-500 dark:text-indigo-300"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-2">Bergaransi</h3>
+                    <p class="text-slate-600 dark:text-slate-300">Semua produk kami disertai garansi keaslian dan perawatan untuk ketenangan Anda.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="w-full py-16 bg-gradient-to-br from-slate-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex items-center justify-center gap-2 mb-3">
+                <span class="h-0.5 w-12 bg-indigo-300 dark:bg-indigo-600 rounded"></span>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-700 dark:text-slate-200 text-center"><i class="fa-solid fa-envelope text-indigo-400 dark:text-indigo-300"></i> Hubungi Kami</h2>
+                <span class="h-0.5 w-12 bg-indigo-300 dark:bg-indigo-600 rounded"></span>
+            </div>
+            <p class="text-center text-slate-500 dark:text-slate-400 mb-8 max-w-2xl mx-auto">Ada pertanyaan atau ingin konsultasi tentang perhiasan? Kami siap membantu Anda.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                <div>
+                    <form class="space-y-4 bg-white dark:bg-slate-800 p-6 rounded-xl shadow-lg">
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nama</label>
+                            <input type="text" id="name" class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-400 dark:focus:ring-indigo-600 focus:border-transparent dark:bg-slate-700 dark:text-white">
+                        </div>
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email</label>
+                            <input type="email" id="email" class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-400 dark:focus:ring-indigo-600 focus:border-transparent dark:bg-slate-700 dark:text-white">
+                        </div>
+                        <div>
+                            <label for="subject" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Subjek</label>
+                            <select id="subject" class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-400 dark:focus:ring-indigo-600 focus:border-transparent dark:bg-slate-700 dark:text-white">
+                                <option>Pertanyaan Produk</option>
+                                <option>Custom Order</option>
+                                <option>Informasi Harga</option>
+                                <option>Garansi & Perawatan</option>
+                                <option>Lainnya</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="message" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Pesan</label>
+                            <textarea id="message" rows="4" class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-400 dark:focus:ring-indigo-600 focus:border-transparent dark:bg-slate-700 dark:text-white"></textarea>
+                        </div>
+                        <button type="submit" class="w-full md:w-auto px-6 py-2.5 bg-indigo-500 hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white font-medium rounded-lg shadow-md transition-colors">
+                            <i class="fa-solid fa-paper-plane mr-2"></i> Kirim Pesan
+                        </button>
+                    </form>
+                </div>
+                <div>
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-lg mb-6">
+                        <h3 class="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-4">Informasi Kontak</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
+                                    <i class="fa-solid fa-location-dot text-indigo-500 dark:text-indigo-300"></i>
+                                </div>
+                                <div class="ml-3 mt-1">
+                                    <p class="text-slate-600 dark:text-slate-300">Jl. Perhiasan Indah No. 123, Kota Perak</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
+                                    <i class="fa-solid fa-phone text-indigo-500 dark:text-indigo-300"></i>
+                                </div>
+                                <div class="ml-3 mt-1">
+                                    <p class="text-slate-600 dark:text-slate-300">+62 123-4567-8900</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
+                                    <i class="fa-solid fa-envelope text-indigo-500 dark:text-indigo-300"></i>
+                                </div>
+                                <div class="ml-3 mt-1">
+                                    <p class="text-slate-600 dark:text-slate-300">info@silversmith.id</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-lg">
+                        <h3 class="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-4">Jam Operasional</h3>
+                        <ul class="space-y-2 text-slate-600 dark:text-slate-300">
+                            <li class="flex justify-between"><span>Senin - Jumat:</span> <span>09:00 - 20:00</span></li>
+                            <li class="flex justify-between"><span>Sabtu:</span> <span>10:00 - 18:00</span></li>
+                            <li class="flex justify-between"><span>Minggu:</span> <span>10:00 - 15:00</span></li>
+                        </ul>
+                        
+                        <h3 class="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-4 mt-6">Ikuti Kami</h3>
+                        <div class="flex space-x-4">
+                            <a href="#" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 hover:bg-indigo-100 hover:text-indigo-500 dark:text-slate-300 dark:hover:bg-indigo-900 dark:hover:text-indigo-300 transition-colors">
+                                <i class="fa-brands fa-facebook-f"></i>
+                            </a>
+                            <a href="#" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 hover:bg-indigo-100 hover:text-indigo-500 dark:text-slate-300 dark:hover:bg-indigo-900 dark:hover:text-indigo-300 transition-colors">
+                                <i class="fa-brands fa-twitter"></i>
+                            </a>
+                            <a href="#" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 hover:bg-indigo-100 hover:text-indigo-500 dark:text-slate-300 dark:hover:bg-indigo-900 dark:hover:text-indigo-300 transition-colors">
+                                <i class="fa-brands fa-instagram"></i>
+                            </a>
+                            <a href="#" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 hover:bg-indigo-100 hover:text-indigo-500 dark:text-slate-300 dark:hover:bg-indigo-900 dark:hover:text-indigo-300 transition-colors">
+                                <i class="fa-brands fa-youtube"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Cart logic (localStorage)
+        const produkList = @json($produkList);
+        let cart = JSON.parse(localStorage.getItem('cart') || '{}');
+
+        function updateCartCount() {
+            let count = 0;
+            for (const id in cart) count += cart[id].qty;
+            const cartCount = document.getElementById('cartCount');
+            if(cartCount) cartCount.innerText = count;
         }
-        body { font-family: 'Instrument Sans', sans-serif; }
-        .glass {
-            background: rgba(255,255,255,0.88);
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.10);
-            backdrop-filter: blur(6px);
-            border-radius: 1.5rem;
-            border: 1.5px solid #facc15;
+
+        function addToCart(id) {
+            const produk = produkList.find(p => p.id === id);
+            if (!produk) return;
+            if (!cart[id]) cart[id] = { ...produk, qty: 0 };
+            if (cart[id].qty < produk.stok) cart[id].qty++;
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+            window.location.href = "{{ route('cart') }}";
         }
-        @media (prefers-color-scheme: dark) {
-            .glass {
-                background: rgba(30,41,59,0.88);
-                border: 1.5px solid #facc15;
+
+        function openCart() {
+            renderCart();
+            document.getElementById('cartModal').classList.remove('hidden');
+        }
+        function closeCart() {
+            document.getElementById('cartModal').classList.add('hidden');
+        }
+        const cartBtn = document.getElementById('cartBtn');
+        if(cartBtn) cartBtn.onclick = openCart;
+
+        function renderCart() {
+            const cartItems = document.getElementById('cartItems');
+            const cartTotal = document.getElementById('cartTotal');
+            let html = '';
+            let total = 0;
+            for (const id in cart) {
+                const item = cart[id];
+                html += `<div class='flex justify-between items-center mb-2'>
+                    <span>${item.nama_produk} <span class='text-xs text-slate-400'>x${item.qty}</span></span>
+                    <span>Rp ${item.harga.toLocaleString('id-ID')}</span>
+                </div>`;
+                total += item.harga * item.qty;
             }
+            if(cartItems) cartItems.innerHTML = html || '<p class="text-slate-400">Keranjang kosong.</p>';
+            if(cartTotal) cartTotal.innerText = 'Rp ' + total.toLocaleString('id-ID');
         }
-        .animate-float {
-            animation: floatY 3.5s ease-in-out infinite;
+
+        // Inisialisasi cart count saat load
+        updateCartCount();
+    </script>
+    
+    <script>
+    // Dark mode toggle
+    function toggleDarkMode() {
+        if(document.documentElement.classList.contains('dark')) {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
+        } else {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
         }
-        @keyframes floatY {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-24px); }
-        }
-    </style>
-</head>
-<body class="bg-gradient-to-br from-yellow-50 via-white to-yellow-100 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900 text-[#1b1b18] min-h-screen flex flex-col">
-    <!-- Navbar -->
-    <nav class="w-full fixed top-0 left-0 z-50 bg-white/90 dark:bg-zinc-900/90 backdrop-blur border-b border-yellow-100 dark:border-yellow-900 shadow-sm">
-        <div class="max-w-7xl mx-auto flex items-center justify-between px-6 py-3">
-            <div class="flex items-center gap-2">
-                <svg width="36" height="36" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="22" fill="#fef9c3" stroke="#facc15" stroke-width="2"/><ellipse cx="24" cy="30" rx="14" ry="8" fill="#fde68a" opacity=".3"/><ellipse cx="24" cy="22" rx="10" ry="12" fill="#fef08a"/><circle cx="24" cy="20" r="8" fill="#facc15"/><ellipse cx="24" cy="26" rx="6" ry="3" fill="#f59e42"/></svg>
-                <span class="font-extrabold text-xl text-yellow-600 tracking-tight drop-shadow">SIP Perhiasan</span>
-            </div>
-            <ul class="flex gap-6 font-semibold text-yellow-700 dark:text-yellow-300 text-base items-center">
-                <li><a href="/" class="hover:text-yellow-500 transition">Beranda</a></li>
-                <li><a href="{{ route('katalog') }}" class="hover:text-yellow-500 transition">Katalog Produk</a></li>
-            </ul>
-            <div class="flex items-center gap-2 ml-4">
-                @auth
-                    <a href="{{ url('/dashboard') }}" class="flex items-center gap-2 px-4 py-2 rounded-full border border-yellow-400 text-yellow-700 dark:text-yellow-200 hover:bg-yellow-100 dark:hover:bg-yellow-700/20 transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg>
-                        Profil
-                    </a>
-                @else
-                    <a href="{{ route('login') }}" class="px-4 py-2 rounded-full border border-yellow-400 text-yellow-700 dark:text-yellow-200 hover:bg-yellow-100 dark:hover:bg-yellow-700/20 transition">Masuk</a>
-                    <a href="{{ route('register') }}" class="px-4 py-2 rounded-full bg-yellow-400 text-white font-bold hover:bg-yellow-500 transition">Daftar</a>
-                @endauth
-            </div>
-        </div>
-    </nav>
-
-    <!-- Hero Section -->
-    <section class="hero-bg pt-40 pb-20 min-h-[90vh] flex items-center justify-center px-4 relative overflow-hidden">
-        <div class="absolute -top-20 -right-20 w-72 h-72 bg-yellow-100 rounded-full opacity-30 blur-3xl animate-pulse"></div>
-        <div class="absolute -bottom-20 -left-20 w-72 h-72 bg-yellow-200 rounded-full opacity-30 blur-3xl animate-pulse"></div>
-        <div class="absolute left-1/2 top-1/3 -translate-x-1/2 -z-10 w-96 h-32 bg-yellow-50 rounded-full blur-2xl opacity-40 animate-pulse"></div>
-        <div class="max-w-6xl w-full z-10 flex flex-col md:flex-row items-center justify-between gap-10 text-center md:text-left">
-            <div class="flex-1 flex justify-center md:justify-start mb-8 md:mb-0">
-                <img src="/assets/ilustrations/hero-section.png" alt="Hero Icon" class="w-72 h-72 md:w-[420px] md:h-[420px] drop-shadow-xl animate-float" style="min-width:260px; min-height:260px;" loading="lazy" />
-            </div>
-            <div class="flex-1 flex flex-col items-center md:items-start">
-                <h1 class="text-5xl md:text-6xl font-extrabold mb-6 text-yellow-700 dark:text-yellow-400 drop-shadow-lg leading-tight">Perhiasan Maskulin Modern</h1>
-                <p class="text-lg md:text-xl max-w-2xl text-yellow-800 dark:text-yellow-200 mb-6">Bukan sekadar aksesoris — ini tentang gaya, kepercayaan diri, dan identitas Anda.</p>
-                <a href="#produk" class="px-8 py-3 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white rounded-full text-lg shadow-lg hover:scale-105 hover:from-yellow-500 hover:to-yellow-700 transition mb-4">Mulai Belanja</a>
-                <p class="mt-2 text-yellow-700 dark:text-yellow-300 italic text-sm">✨ Dipercaya oleh 3.000+ pria di seluruh Indonesia</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Menu Utama Pelanggan -->
-    <section class="max-w-6xl mx-auto mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 px-4">
-        <div class="glass p-8 flex flex-col items-center text-center border border-yellow-200 dark:border-yellow-700 shadow-lg hover:shadow-yellow-400/60 hover:scale-105 transition">
-            <span class="mb-3">
-                <!-- SVG promo gold -->
-                <svg width="48" height="48" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#facc15" opacity=".15"/><path fill="#f59e42" d="M12 6.5c-2.48 0-4.5 2.02-4.5 4.5s2.02 4.5 4.5 4.5 4.5-2.02 4.5-4.5-2.02-4.5-4.5-4.5zm0 7c-1.38 0-2.5-1.12-2.5-2.5S10.62 8.5 12 8.5s2.5 1.12 2.5 2.5S13.38 13.5 12 13.5z"/></svg>
-            </span>
-            <h3 class="font-bold text-xl mb-2 text-yellow-700 dark:text-yellow-300">Promo & Diskon</h3>
-            <p class="text-yellow-800 dark:text-yellow-200 mb-4">Promo spesial & diskon menarik setiap bulan untuk pelanggan pria modern. Dapatkan penawaran emas terbaik!</p>
-            <a href="#promo" class="text-yellow-700 font-semibold hover:underline hover:text-yellow-500 transition">Lihat Promo</a>
-        </div>
-        <div class="glass p-8 flex flex-col items-center text-center border border-yellow-200 dark:border-yellow-700 shadow-lg hover:shadow-yellow-400/60 hover:scale-105 transition">
-            <span class="mb-3">
-                <!-- SVG testimoni gold -->
-                <svg width="48" height="48" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#facc15" opacity=".15"/><path fill="#f59e42" d="M13 16h-2v-2h2v2zm0-4h-2V7h2v5z"/></svg>
-            </span>
-            <h3 class="font-bold text-xl mb-2 text-yellow-700 dark:text-yellow-300">Testimoni Pelanggan</h3>
-            <p class="text-yellow-800 dark:text-yellow-200 mb-4">Baca pengalaman pelanggan pria yang puas berbelanja di SIP Perhiasan. Bukti kualitas & kepercayaan!</p>
-            <a href="#testimoni" class="text-yellow-700 font-semibold hover:underline hover:text-yellow-500 transition">Lihat Testimoni</a>
-        </div>
-        <div class="glass p-8 flex flex-col items-center text-center border border-yellow-200 dark:border-yellow-700 shadow-lg hover:shadow-yellow-400/60 hover:scale-105 transition">
-            <span class="mb-3">
-                <!-- SVG layanan gold -->
-                <svg width="48" height="48" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#facc15" opacity=".15"/><path fill="#f59e42" d="M13 16h-2v-2h2v2zm0-4h-2V7h2v5z"/></svg>
-            </span>
-            <h3 class="font-bold text-xl mb-2 text-yellow-700 dark:text-yellow-300">Layanan Pelanggan</h3>
-            <p class="text-yellow-800 dark:text-yellow-200 mb-4">Butuh bantuan? Tim kami siap membantu Anda dengan ramah dan profesional setiap hari.</p>
-            <a href="#layanan" class="text-yellow-700 font-semibold hover:underline hover:text-yellow-500 transition">Hubungi Kami</a>
-        </div>
-    </section>
-
-    <!-- Produk Unggulan -->
-    <section id="produk" class="max-w-7xl mx-auto mt-20 px-4">
-        <h2 class="text-3xl font-extrabold text-center mb-10 text-yellow-700 dark:text-yellow-300 drop-shadow">Koleksi Produk Unggulan</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-            @foreach(\App\Models\Produk::orderByDesc('created_at')->limit(8)->get() as $produk)
-            <div class="glass p-6 flex flex-col items-center border border-yellow-200 dark:border-yellow-700 hover:shadow-yellow-400/60 hover:scale-105 transition">
-                <svg width="60" height="60" fill="none" viewBox="0 0 24 24" class="mb-2"><rect width="24" height="24" rx="12" fill="#facc15" opacity=".15"/><path d="M12 7l5 5-5 5-5-5 5-5z" fill="#f59e42"/></svg>
-                <img src="{{ $produk->foto_produk ? asset('storage/'.$produk->foto_produk) : 'https://placehold.co/220x220?text=Perhiasan' }}" alt="{{ $produk->nama_produk }}" class="w-36 h-36 object-cover rounded-xl mb-4 border shadow">
-                <h3 class="font-bold text-lg text-center mb-1 text-yellow-800 dark:text-yellow-200">{{ $produk->nama_produk }}</h3>
-                <p class="text-yellow-700 dark:text-yellow-300 font-bold mb-2 text-lg">Rp {{ number_format($produk->harga, 0, ',', '.') }}</p>
-                <a href="{{ route('produk.index') }}" class="px-5 py-2 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white rounded-full shadow hover:scale-105 hover:from-yellow-500 hover:to-yellow-700 transition">Lihat Detail</a>
-            </div>
-            @endforeach
-        </div>
-        <div class="text-center mt-10">
-            <a href="{{ route('produk.index') }}" class="inline-block px-10 py-3 bg-gradient-to-r from-yellow-100 to-yellow-300 text-yellow-800 rounded-full font-bold hover:bg-yellow-200 transition">Lihat Semua Produk</a>
-        </div>
-    </section>
-
-    <!-- Promo Section -->
-    <section id="promo" class="max-w-7xl mx-auto mt-24 px-4">
-        <h2 class="text-2xl font-bold text-yellow-700 dark:text-yellow-300 mb-6">Promo Spesial Bulan Ini</h2>
-        <div class="glass p-8 flex flex-col md:flex-row items-center justify-between gap-8 border border-yellow-200 dark:border-yellow-700 hover:shadow-yellow-400/60 transition">
-            <div class="flex-1">
-                <h3 class="font-bold text-xl mb-2 text-yellow-700 dark:text-yellow-200">Diskon hingga 30% untuk koleksi pria terbaru!</h3>
-                <p class="text-yellow-800 dark:text-yellow-200 mb-4">Jangan lewatkan kesempatan untuk mendapatkan perhiasan maskulin dengan harga spesial dan bonus menarik setiap pembelian emas!</p>
-                <a href="{{ route('produk.index') }}" class="px-8 py-3 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white rounded-full shadow hover:scale-105 hover:from-yellow-500 hover:to-yellow-700 transition font-semibold">Belanja Sekarang</a>
-            </div>
-            <svg width="180" height="120" viewBox="0 0 180 120" fill="none" xmlns="http://www.w3.org/2000/svg" class="rounded-xl shadow border">
-                <rect width="180" height="120" rx="20" fill="#fef9c3"/>
-                <ellipse cx="90" cy="80" rx="60" ry="30" fill="#fde68a" opacity=".15"/>
-                <rect x="50" y="40" width="80" height="40" rx="12" fill="#fde68a"/>
-                <rect x="70" y="60" width="40" height="10" rx="5" fill="#facc15"/>
-            </svg>
-        </div>
-    </section>
-
-    <!-- Testimoni Section -->
-    <section id="testimoni" class="max-w-7xl mx-auto mt-24 px-4">
-        <h2 class="text-2xl font-bold text-yellow-700 dark:text-yellow-300 mb-6">Apa Kata Pelanggan Pria?</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div class="glass p-8 border border-yellow-200 dark:border-yellow-700 hover:shadow-yellow-400/60 transition">
-                <div class="flex items-center gap-3 mb-3">
-                    <svg width="40" height="40" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#facc15"/><path d="M12 7a3 3 0 110 6 3 3 0 010-6zm0 8c-2.67 0-8 1.34-8 4v1h16v-1c0-2.66-5.33-4-8-4z" fill="#fde68a"/></svg>
-                    <span class="font-semibold text-base text-yellow-700 dark:text-yellow-200">Rizal, Surabaya</span>
-                </div>
-                <p class="italic text-yellow-800 dark:text-yellow-200 mb-2 text-lg">"Desain maskulin dan pelayanan sangat ramah. Saya sangat puas membeli gelang di sini!"</p>
-            </div>
-            <div class="glass p-8 border border-yellow-200 dark:border-yellow-700 hover:shadow-yellow-400/60 transition">
-                <div class="flex items-center gap-3 mb-3">
-                    <svg width="40" height="40" fill="none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#fde68a"/><path d="M12 7a3 3 0 110 6 3 3 0 010-6zm0 8c-2.67 0-8 1.34-8 4v1h16v-1c0-2.66-5.33-4-8-4z" fill="#facc15"/></svg>
-                    <span class="font-semibold text-base text-yellow-700 dark:text-yellow-200">Bambang, Bandung</span>
-                </div>
-                <p class="italic text-yellow-800 dark:text-yellow-200 mb-2 text-lg">"Banyak promo menarik dan pengiriman cepat. Sangat direkomendasikan untuk pria!"</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Layanan Pelanggan Section -->
-    <section id="layanan" class="max-w-12xl mx-auto mt-24 px-4 mb-20">
-        <h2 class="text-2xl font-bold text-yellow-700 dark:text-yellow-300 mb-6">Layanan Pelanggan</h2>
-        <div class="glass p-8 flex flex-col md:flex-row items-center gap-8 border border-yellow-200 dark:border-yellow-700 hover:shadow-yellow-400/60 transition">
-            <div class="flex-1">
-                <p class="mb-4 text-yellow-800 dark:text-yellow-200 text-lg">Ada pertanyaan atau butuh bantuan? Hubungi tim kami melalui WhatsApp atau email, kami siap membantu Anda setiap hari!</p>
-                <a href="mailto:cs@sipperhiasan.com" class="inline-block px-8 py-3 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white rounded-full shadow hover:scale-105 hover:from-yellow-500 hover:to-yellow-700 transition font-semibold">Email Kami</a>
-                <a href="https://wa.me/6281234567890" target="_blank" class="inline-block px-8 py-3 bg-gradient-to-r from-yellow-200 to-yellow-400 text-yellow-900 rounded-full shadow hover:scale-105 hover:from-yellow-300 hover:to-yellow-500 transition font-semibold ml-3">WhatsApp</a>
-            </div>
-            <svg width="140" height="140" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg" class="rounded-full border shadow">
-                <circle cx="70" cy="70" r="70" fill="#fef9c3"/>
-                <ellipse cx="70" cy="90" rx="40" ry="20" fill="#fde68a" opacity=".15"/>
-                <ellipse cx="70" cy="70" rx="30" ry="35" fill="#fef08a"/>
-                <circle cx="70" cy="65" r="22" fill="#facc15"/>
-                <ellipse cx="70" cy="80" rx="16" ry="10" fill="#f59e42"/>
-                <ellipse cx="70" cy="60" rx="8" ry="10" fill="#fff"/>
-                <ellipse cx="66" cy="63" rx="2" ry="3" fill="#facc15"/>
-                <ellipse cx="74" cy="63" rx="2" ry="3" fill="#facc15"/>
-                <rect x="64" y="70" width="12" height="4" rx="2" fill="#fff"/>
-                <rect x="67" y="71" width="6" height="2" rx="1" fill="#facc15"/>
-            </svg>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="w-full bg-gradient-to-r from-yellow-50 via-yellow-100 to-yellow-200 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900 border-t border-yellow-100 dark:border-yellow-900 mt-24 py-8">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between px-6 gap-4">
-            <div class="flex items-center gap-2">
-                <svg width="32" height="32" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="22" fill="#fef9c3" stroke="#facc15" stroke-width="2"/><ellipse cx="24" cy="30" rx="14" ry="8" fill="#fde68a" opacity=".3"/><ellipse cx="24" cy="22" rx="10" ry="12" fill="#fef08a"/><circle cx="24" cy="20" r="8" fill="#facc15"/></svg>
-                <span class="font-bold text-yellow-700 dark:text-yellow-300">SIP Perhiasan</span>
-            </div>
-            <div class="text-yellow-700 dark:text-yellow-200 text-sm">&copy; {{ date('Y') }} SIP Perhiasan. All rights reserved.</div>
-            <div class="flex gap-3">
-                <a href="mailto:cs@sipperhiasan.com" class="hover:text-yellow-600 text-yellow-700 dark:text-yellow-200 transition" title="Email"><svg width="22" height="22" fill="none" viewBox="0 0 24 24"><rect width="24" height="24" rx="12" fill="#fef9c3"/><path d="M4 8l8 6 8-6" stroke="#facc15" stroke-width="2"/><rect x="4" y="8" width="16" height="8" rx="2" stroke="#facc15" stroke-width="2"/></svg></a>
-                <a href="https://wa.me/6281234567890" target="_blank" class="hover:text-yellow-600 text-yellow-700 dark:text-yellow-200 transition" title="WhatsApp"><svg width="22" height="22" fill="none" viewBox="0 0 24 24"><rect width="24" height="24" rx="12" fill="#fef9c3"/><path d="M7 17c2.5 1.5 7.5 1.5 10 0M12 2a10 10 0 100 20 10 10 0 000-20z" stroke="#facc15" stroke-width="2"/></svg></a>
-                <a href="#" class="hover:text-yellow-600 text-yellow-700 dark:text-yellow-200 transition" title="Instagram"><svg width="22" height="22" fill="none" viewBox="0 0 24 24"><rect width="24" height="24" rx="12" fill="#fef9c3"/><rect x="7" y="7" width="10" height="10" rx="5" stroke="#facc15" stroke-width="2"/><circle cx="17" cy="7" r="1" fill="#facc15"/></svg></a>
-            </div>
-        </div>
-    </footer>
-</body>
-</html>
+    }
+    
+    // On load, set theme from localStorage
+    if(localStorage.getItem('theme') === 'dark') {
+        document.documentElement.classList.add('dark');
+    }
+    </script>
+@endsection

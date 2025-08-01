@@ -1,47 +1,88 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'SIP Perhiasan')</title>
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
 </head>
-<body class="bg-gradient-to-br from-yellow-50 via-white to-yellow-100 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900 text-[#1b1b18] min-h-screen flex flex-col">
-    <nav class="w-full fixed top-0 left-0 z-50 bg-white/90 dark:bg-zinc-900/90 backdrop-blur border-b border-yellow-100 dark:border-yellow-900 shadow-sm">
+<body class="bg-gradient-to-br from-slate-100 via-white to-slate-200 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900 text-[#23272f] min-h-screen flex flex-col">
+    <nav class="w-full fixed top-0 left-0 z-50 bg-white/90 dark:bg-zinc-900/90 backdrop-blur border-b border-slate-200 dark:border-slate-700 shadow-sm">
         <div class="max-w-7xl mx-auto flex items-center justify-between px-6 py-3">
             <div class="flex items-center gap-2">
-                <svg width="36" height="36" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="22" fill="#fef9c3" stroke="#facc15" stroke-width="2"/><ellipse cx="24" cy="30" rx="14" ry="8" fill="#fde68a" opacity=".3"/><ellipse cx="24" cy="22" rx="10" ry="12" fill="#fef08a"/><circle cx="24" cy="20" r="8" fill="#facc15"/><ellipse cx="24" cy="26" rx="6" ry="3" fill="#f59e42"/></svg>
-                <span class="font-extrabold text-xl text-yellow-600 tracking-tight drop-shadow">SIP Perhiasan</span>
+                <i class="fa-solid fa-gem text-2xl text-slate-400"></i>
+                <span class="font-extrabold text-xl text-slate-700 tracking-tight drop-shadow">SIP Perhiasan</span>
             </div>
-            <ul class="flex gap-6 font-semibold text-yellow-700 dark:text-yellow-300 text-base items-center">
-                <li><a href="/" class="hover:text-yellow-500 transition">Beranda</a></li>
-                <li><a href="{{ route('katalog') }}" class="hover:text-yellow-500 transition">Katalog Produk</a></li>
+            <ul class="flex gap-6 font-semibold text-slate-700 dark:text-slate-200 text-base items-center">
+                <li><a href="/" class="hover:text-indigo-500 transition flex items-center gap-1"><i class="fa-solid fa-house"></i> Beranda</a></li>
+                <li><a href="{{ route('produk.landing') }}" class="hover:text-indigo-500 transition flex items-center gap-1"><i class="fa-solid fa-ring"></i> Produk</a></li>
+                <li><a href="{{ route('about') }}" class="hover:text-indigo-500 transition flex items-center gap-1"><i class="fa-solid fa-circle-info"></i> Tentang</a></li>
             </ul>
             <div class="flex items-center gap-2 ml-4">
+                <button onclick="toggleDarkMode()" class="px-2 py-2 rounded-full border border-slate-300 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/20 transition" title="Toggle Dark/Light Mode">
+                    <i class="fa-solid fa-moon dark:hidden"></i>
+                    <i class="fa-solid fa-sun hidden dark:block"></i>
+                </button>
+                <button id="cartBtn" class="relative flex items-center gap-2 px-3 py-2 rounded-full border border-slate-300 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/20 transition">
+                    <i class="fa-solid fa-cart-shopping text-lg"></i>
+                    <span id="cartCount" class="absolute -top-2 -right-2 bg-indigo-500 text-white text-xs rounded-full px-2 py-0.5 font-bold">0</span>
+                </button>
                 @auth
-                    <a href="{{ url('/dashboard') }}" class="flex items-center gap-2 px-4 py-2 rounded-full border border-yellow-400 text-yellow-700 dark:text-yellow-200 hover:bg-yellow-100 dark:hover:bg-yellow-700/20 transition">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-7 8-7s8 3 8 7"/></svg>
-                        Profil
+                    <a href="{{ url('/dashboard') }}" class="flex items-center gap-2 px-4 py-2 rounded-full border border-slate-400 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/20 transition">
+                        <i class="fa-solid fa-user"></i> Profil
                     </a>
                 @else
-                    <a href="{{ route('login') }}" class="px-4 py-2 rounded-full border border-yellow-400 text-yellow-700 dark:text-yellow-200 hover:bg-yellow-100 dark:hover:bg-yellow-700/20 transition">Masuk</a>
-                    <a href="{{ route('register') }}" class="px-4 py-2 rounded-full bg-yellow-400 text-white font-bold hover:bg-yellow-500 transition">Daftar</a>
+                    <a href="{{ route('login') }}" class="px-4 py-2 rounded-full border border-slate-400 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/20 transition flex items-center gap-2"><i class="fa-solid fa-right-to-bracket"></i> Masuk</a>
+                    <a href="{{ route('register') }}" class="px-4 py-2 rounded-full bg-indigo-500 text-white font-bold hover:bg-indigo-600 transition flex items-center gap-2"><i class="fa-solid fa-user-plus"></i> Daftar</a>
                 @endauth
             </div>
         </div>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
     </nav>
-    <main class="pt-32 flex-1">
+    <main class="pt-10 flex-1">
         @yield('content')
     </main>
-    <footer class="w-full bg-gradient-to-r from-yellow-50 via-yellow-100 to-yellow-200 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900 border-t border-yellow-100 dark:border-yellow-900 mt-24 py-8">
+    <footer class="w-full bg-gradient-to-r from-slate-100 via-white to-slate-200 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900 border-t border-slate-200 dark:border-slate-700 mt-24 py-8">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between px-6 gap-4">
             <div class="flex items-center gap-2">
-                <svg width="32" height="32" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="22" fill="#fef9c3" stroke="#facc15" stroke-width="2"/></svg>
-                <span class="font-bold text-yellow-700 dark:text-yellow-300">SIP Perhiasan</span>
+                <i class="fa-solid fa-gem text-xl text-slate-400"></i>
+                <span class="font-bold text-slate-700 dark:text-slate-200">SIP Perhiasan</span>
             </div>
-            <div class="text-yellow-700 dark:text-yellow-200 text-sm">&copy; {{ date('Y') }} SIP Perhiasan. All rights reserved.</div>
+            <div class="flex gap-4 text-slate-700 dark:text-slate-200 text-sm items-center">
+                <a href="{{ route('produk.landing') }}" class="hover:underline">Produk</a>
+                <a href="{{ route('about') }}" class="hover:underline">Tentang</a>
+                <a href="#kontak" class="hover:underline">Kontak</a>
+            </div>
+            <div class="text-slate-700 dark:text-slate-200 text-sm">&copy; {{ date('Y') }} SIP Perhiasan. All rights reserved.</div>
         </div>
     </footer>
+
+    <script>
+    // Dark mode toggle function
+    function toggleDarkMode() {
+        if(document.documentElement.classList.contains('dark')) {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
+        } else {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+        }
+    }
+    
+    // On load, set theme from localStorage
+    if(localStorage.getItem('theme') === 'dark') {
+        document.documentElement.classList.add('dark');
+    } else if (localStorage.getItem('theme') === null && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // If no theme preference, use system preference
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('theme', 'dark');
+    }
+    </script>
 </body>
 </html>
