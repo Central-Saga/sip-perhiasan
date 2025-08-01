@@ -3,9 +3,39 @@
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
+
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
+
+// Landing page custom menu (produk landing statis)
+Route::get('/produk-landing', function () {
+    return view('produk');
+})->name('produk.landing');
+
+Route::get('/about', function () {
+    return view('about');
+})->name('about');
+
+
+Route::get('/cart', function () {
+    // Dummy transaksi, ganti dengan query ke database jika sudah dinamis
+    $transaksis = [];
+    return view('cart', compact('transaksis'));
+})->name('cart');
+
+// Checkout page
+Route::get('/checkout', function () {
+    return view('checkout');
+})->name('checkout');
+
+// Checkout submit (dummy, redirect to home)
+Route::post('/checkout', function () {
+    // Proses custom request dan pembayaran di sini
+    // ...
+    // Kosongkan cart localStorage via JS setelah submit
+    return redirect('/')->with('success', 'Pembayaran & custom request berhasil diproses!');
+})->name('checkout.submit');
 
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
@@ -48,5 +78,9 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('custom-request/create', 'pages.custom-request.create')->name('custom-request.create');
     Volt::route('custom-request/{customRequest}/edit', 'pages.custom-request.edit')->name('custom-request.edit');
 });
+
+Route::get('/katalog', function () {
+    return view('katalog');
+})->name('katalog');
 
 require __DIR__.'/auth.php';

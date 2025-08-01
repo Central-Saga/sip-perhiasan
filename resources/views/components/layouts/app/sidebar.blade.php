@@ -74,7 +74,7 @@
 
                     <form method="POST" action="{{ route('logout') }}" class="w-full">
                         @csrf
-                        <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full">
+                        <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full text-left">
                             {{ __('Log Out') }}
                         </flux:menu.item>
                     </form>
@@ -124,7 +124,7 @@
 
                     <form method="POST" action="{{ route('logout') }}" class="w-full">
                         @csrf
-                        <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full">
+                        <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full text-left">
                             {{ __('Log Out') }}
                         </flux:menu.item>
                     </form>
