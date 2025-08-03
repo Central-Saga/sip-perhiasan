@@ -36,40 +36,160 @@
             </div>
         @else
             <div id="cartSection">
-                <h3 class="text-lg font-bold mb-2 text-slate-700 flex items-center gap-2"><i class="fa-solid fa-cart-plus text-indigo-400"></i> Produk di Keranjang</h3>
-                <div id="cartItems" class="mb-4"></div>
-                <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold mb-4 text-slate-700 flex items-center gap-2"><i class="fa-solid fa-cart-plus text-indigo-400"></i> Produk di Keranjang</h3>
+                <div id="cartItems" class="mb-6 divide-y divide-slate-200"></div>
+                <div class="flex justify-between items-center mb-4 pt-4 border-t border-slate-200">
                     <span class="font-bold text-lg">Total:</span>
                     <span class="font-bold text-indigo-600 text-lg" id="cartTotal">Rp 0</span>
                 </div>
-                <button id="checkoutBtn" class="w-full px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-full font-semibold transition flex items-center justify-center gap-2"><i class="fa-solid fa-credit-card"></i> Checkout</button>
+                <div id="customRequestSection" class="mb-6 p-4 bg-indigo-50 rounded-lg border border-indigo-100">
+                    <h3 class="text-md font-bold mb-3 text-indigo-700 flex items-center gap-2">
+                        <i class="fa-solid fa-gem"></i> Custom Request
+                    </h3>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-slate-600 mb-1">Deskripsi Kebutuhan</label>
+                        <textarea id="customDesc" class="w-full p-2 border border-slate-300 rounded-md" rows="3" placeholder="Jelaskan perhiasan yang Anda inginkan..."></textarea>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 mb-3">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600 mb-1">Material</label>
+                            <select id="customMaterial" class="w-full p-2 border border-slate-300 rounded-md">
+                                <option value="">Pilih Material</option>
+                                <option value="Silver">Silver</option>
+                                <option value="Gold">Gold</option>
+                                <option value="Platinum">Platinum</option>
+                                <option value="Rose Gold">Rose Gold</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600 mb-1">Ukuran</label>
+                            <input type="text" id="customSize" class="w-full p-2 border border-slate-300 rounded-md" placeholder="Contoh: Cincin ukuran 7">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="block text-sm font-medium text-slate-600 mb-1">Referensi (URL Gambar)</label>
+                        <input type="text" id="customImageUrl" class="w-full p-2 border border-slate-300 rounded-md" placeholder="https://example.com/image.jpg">
+                    </div>
+                </div>
+                <button id="checkoutBtn" class="w-full px-4 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-semibold transition flex items-center justify-center gap-2"><i class="fa-solid fa-credit-card"></i> Checkout</button>
             </div>
             <script>
                 // Ambil cart dari localStorage
                 let cart = JSON.parse(localStorage.getItem('cart') || '{}');
                 let produkList = [];
-                // Dummy produkList, bisa diisi dari backend jika ingin
-                // produkList = [...];
+                
                 function renderCart() {
                     const cartItems = document.getElementById('cartItems');
                     const cartTotal = document.getElementById('cartTotal');
                     let html = '';
                     let total = 0;
+                    
+                    // Jika cart kosong
+                    if (Object.keys(cart).length === 0) {
+                        cartItems.innerHTML = '<div class="text-center py-6"><i class="fa-solid fa-cart-shopping text-slate-300 text-5xl mb-3"></i><p class="text-slate-400">Keranjang belanja Anda kosong.</p></div>';
+                        cartTotal.innerText = 'Rp 0';
+                        return;
+                    }
+                    
+                    // Render setiap item dalam cart
                     for (const id in cart) {
                         const item = cart[id];
-                        html += `<div class='flex justify-between items-center mb-2'>
-                            <span>${item.nama_produk} <span class='text-xs text-slate-400'>x${item.qty}</span></span>
-                            <span>Rp ${item.harga.toLocaleString('id-ID')}</span>
+                        const itemTotal = item.harga * item.qty;
+                        total += itemTotal;
+                        
+                        html += `
+                        <div class='py-4'>
+                            <div class='flex gap-4'>
+                                <div class="w-20 h-20 flex-shrink-0">
+                                    <img src="${item.foto || 'https://via.placeholder.com/80'}" alt="${item.nama_produk}" class="w-full h-full object-cover rounded-lg border border-slate-200">
+                                </div>
+                                <div class="flex-grow">
+                                    <div class="flex justify-between items-start">
+                                        <h4 class="font-semibold text-slate-800">${item.nama_produk}</h4>
+                                        <button onclick="removeItem(${id})" class="text-slate-400 hover:text-red-500" title="Hapus">
+                                            <i class="fa-solid fa-xmark"></i>
+                                        </button>
+                                    </div>
+                                    <div class="text-xs text-slate-500 mt-1">Kategori: ${item.kategori}</div>
+                                    <div class="flex justify-between items-center mt-2">
+                                        <div class="flex items-center gap-2">
+                                            <button onclick="updateQty(${id}, -1)" class="w-6 h-6 flex items-center justify-center bg-slate-100 hover:bg-slate-200 rounded-full">
+                                                <i class="fa-solid fa-minus text-xs"></i>
+                                            </button>
+                                            <span class="text-sm font-medium">${item.qty}</span>
+                                            <button onclick="updateQty(${id}, 1)" class="w-6 h-6 flex items-center justify-center bg-slate-100 hover:bg-slate-200 rounded-full">
+                                                <i class="fa-solid fa-plus text-xs"></i>
+                                            </button>
+                                        </div>
+                                        <div class="text-indigo-600 font-semibold">Rp ${itemTotal.toLocaleString('id-ID')}</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>`;
-                        total += item.harga * item.qty;
                     }
-                    cartItems.innerHTML = html || '<p class="text-slate-400">Keranjang kosong.</p>';
+                    
+                    cartItems.innerHTML = html;
                     cartTotal.innerText = 'Rp ' + total.toLocaleString('id-ID');
                 }
-                renderCart();
+                
+                function updateQty(id, delta) {
+                    if (!cart[id]) return;
+                    
+                    cart[id].qty += delta;
+                    if (cart[id].qty <= 0) {
+                        delete cart[id];
+                    }
+                    
+                    localStorage.setItem('cart', JSON.stringify(cart));
+                    updateCartCount();
+                    renderCart();
+                }
+                
+                function removeItem(id) {
+                    if (confirm('Hapus produk ini dari keranjang?')) {
+                        delete cart[id];
+                        localStorage.setItem('cart', JSON.stringify(cart));
+                        updateCartCount();
+                        renderCart();
+                    }
+                }
+                
+                function updateCartCount() {
+                    let count = 0;
+                    for (const id in cart) count += cart[id].qty;
+                    const cartCount = document.getElementById('cartCount');
+                    if(cartCount) cartCount.innerText = count;
+                }
+                
                 document.getElementById('checkoutBtn').onclick = function() {
+                    // Simpan custom request details
+                    const customRequest = {
+                        deskripsi: document.getElementById('customDesc').value.trim(),
+                        material: document.getElementById('customMaterial').value,
+                        ukuran: document.getElementById('customSize').value.trim(),
+                        referensi: document.getElementById('customImageUrl').value.trim()
+                    };
+                    
+                    // Hanya simpan jika ada data
+                    if (customRequest.deskripsi || customRequest.material || customRequest.ukuran || customRequest.referensi) {
+                        localStorage.setItem('customRequest', JSON.stringify(customRequest));
+                    }
+                    
                     window.location.href = "{{ route('checkout') }}";
                 };
+                
+                // Inisialisasi cart
+                renderCart();
+                updateCartCount();
+                
+                // Isi form custom request dengan data sebelumnya jika ada
+                const savedCustomRequest = JSON.parse(localStorage.getItem('customRequest') || '{}');
+                if (savedCustomRequest) {
+                    document.getElementById('customDesc').value = savedCustomRequest.deskripsi || '';
+                    document.getElementById('customMaterial').value = savedCustomRequest.material || '';
+                    document.getElementById('customSize').value = savedCustomRequest.ukuran || '';
+                    document.getElementById('customImageUrl').value = savedCustomRequest.referensi || '';
+                }
             </script>
         @endif
     </div>

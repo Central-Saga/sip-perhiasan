@@ -29,10 +29,10 @@
                     <i class="fa-solid fa-moon dark:hidden"></i>
                     <i class="fa-solid fa-sun hidden dark:block"></i>
                 </button>
-                <button id="cartBtn" class="relative flex items-center gap-2 px-3 py-2 rounded-full border border-slate-300 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/20 transition">
+                <a href="{{ route('cart') }}" id="cartBtn" class="relative flex items-center gap-2 px-3 py-2 rounded-full border border-slate-300 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/20 transition">
                     <i class="fa-solid fa-cart-shopping text-lg"></i>
                     <span id="cartCount" class="absolute -top-2 -right-2 bg-indigo-500 text-white text-xs rounded-full px-2 py-0.5 font-bold">0</span>
-                </button>
+                </a>
                 @auth
                     <a href="{{ url('/dashboard') }}" class="flex items-center gap-2 px-4 py-2 rounded-full border border-slate-400 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/20 transition">
                         <i class="fa-solid fa-user"></i> Profil

@@ -20,4 +20,30 @@
         @endforeach
     </div>
 </div>
+
+<script>
+    // Cart logic (localStorage)
+    const produkList = @json($produkList);
+    let cart = JSON.parse(localStorage.getItem('cart') || '{}');
+
+    function updateCartCount() {
+        let count = 0;
+        for (const id in cart) count += cart[id].qty;
+        const cartCount = document.getElementById('cartCount');
+        if(cartCount) cartCount.innerText = count;
+    }
+
+    function addToCart(id) {
+        const produk = produkList.find(p => p.id === id);
+        if (!produk) return;
+        if (!cart[id]) cart[id] = { ...produk, qty: 0 };
+        if (cart[id].qty < produk.stok) cart[id].qty++;
+        localStorage.setItem('cart', JSON.stringify(cart));
+        updateCartCount();
+        alert('Produk telah ditambahkan ke keranjang!');
+    }
+
+    // Inisialisasi cart count saat load
+    updateCartCount();
+</script>
 @endsection

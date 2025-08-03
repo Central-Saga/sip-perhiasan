@@ -1,33 +1,5 @@
 
-
-@php
-    $produkList = [
-        [
-            'id' => 1,
-            'nama_produk' => 'Cincin Emas Klasik',
-            'harga' => 2750000,
-            'stok' => 8,
-            'foto' => 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80',
-            'kategori' => 'Cincin',
-        ],
-        [
-            'id' => 2,
-            'nama_produk' => 'Kalung Silver Bliss',
-            'harga' => 3200000,
-            'stok' => 5,
-            'foto' => 'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=400&q=80',
-            'kategori' => 'Kalung',
-        ],
-        [
-            'id' => 3,
-            'nama_produk' => 'Gelang Berlian Mewah',
-            'harga' => 4500000,
-            'stok' => 3,
-            'foto' => 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80',
-            'kategori' => 'Gelang',
-        ],
-    ];
-@endphp
+{{-- Product data now comes from the route controller --}}
 
 @extends('layouts.app')
 
@@ -79,31 +51,6 @@
         </div>
     </section>
 
-    <!-- Gallery Section -->
-    <section class="w-full py-12 bg-gradient-to-br from-slate-100 via-white to-slate-200 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-        <div class="max-w-6xl mx-auto px-4">
-            <div class="flex items-center justify-center gap-2 mb-3">
-                <span class="h-0.5 w-12 bg-indigo-300 dark:bg-indigo-600 rounded"></span>
-                <h2 class="text-2xl md:text-3xl font-bold text-slate-700 dark:text-slate-200 text-center"><i class="fa-solid fa-images text-indigo-400 dark:text-indigo-300"></i> Galeri Perhiasan</h2>
-                <span class="h-0.5 w-12 bg-indigo-300 dark:bg-indigo-600 rounded"></span>
-            </div>
-            <p class="text-center text-slate-500 dark:text-slate-400 mb-8 max-w-2xl mx-auto">Koleksi perhiasan terbaru kami dengan material premium dan pengerjaan detail oleh pengrajin berpengalaman.</p>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                <div class="rounded-xl overflow-hidden shadow-lg bg-white dark:bg-slate-800 flex flex-col items-center p-4 hover:shadow-xl transition-shadow">
-                    <img src="https://images.unsplash.com/photo-1512428559087-560fa5ceab42?auto=format&fit=crop&w=600&q=80" alt="Galeri 1" class="w-full h-48 object-cover mb-3 rounded-lg">
-                    <span class="font-semibold text-slate-700 dark:text-slate-200">Cincin Emas Elegan</span>
-                </div>
-                <div class="rounded-xl overflow-hidden shadow-lg bg-white dark:bg-slate-800 flex flex-col items-center p-4 hover:shadow-xl transition-shadow">
-                    <img src="https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=600&q=80" alt="Galeri 2" class="w-full h-48 object-cover mb-3 rounded-lg">
-                    <span class="font-semibold text-slate-700 dark:text-slate-200">Kalung Silver Mewah</span>
-                </div>
-                <div class="rounded-xl overflow-hidden shadow-lg bg-white dark:bg-slate-800 flex flex-col items-center p-4 hover:shadow-xl transition-shadow">
-                    <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80" alt="Galeri 3" class="w-full h-48 object-cover mb-3 rounded-lg">
-                    <span class="font-semibold text-slate-700 dark:text-slate-200">Gelang Berlian Eksklusif</span>
-                </div>
-            </div>
-        </div>
-    </section>
 
     <!-- Produk Section -->
     <section id="produk" class="w-full py-16 bg-white dark:bg-slate-900">
@@ -142,26 +89,6 @@
                 <a href="{{ route('produk.landing') }}" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-indigo-600 dark:text-indigo-300 font-medium rounded-lg transition-colors">
                     <i class="fa-solid fa-arrow-right"></i> Lihat Semua Perhiasan
                 </a>
-            </div>
-        </div>
-
-        <!-- Cart Modal -->
-        <div id="cartModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden items-center justify-center z-50">
-            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg w-full max-w-md p-6 relative">
-                <button onclick="closeCart()" class="absolute top-3 right-3 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-                <h4 class="text-xl font-bold mb-4 text-slate-800 dark:text-slate-200 flex items-center gap-2"><i class="fa-solid fa-cart-shopping text-indigo-500 dark:text-indigo-400"></i> Keranjang Belanja</h4>
-                <div id="cartItems" class="mb-4 max-h-60 overflow-y-auto"></div>
-                <div class="flex justify-between items-center border-t pt-4 border-slate-200 dark:border-slate-700">
-                    <span class="font-bold text-lg text-slate-800 dark:text-slate-200">Total:</span>
-                    <span class="font-bold text-indigo-600 dark:text-indigo-300 text-lg" id="cartTotal">Rp 0</span>
-                </div>
-                <button class="mt-6 w-full px-4 py-3 bg-indigo-500 hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white rounded-lg font-semibold transition flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-credit-card"></i> Checkout
-                </button>
             </div>
         </div>
     </section>
@@ -345,32 +272,11 @@
             window.location.href = "{{ route('cart') }}";
         }
 
-        function openCart() {
-            renderCart();
-            document.getElementById('cartModal').classList.remove('hidden');
-        }
-        function closeCart() {
-            document.getElementById('cartModal').classList.add('hidden');
-        }
+        // Redirect to cart page when cart button is clicked
         const cartBtn = document.getElementById('cartBtn');
-        if(cartBtn) cartBtn.onclick = openCart;
-
-        function renderCart() {
-            const cartItems = document.getElementById('cartItems');
-            const cartTotal = document.getElementById('cartTotal');
-            let html = '';
-            let total = 0;
-            for (const id in cart) {
-                const item = cart[id];
-                html += `<div class='flex justify-between items-center mb-2'>
-                    <span>${item.nama_produk} <span class='text-xs text-slate-400'>x${item.qty}</span></span>
-                    <span>Rp ${item.harga.toLocaleString('id-ID')}</span>
-                </div>`;
-                total += item.harga * item.qty;
-            }
-            if(cartItems) cartItems.innerHTML = html || '<p class="text-slate-400">Keranjang kosong.</p>';
-            if(cartTotal) cartTotal.innerText = 'Rp ' + total.toLocaleString('id-ID');
-        }
+        if(cartBtn) cartBtn.onclick = function() {
+            window.location.href = "{{ route('cart') }}";
+        };
 
         // Inisialisasi cart count saat load
         updateCartCount();
