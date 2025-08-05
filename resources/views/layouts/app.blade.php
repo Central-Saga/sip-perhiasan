@@ -48,7 +48,7 @@
     <main class="pt-10 flex-1">
         @yield('content')
     </main>
-    <footer class="w-full bg-gradient-to-r from-slate-100 via-white to-slate-200 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900 border-t border-slate-200 dark:border-slate-700 mt-24 py-8">
+    <footer class="w-full bg-gradient-to-r from-slate-100 via-white to-slate-200 dark:from-zinc-900 dark:via-zinc-800 dark:to-zinc-900 border-t border-slate-200 dark:border-slate-700  py-8">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between px-6 gap-4">
             <div class="flex items-center gap-2">
                 <i class="fa-solid fa-gem text-xl text-slate-400"></i>

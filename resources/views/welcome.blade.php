@@ -152,7 +152,7 @@
 
     <!-- Contact Section -->
     <section id="contact" class="w-full py-16 bg-gradient-to-br from-slate-50 to-indigo-50 dark:from-slate-900 dark:to-slate-800">
-        <div class="max-w-6xl mx-auto px-4">
+        <div class="max-w-7xl mx-auto px-4">
             <div class="flex items-center justify-center gap-2 mb-3">
                 <span class="h-0.5 w-12 bg-indigo-300 dark:bg-indigo-600 rounded"></span>
                 <h2 class="text-2xl md:text-3xl font-bold text-slate-700 dark:text-slate-200 text-center"><i class="fa-solid fa-envelope text-indigo-400 dark:text-indigo-300"></i> Hubungi Kami</h2>
@@ -160,90 +160,59 @@
             </div>
             <p class="text-center text-slate-500 dark:text-slate-400 mb-8 max-w-2xl mx-auto">Ada pertanyaan atau ingin konsultasi tentang perhiasan? Kami siap membantu Anda.</p>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                <div>
-                    <form class="space-y-4 bg-white dark:bg-slate-800 p-6 rounded-xl shadow-lg">
-                        <div>
-                            <label for="name" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nama</label>
-                            <input type="text" id="name" class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-400 dark:focus:ring-indigo-600 focus:border-transparent dark:bg-slate-700 dark:text-white">
-                        </div>
-                        <div>
-                            <label for="email" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Email</label>
-                            <input type="email" id="email" class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-400 dark:focus:ring-indigo-600 focus:border-transparent dark:bg-slate-700 dark:text-white">
-                        </div>
-                        <div>
-                            <label for="subject" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Subjek</label>
-                            <select id="subject" class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-400 dark:focus:ring-indigo-600 focus:border-transparent dark:bg-slate-700 dark:text-white">
-                                <option>Pertanyaan Produk</option>
-                                <option>Custom Order</option>
-                                <option>Informasi Harga</option>
-                                <option>Garansi & Perawatan</option>
-                                <option>Lainnya</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="message" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Pesan</label>
-                            <textarea id="message" rows="4" class="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-indigo-400 dark:focus:ring-indigo-600 focus:border-transparent dark:bg-slate-700 dark:text-white"></textarea>
-                        </div>
-                        <button type="submit" class="w-full md:w-auto px-6 py-2.5 bg-indigo-500 hover:bg-indigo-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white font-medium rounded-lg shadow-md transition-colors">
-                            <i class="fa-solid fa-paper-plane mr-2"></i> Kirim Pesan
-                        </button>
-                    </form>
-                </div>
-                <div>
-                    <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-lg mb-6">
-                        <h3 class="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-4">Informasi Kontak</h3>
-                        <div class="space-y-4">
-                            <div class="flex items-start">
-                                <div class="flex-shrink-0 w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
-                                    <i class="fa-solid fa-location-dot text-indigo-500 dark:text-indigo-300"></i>
-                                </div>
-                                <div class="ml-3 mt-1">
-                                    <p class="text-slate-600 dark:text-slate-300">Jl. Perhiasan Indah No. 123, Kota Perak</p>
-                                </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mx-auto max-w-4xl">
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-lg">
+                    <h3 class="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-4">Informasi Kontak</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
+                                <i class="fa-solid fa-location-dot text-indigo-500 dark:text-indigo-300"></i>
                             </div>
-                            <div class="flex items-start">
-                                <div class="flex-shrink-0 w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
-                                    <i class="fa-solid fa-phone text-indigo-500 dark:text-indigo-300"></i>
-                                </div>
-                                <div class="ml-3 mt-1">
-                                    <p class="text-slate-600 dark:text-slate-300">+62 123-4567-8900</p>
-                                </div>
+                            <div class="ml-3 mt-1">
+                                <p class="text-slate-600 dark:text-slate-300">Jl. Perhiasan Indah No. 123, Kota Perak</p>
                             </div>
-                            <div class="flex items-start">
-                                <div class="flex-shrink-0 w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
-                                    <i class="fa-solid fa-envelope text-indigo-500 dark:text-indigo-300"></i>
-                                </div>
-                                <div class="ml-3 mt-1">
-                                    <p class="text-slate-600 dark:text-slate-300">info@silversmith.id</p>
-                                </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
+                                <i class="fa-solid fa-phone text-indigo-500 dark:text-indigo-300"></i>
+                            </div>
+                            <div class="ml-3 mt-1">
+                                <p class="text-slate-600 dark:text-slate-300">+62 123-4567-8900</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center">
+                                <i class="fa-solid fa-envelope text-indigo-500 dark:text-indigo-300"></i>
+                            </div>
+                            <div class="ml-3 mt-1">
+                                <p class="text-slate-600 dark:text-slate-300">info@silversmith.id</p>
                             </div>
                         </div>
                     </div>
+                </div>
+                
+                <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-lg">
+                    <h3 class="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-4">Jam Operasional</h3>
+                    <ul class="space-y-3 text-slate-600 dark:text-slate-300 mb-6">
+                        <li class="flex justify-between"><span>Senin - Jumat:</span> <span>09:00 - 20:00</span></li>
+                        <li class="flex justify-between"><span>Sabtu:</span> <span>10:00 - 18:00</span></li>
+                        <li class="flex justify-between"><span>Minggu:</span> <span>10:00 - 15:00</span></li>
+                    </ul>
                     
-                    <div class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-lg">
-                        <h3 class="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-4">Jam Operasional</h3>
-                        <ul class="space-y-2 text-slate-600 dark:text-slate-300">
-                            <li class="flex justify-between"><span>Senin - Jumat:</span> <span>09:00 - 20:00</span></li>
-                            <li class="flex justify-between"><span>Sabtu:</span> <span>10:00 - 18:00</span></li>
-                            <li class="flex justify-between"><span>Minggu:</span> <span>10:00 - 15:00</span></li>
-                        </ul>
-                        
-                        <h3 class="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-4 mt-6">Ikuti Kami</h3>
-                        <div class="flex space-x-4">
-                            <a href="#" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 hover:bg-indigo-100 hover:text-indigo-500 dark:text-slate-300 dark:hover:bg-indigo-900 dark:hover:text-indigo-300 transition-colors">
-                                <i class="fa-brands fa-facebook-f"></i>
-                            </a>
-                            <a href="#" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 hover:bg-indigo-100 hover:text-indigo-500 dark:text-slate-300 dark:hover:bg-indigo-900 dark:hover:text-indigo-300 transition-colors">
-                                <i class="fa-brands fa-twitter"></i>
-                            </a>
-                            <a href="#" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 hover:bg-indigo-100 hover:text-indigo-500 dark:text-slate-300 dark:hover:bg-indigo-900 dark:hover:text-indigo-300 transition-colors">
-                                <i class="fa-brands fa-instagram"></i>
-                            </a>
-                            <a href="#" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 hover:bg-indigo-100 hover:text-indigo-500 dark:text-slate-300 dark:hover:bg-indigo-900 dark:hover:text-indigo-300 transition-colors">
-                                <i class="fa-brands fa-youtube"></i>
-                            </a>
-                        </div>
+                    <h3 class="text-lg font-semibold text-slate-700 dark:text-slate-200 mb-4">Ikuti Kami</h3>
+                    <div class="flex space-x-4">
+                        <a href="#" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 hover:bg-indigo-100 hover:text-indigo-500 dark:text-slate-300 dark:hover:bg-indigo-900 dark:hover:text-indigo-300 transition-colors">
+                            <i class="fa-brands fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 hover:bg-indigo-100 hover:text-indigo-500 dark:text-slate-300 dark:hover:bg-indigo-900 dark:hover:text-indigo-300 transition-colors">
+                            <i class="fa-brands fa-twitter"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 hover:bg-indigo-100 hover:text-indigo-500 dark:text-slate-300 dark:hover:bg-indigo-900 dark:hover:text-indigo-300 transition-colors">
+                            <i class="fa-brands fa-instagram"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 hover:bg-indigo-100 hover:text-indigo-500 dark:text-slate-300 dark:hover:bg-indigo-900 dark:hover:text-indigo-300 transition-colors">
+                            <i class="fa-brands fa-youtube"></i>
+                        </a>
                     </div>
                 </div>
             </div>
