@@ -14,6 +14,9 @@ class CustomRequest extends Model
         'deskripsi',
         'estimasi_harga',
         'kategori',
+        'material',
+        'ukuran',
+        'gambar_referensi',
         'berat',
         'transaksi_id'
     ];

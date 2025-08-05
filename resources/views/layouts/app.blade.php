@@ -22,6 +22,7 @@
             <ul class="flex gap-6 font-semibold text-slate-700 dark:text-slate-200 text-base items-center">
                 <li><a href="/" class="hover:text-indigo-500 transition flex items-center gap-1"><i class="fa-solid fa-house"></i> Beranda</a></li>
                 <li><a href="{{ route('produk.landing') }}" class="hover:text-indigo-500 transition flex items-center gap-1"><i class="fa-solid fa-ring"></i> Produk</a></li>
+                <li><a href="{{ route('custom') }}" class="hover:text-indigo-500 transition flex items-center gap-1"><i class="fa-solid fa-wand-magic-sparkles"></i> Custom Request</a></li>
                 <li><a href="{{ route('about') }}" class="hover:text-indigo-500 transition flex items-center gap-1"><i class="fa-solid fa-circle-info"></i> Tentang</a></li>
             </ul>
             <div class="flex items-center gap-2 ml-4">

@@ -14,6 +14,9 @@ return new class extends Migration
             $table->text('deskripsi');
             $table->decimal('estimasi_harga', 12, 2);
             $table->string('kategori');
+            $table->string('material')->nullable();
+            $table->string('ukuran')->nullable();
+            $table->string('gambar_referensi')->nullable();
             $table->decimal('berat', 8, 2);
             $table->foreignId('transaksi_id')->nullable()->constrained('transaksi')->onDelete('set null');
             $table->timestamps();

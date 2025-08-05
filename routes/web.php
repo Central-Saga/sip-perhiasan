@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Volt\Volt;
 
 
@@ -87,6 +88,54 @@ Route::get('/about', function () {
     return view('Public.about');
 })->name('about');
 
+Route::get('/custom', function () {
+    return view('Public.custom');
+})->name('custom');
+
+Route::post('/custom', function (Illuminate\Http\Request $request) {
+    // Validate form
+    $request->validate([
+        'deskripsi' => 'required|min:10',
+        'material' => 'required',
+        'ukuran' => 'required',
+        'kategori' => 'required',
+        'gambar_referensi' => 'nullable|image|max:2048',
+    ]);
+
+    // Handle file upload
+    $gambarPath = null;
+    if ($request->hasFile('gambar_referensi')) {
+        $gambarPath = $request->file('gambar_referensi')->store('custom-requests', 'public');
+    }
+    
+    // Check if user is logged in
+    if (Auth::check()) {
+        // Create custom request in database
+        $customRequest = \App\Models\CustomRequest::create([
+            'pelanggan_id' => Auth::user()->pelanggan->id,
+            'deskripsi' => $request->deskripsi,
+            'material' => $request->material,
+            'ukuran' => $request->ukuran,
+            'kategori' => $request->kategori,
+            'gambar_referensi' => $gambarPath,
+            'estimasi_harga' => 0, // Will be set by admin later
+            'berat' => 0, // Will be set by admin later
+        ]);
+        
+        return redirect()->route('custom')->with('message', 'Custom request berhasil dikirim! Tim kami akan segera menghubungi Anda.');
+    } else {
+        // Store in session for guest users
+        $request->session()->put('custom_request', [
+            'deskripsi' => $request->deskripsi,
+            'material' => $request->material,
+            'ukuran' => $request->ukuran,
+            'kategori' => $request->kategori,
+            'gambar_referensi' => $gambarPath,
+        ]);
+        
+        return redirect()->route('login')->with('message', 'Silakan login terlebih dahulu untuk melanjutkan custom request.');
+    }
+})->name('custom.submit');
 
 Route::get('/cart', function () {
     // Dummy transaksi, ganti dengan query ke database jika sudah dinamis
