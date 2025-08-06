@@ -42,35 +42,6 @@
                     <span class="font-bold text-lg">Total:</span>
                     <span class="font-bold text-indigo-600 text-lg" id="cartTotal">Rp 0</span>
                 </div>
-                <div id="customRequestSection" class="mb-6 p-4 bg-indigo-50 rounded-lg border border-indigo-100">
-                    <h3 class="text-md font-bold mb-3 text-indigo-700 flex items-center gap-2">
-                        <i class="fa-solid fa-gem"></i> Custom Request
-                    </h3>
-                    <div class="mb-3">
-                        <label class="block text-sm font-medium text-slate-600 mb-1">Deskripsi Kebutuhan</label>
-                        <textarea id="customDesc" class="w-full p-2 border border-slate-300 rounded-md" rows="3" placeholder="Jelaskan perhiasan yang Anda inginkan..."></textarea>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4 mb-3">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-600 mb-1">Material</label>
-                            <select id="customMaterial" class="w-full p-2 border border-slate-300 rounded-md">
-                                <option value="">Pilih Material</option>
-                                <option value="Silver">Silver</option>
-                                <option value="Gold">Gold</option>
-                                <option value="Platinum">Platinum</option>
-                                <option value="Rose Gold">Rose Gold</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-600 mb-1">Ukuran</label>
-                            <input type="text" id="customSize" class="w-full p-2 border border-slate-300 rounded-md" placeholder="Contoh: Cincin ukuran 7">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="block text-sm font-medium text-slate-600 mb-1">Referensi (URL Gambar)</label>
-                        <input type="text" id="customImageUrl" class="w-full p-2 border border-slate-300 rounded-md" placeholder="https://example.com/image.jpg">
-                    </div>
-                </div>
                 <button id="checkoutBtn" class="w-full px-4 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-semibold transition flex items-center justify-center gap-2"><i class="fa-solid fa-credit-card"></i> Checkout</button>
             </div>
             <script>
