@@ -1,23 +1,17 @@
+
 <?php
 use Livewire\Volt\Component;
+use function Livewire\Volt\{state, with};
+use App\Models\Produk;
+use Illuminate\Support\Str;
+
 new class extends Component {
-    //
-}; ?>
+    public $search = '';
+    public $sortField = 'nama_produk';
+    public $sortDirection = 'asc';
+    public $page = 1;
 
-<div>
-    <?php
-    use function Livewire\Volt\{state, with};
-    use App\Models\Produk;
-    use Illuminate\Support\Str;
-
-    state([
-        'search' => '',
-        'sortField' => 'nama_produk',
-        'sortDirection' => 'asc',
-        'page' => 1
-    ]);
-
-    with(function() {
+    public function with() {
         return [
             'produks' => Produk::query()
                 ->when($this->search, function ($query) {
@@ -27,12 +21,13 @@ new class extends Component {
                 ->orderBy($this->sortField, $this->sortDirection)
                 ->paginate(10)
         ];
-    });
+    }
 
-    $delete = function($id) {
+    public function delete($id) {
         Produk::find($id)->delete();
-    };
-    ?>
+    }
+};
+?>
 
     <div class="max-w-full">
         <!-- Header with gradient background -->

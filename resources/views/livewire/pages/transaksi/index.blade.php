@@ -1,24 +1,16 @@
+
 <?php
 use Livewire\Volt\Component;
+use App\Models\Transaksi;
+
 new class extends Component {
-    //
-}; ?>
+    public $search = '';
+    public $sortField = 'tanggal_transaksi';
+    public $sortDirection = 'desc';
+    public $page = 1;
+    public $openDetail = null;
 
-<div>
-    <?php
-    use function Livewire\Volt\{state, with};
-    use App\Models\Transaksi;
-    use Illuminate\Support\Str;
-
-    state([
-        'search' => '',
-        'sortField' => 'tanggal_transaksi',
-        'sortDirection' => 'desc',
-        'page' => 1,
-        'openDetail' => null
-    ]);
-
-    with(function() {
+    public function with() {
         return [
             'transaksis' => Transaksi::query()
                 ->with(['pelanggan.user', 'detailTransaksi.produk'])
@@ -35,12 +27,13 @@ new class extends Component {
                 ->orderBy($this->sortField, $this->sortDirection)
                 ->paginate(10)
         ];
-    });
+    }
 
-    $delete = function($id) {
+    public function delete($id) {
         Transaksi::find($id)->delete();
-    };
-    ?>
+    }
+};
+?>
 
     <div class="max-w-full">
         <!-- Header with gradient background -->
@@ -187,6 +180,12 @@ new class extends Component {
                                 </td>
                                 <td class="px-4 py-4 text-right text-sm font-medium">
                                     <div class="flex items-center justify-end space-x-2">
+                                        <a href="{{ route('transaksi.show', $transaksi) }}"
+                                            class="inline-flex items-center px-2.5 py-1.5 border border-blue-500 text-blue-600 hover:bg-blue-50 rounded-lg transition duration-150"
+                                            wire:navigate>
+                                            <flux:icon name="eye" class="h-4 w-4 mr-1" />
+                                            Detail
+                                        </a>
                                         <a href="{{ route('transaksi.edit', $transaksi) }}" 
                                             class="inline-flex items-center px-2.5 py-1.5 border border-indigo-500 text-indigo-600 hover:bg-indigo-50 rounded-lg transition duration-150"
                                             wire:navigate>

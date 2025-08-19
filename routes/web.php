@@ -143,37 +143,7 @@ Route::get('/cart', function () {
     return view('Public.cart', compact('transaksis'));
 })->name('cart');
 
-// Transaction detail page
-Route::get('/transaksi/{id}', function ($id) {
-    // For a real app, you would fetch this data from the database
-    // This is just dummy data for demonstration
-    $transaksi = new \stdClass();
-    $transaksi->id = $id;
-    $transaksi->kode_transaksi = 'TRX-'.str_pad($id, 5, '0', STR_PAD_LEFT);
-    $transaksi->tanggal_transaksi = now();
-    $transaksi->total_harga = 1500000;
-    $transaksi->status = 'Selesai';
-    
-    // Create dummy details as a collection of objects
-    $details = collect();
-    $detail = new \stdClass();
-    $detail->produk = new \stdClass();
-    $detail->produk->nama_produk = 'Cincin Emas Klasik';
-    $detail->jumlah = 1;
-    $detail->sub_total = 1500000;
-    $details->push($detail);
-    
-    // Set the detailTransaksi as a dynamic property
-    $transaksi->detailTransaksi = $details;
-    
-    // Create dummy custom request
-    $transaksi->customRequest = null; // Set to null or create a dummy object if needed
-    
-    // Create dummy pengiriman
-    $transaksi->pengiriman = null; // Set to null or create a dummy object if needed
-    
-    return view('Public.transaksi_detail', compact('transaksi'));
-})->name('transaksi.show');
+
 
 // Checkout page
 Route::get('/checkout', function () {
@@ -213,6 +183,7 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('transaksi', 'pages.transaksi.index')->name('transaksi.index');
     Volt::route('transaksi/create', 'pages.transaksi.create')->name('transaksi.create');
     Volt::route('transaksi/{transaksi}/edit', 'pages.transaksi.edit')->name('transaksi.edit');
+    Volt::route('transaksi/{transaksi}', 'pages.transaksi.show')->name('transaksi.show');
 
     // Pengiriman Routes
     Volt::route('pengiriman', 'pages.pengiriman.index')->name('pengiriman.index');

@@ -6,34 +6,29 @@ use Illuminate\Support\Facades\Storage;
 use function Livewire\Volt\{state, with};
 
 new class extends Component {
-    //
-}; ?>
+    public $search = '';
+    public $sortField = 'created_at';
+    public $sortDirection = 'desc';
 
-<?php
-state([
-    'search' => '',
-    'sortField' => 'created_at',
-    'sortDirection' => 'desc',
-]);
+    public function with() {
+        return [
+            'pembayarans' => Pembayaran::query()
+                ->when($this->search, function ($query) {
+                    $query->where('status', 'like', '%' . $this->search . '%')
+                        ->orWhere('metode', 'like', '%' . $this->search . '%')
+                        ->orWhereHas('transaksi', function ($q) {
+                            $q->where('kode_transaksi', 'like', '%' . $this->search . '%');
+                        });
+                })
+                ->orderBy($this->sortField, $this->sortDirection)
+                ->paginate(10)
+        ];
+    }
 
-with(function() {
-    return [
-        'pembayarans' => Pembayaran::query()
-            ->when($this->search, function ($query) {
-                $query->where('status', 'like', '%' . $this->search . '%')
-                    ->orWhere('metode', 'like', '%' . $this->search . '%')
-                    ->orWhereHas('transaksi', function ($q) {
-                        $q->where('kode_transaksi', 'like', '%' . $this->search . '%');
-                    });
-            })
-            ->orderBy($this->sortField, $this->sortDirection)
-            ->paginate(10)
-    ];
-});
-
-$delete = function($id) {
-    $pembayaran = Pembayaran::findOrFail($id);
-    $pembayaran->delete();
+    public function delete($id) {
+        $pembayaran = Pembayaran::findOrFail($id);
+        $pembayaran->delete();
+    }
 };
 ?>
 

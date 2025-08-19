@@ -1,24 +1,16 @@
-<?php
 
+<?php
 use Livewire\Volt\Component;
 use App\Models\CustomRequest;
-use Illuminate\Support\Str;
-use function Livewire\Volt\{state, with};
 
 new class extends Component {
-    //
-}; ?>
+    public $search = '';
+    public $sortField = 'created_at';
+    public $sortDirection = 'desc';
 
-<?php
-state([
-    'search' => '',
-    'sortField' => 'created_at',
-    'sortDirection' => 'desc',
-]);
-
-with(function() {
-    return [
-        'customRequests' => CustomRequest::query()
+    public function getCustomRequestsProperty()
+    {
+        return CustomRequest::query()
             ->with(['pelanggan.user'])
             ->when($this->search, function ($query) {
                 $query->where('deskripsi', 'like', '%' . $this->search . '%')
@@ -29,13 +21,15 @@ with(function() {
                     });
             })
             ->orderBy($this->sortField, $this->sortDirection)
-            ->paginate(10)
-    ];
-});
+            ->paginate(10);
+    }
 
-$delete = function($id) {
-    $request = CustomRequest::findOrFail($id);
-    $request->delete();
+    public function delete($id)
+    {
+        $request = CustomRequest::findOrFail($id);
+        $request->delete();
+        // No need to refresh, pagination will auto update
+    }
 };
 ?>
 
@@ -84,7 +78,7 @@ $delete = function($id) {
             <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex items-center justify-between">
                 <div>
                     <p class="text-sm text-gray-600">Total Request</p>
-                    <p class="text-2xl font-semibold text-indigo-600">{{ $customRequests->total() }}</p>
+                    <p class="text-2xl font-semibold text-indigo-600">{{ $this->customRequests->total() }}</p>
                 </div>
                 <div class="p-3 bg-indigo-50 rounded-lg">
                     <flux:icon name="document-text" class="h-6 w-6 text-indigo-600" />
@@ -93,7 +87,7 @@ $delete = function($id) {
             <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex items-center justify-between">
                 <div>
                     <p class="text-sm text-gray-600">Halaman</p>
-                    <p class="text-2xl font-semibold text-purple-600">{{ $customRequests->currentPage() }}</p>
+                    <p class="text-2xl font-semibold text-purple-600">{{ $this->customRequests->currentPage() }}</p>
                 </div>
                 <div class="p-3 bg-purple-50 rounded-lg">
                     <flux:icon name="view-columns" class="h-6 w-6 text-purple-600" />
@@ -159,7 +153,7 @@ $delete = function($id) {
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                    @forelse ($customRequests as $customRequest)
+                    @forelse ($this->customRequests as $customRequest)
                         <tr class="hover:bg-gray-50/50 transition duration-150">
                             <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-600 text-center">
                                 {{ $loop->iteration }}
@@ -262,23 +256,23 @@ $delete = function($id) {
     <div class="mt-6">
         <div class="bg-white px-4 py-3 flex items-center justify-between border border-gray-200 rounded-lg sm:px-6">
             <div class="flex-1 flex justify-between sm:hidden">
-                {{ $customRequests->links() }}
+                {{ $this->customRequests->links() }}
             </div>
             <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                 <div>
                     <p class="text-sm text-gray-700 flex items-center space-x-1">
                         <flux:icon name="document-text" class="h-4 w-4 text-gray-400" />
                         <span>Menampilkan</span>
-                        <span class="font-medium">{{ $customRequests->firstItem() ?? 0 }}</span>
+                        <span class="font-medium">{{ $this->customRequests->firstItem() ?? 0 }}</span>
                         <span>sampai</span>
-                        <span class="font-medium">{{ $customRequests->lastItem() ?? 0 }}</span>
+                        <span class="font-medium">{{ $this->customRequests->lastItem() ?? 0 }}</span>
                         <span>dari</span>
-                        <span class="font-medium">{{ $customRequests->total() }}</span>
+                        <span class="font-medium">{{ $this->customRequests->total() }}</span>
                         <span>hasil</span>
                     </p>
                 </div>
                 <div>
-                    {{ $customRequests->links() }}
+                    {{ $this->customRequests->links() }}
                 </div>
             </div>
         </div>

@@ -58,4 +58,10 @@ class Transaksi extends Model
             'produk_id'     // Local key di detail_transaksi
         );
     }
+
+    // Relasi ke pengiriman
+    public function pengiriman()
+    {
+        return $this->hasOne(Pengiriman::class, 'transaksi_id');
+    }
 }

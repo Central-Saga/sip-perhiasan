@@ -5,21 +5,17 @@ use function Livewire\Volt\{state, with};
 use App\Models\Pelanggan;
 use Illuminate\Support\Str;
 
+
+
 new class extends Component {
-    //
-}; ?>
+    public $search = '';
+    public $sortField = 'users.name';
+    public $sortDirection = 'asc';
+    public $page = 1;
 
-<?php
-state([
-    'search' => '',
-    'sortField' => 'users.name',
-    'sortDirection' => 'asc',
-    'page' => 1
-]);
-
-with(function() {
-    return [
-        'pelanggans' => Pelanggan::query()
+    public function getPelanggansProperty()
+    {
+        return Pelanggan::query()
             ->join('users', 'pelanggan.user_id', '=', 'users.id')
             ->select('pelanggan.*')
             ->when($this->search, function ($query) {
@@ -33,14 +29,19 @@ with(function() {
                 });
             })
             ->orderBy($this->sortField, $this->sortDirection)
-            ->paginate(10)
-    ];
-});
+            ->paginate(10);
+    }
 
-$delete = function($id) {
-    Pelanggan::find($id)->delete();
+    public function delete($id)
+    {
+        Pelanggan::find($id)->delete();
+        // Pagination will auto update
+    }
 };
 ?>
+
+
+
 
 <div>
 <div class="max-w-full">
@@ -86,7 +87,7 @@ $delete = function($id) {
             <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex items-center justify-between">
                 <div>
                     <p class="text-sm text-gray-600">Total Pelanggan</p>
-                    <p class="text-2xl font-semibold text-indigo-600">{{ $pelanggans->total() }}</p>
+                    <p class="text-2xl font-semibold text-indigo-600">{{ $this->pelanggans->total() }}</p>
                 </div>
                 <div class="p-3 bg-indigo-50 rounded-lg">
                     <flux:icon name="users" class="h-6 w-6 text-indigo-600" />
@@ -95,7 +96,7 @@ $delete = function($id) {
             <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex items-center justify-between">
                 <div>
                     <p class="text-sm text-gray-600">Halaman</p>
-                    <p class="text-2xl font-semibold text-purple-600">{{ $pelanggans->currentPage() }}</p>
+                    <p class="text-2xl font-semibold text-purple-600">{{ $this->pelanggans->currentPage() }}</p>
                 </div>
                 <div class="p-3 bg-purple-50 rounded-lg">
                     <flux:icon name="view-columns" class="h-6 w-6 text-purple-600" />
@@ -155,7 +156,7 @@ $delete = function($id) {
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                    @forelse ($pelanggans as $pelanggan)
+                    @forelse ($this->pelanggans as $pelanggan)
                         <tr class="hover:bg-gray-50/50 transition duration-150">
                             <td class="px-4 py-4 text-sm text-gray-500 text-center">{{ $loop->iteration }}</td>
                             <td class="px-4 py-4">
@@ -241,23 +242,23 @@ $delete = function($id) {
     <div class="mt-6">
         <div class="bg-white px-4 py-3 flex items-center justify-between border border-gray-200 rounded-lg sm:px-6">
             <div class="flex-1 flex justify-between sm:hidden">
-                {{ $pelanggans->links() }}
+                {{ $this->pelanggans->links() }}
             </div>
             <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                 <div>
                     <p class="text-sm text-gray-700 flex items-center space-x-1">
                         <flux:icon name="document-text" class="h-4 w-4 text-gray-400" />
                         <span>Menampilkan</span>
-                        <span class="font-medium">{{ $pelanggans->firstItem() ?? 0 }}</span>
+                        <span class="font-medium">{{ $this->pelanggans->firstItem() ?? 0 }}</span>
                         <span>sampai</span>
-                        <span class="font-medium">{{ $pelanggans->lastItem() ?? 0 }}</span>
+                        <span class="font-medium">{{ $this->pelanggans->lastItem() ?? 0 }}</span>
                         <span>dari</span>
-                        <span class="font-medium">{{ $pelanggans->total() }}</span>
+                        <span class="font-medium">{{ $this->pelanggans->total() }}</span>
                         <span>hasil</span>
                     </p>
                 </div>
                 <div>
-                    {{ $pelanggans->links() }}
+                    {{ $this->pelanggans->links() }}
                 </div>
             </div>
         </div>

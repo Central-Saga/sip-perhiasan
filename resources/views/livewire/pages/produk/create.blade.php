@@ -1,10 +1,49 @@
-<?php
 
+<?php
 use Livewire\Volt\Component;
+use App\Models\Produk;
 
 new class extends Component {
-    //
-}; ?>
+    use \Livewire\WithFileUploads;
+
+    public $nama_produk = '';
+    public $kategori = '';
+    public $harga = '';
+    public $stok = '';
+    public $deskripsi = '';
+    public $status = false;
+    public $foto;
+
+    public function save() {
+        $this->validate([
+            'nama_produk' => 'required',
+            'kategori' => 'required',
+            'harga' => 'required|numeric',
+            'stok' => 'required|numeric',
+            'deskripsi' => 'required',
+            'foto' => 'nullable|image|max:2048',
+        ]);
+
+        $path = null;
+        if ($this->foto) {
+            $path = $this->foto->store('produk', 'public');
+        }
+
+        Produk::create([
+            'nama_produk' => $this->nama_produk,
+            'kategori' => $this->kategori,
+            'harga' => $this->harga,
+            'stok' => $this->stok,
+            'deskripsi' => $this->deskripsi,
+            'status' => $this->status ? 1 : 0,
+            'foto' => $path,
+        ]);
+
+        session()->flash('success', 'Produk berhasil ditambahkan!');
+        return redirect()->route('produk.index');
+    }
+};
+?>
 
 <div>
     <div class="py-10 bg-white min-h-screen">
@@ -71,9 +110,9 @@ new class extends Component {
                         <!-- Kanan: Preview Foto & Upload -->
                         <div class="flex flex-col items-center justify-center h-full space-y-6">
                             <div class="w-56 h-56 flex items-center justify-center bg-white rounded-xl border-2 border-dashed border-indigo-200 shadow-sm overflow-hidden">
-                                @isset($this->foto)
-                                    @if ($this->foto instanceof \Livewire\TemporaryUploadedFile)
-                                        <img src="{{ $this->foto->temporaryUrl() }}" class="object-cover w-full h-full">
+                                @if ($foto)
+                                    @if ($foto instanceof \Livewire\TemporaryUploadedFile)
+                                        <img src="{{ $foto->temporaryUrl() }}" class="object-cover w-full h-full">
                                     @else
                                         <div class="flex flex-col items-center justify-center text-indigo-300">
                                             <svg class="h-12 w-12 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3"/></svg>
@@ -85,10 +124,10 @@ new class extends Component {
                                         <svg class="h-12 w-12 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3"/></svg>
                                         <span class="text-sm">Belum ada foto</span>
                                     </div>
-                                @endisset
+                                @endif
                             </div>
                             <div class="w-full flex flex-col items-center">
-                                <input type="file" wire:model="foto" id="foto" class="sr-only">
+                                <input type="file" wire:model="foto" id="foto" class="sr-only" accept="image/*">
                                 <label for="foto" class="cursor-pointer bg-indigo-600 py-2 px-6 rounded-lg text-white font-semibold shadow hover:bg-indigo-700 transition-all">
                                     Pilih Foto
                                 </label>
@@ -104,6 +143,16 @@ new class extends Component {
                         </button>
                     </div>
                 </form>
+                @if (session()->has('success'))
+                    <div class="mt-6 p-4 bg-green-100 text-green-800 rounded-lg">
+                        {{ session('success') }}
+                    </div>
+                @endif
+                @if (session()->has('error'))
+                    <div class="mt-6 p-4 bg-red-100 text-red-800 rounded-lg">
+                        {{ session('error') }}
+                    </div>
+                @endif
             </div>
         </div>
     </div>

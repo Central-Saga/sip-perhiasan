@@ -5,42 +5,37 @@ use App\Models\Pengiriman;
 use function Livewire\Volt\{state, with};
 
 new class extends Component {
-    //
-}; ?>
+    public $search = '';
+    public $sortField = 'created_at';
+    public $sortDirection = 'desc';
+    public $page = 1;
 
-<?php
-state([
-    'search' => '',
-    'sortField' => 'created_at',
-    'sortDirection' => 'desc',
-    'page' => 1
-]);
-
-with(function() {
-    return [
-        'pengirimans' => Pengiriman::query()
-            ->with('transaksi')
-            ->when($this->search, function ($query) {
-                $query->where('status', 'like', '%' . $this->search . '%')
-                    ->orWhere('deskripsi', 'like', '%' . $this->search . '%');
-            })
-            ->orderBy($this->sortField, $this->sortDirection)
-            ->paginate(10)
-    ];
-});
-
-$sortBy = function($field) {
-    if ($this->sortField === $field) {
-        $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
-    } else {
-        $this->sortField = $field;
-        $this->sortDirection = 'asc';
+    public function with() {
+        return [
+            'pengirimans' => Pengiriman::query()
+                ->with('transaksi')
+                ->when($this->search, function ($query) {
+                    $query->where('status', 'like', '%' . $this->search . '%')
+                        ->orWhere('deskripsi', 'like', '%' . $this->search . '%');
+                })
+                ->orderBy($this->sortField, $this->sortDirection)
+                ->paginate(10)
+        ];
     }
-};
 
-$delete = function($id) {
-    $pengiriman = Pengiriman::findOrFail($id);
-    $pengiriman->delete();
+    public function sortBy($field) {
+        if ($this->sortField === $field) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortField = $field;
+            $this->sortDirection = 'asc';
+        }
+    }
+
+    public function delete($id) {
+        $pengiriman = Pengiriman::findOrFail($id);
+        $pengiriman->delete();
+    }
 };
 ?>
 
