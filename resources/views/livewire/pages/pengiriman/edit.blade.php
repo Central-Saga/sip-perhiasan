@@ -1,3 +1,11 @@
+<?php
+
+use Livewire\Volt\Component;
+
+new class extends Component {
+    //
+}; ?>
+
 @php
     use App\Models\Transaksi;
     use App\Models\Pengiriman;
@@ -6,8 +14,8 @@
     $transaksis = Transaksi::all();
     $statusList = ['pending', 'processing', 'shipped', 'delivered'];
 @endphp
-<div class="py-12 bg-gray-50 min-h-screen">
-    <div class="max-w-7xl mx-auto">
+<div>
+    <div class="py-12 bg-gray-50 min-h-screen">
         <div class="bg-white shadow-xl rounded-2xl p-10">
             <h2 class="text-2xl font-bold text-gray-900 mb-6">Edit Pengiriman</h2>
             <form method="POST" action="{{ route('pengiriman.edit', $pengiriman->id) }}">

@@ -22,25 +22,35 @@ $metodeList = ['TRANSFER' => 'Transfer Bank', 'CASH' => 'Tunai'];
                                 @endforeach
                             </select>
                             @error('transaksi_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                        </div>
+                        <?php
+
+                        use Livewire\Volt\Component;
+
+                        new class extends Component {
+                            //
+                        }; ?>
+
+                        @php
+                        $transaksis = \App\Models\Transaksi::all();
+                        $statusList = ['PENDING', 'DIBAYAR', 'SELESAI', 'DITOLAK'];
+                        $metodeList = ['TRANSFER' => 'Transfer Bank', 'CASH' => 'Tunai'];
+                        @endphp
                         <div>
-                            <label for="tanggal_bayar" class="block text-base font-medium text-gray-700 mb-1">Tanggal Pembayaran</label>
-                            <input id="tanggal_bayar" type="date" name="tanggal_bayar" class="w-full py-3 px-4 rounded-lg text-base border border-gray-300 focus:ring-blue-500 focus:border-blue-500 bg-white" value="{{ old('tanggal_bayar') }}">
-                            @error('tanggal_bayar') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                            <div class="py-12 bg-gray-50 min-h-screen">
+                                ...existing code...
+                            </div>
+                            <script>
+                            function toggleBuktiTransfer(val) {
+                                ...existing code...
+                            }
+                            document.getElementById('bukti_transfer')?.addEventListener('change', function(e) {
+                                ...existing code...
+                            });
+                            window.addEventListener('DOMContentLoaded', function() {
+                                ...existing code...
+                            });
+                            </script>
                         </div>
-                        <div>
-                            <label for="status" class="block text-base font-medium text-gray-700 mb-1">Status</label>
-                            <select id="status" name="status" class="w-full py-3 px-4 rounded-lg text-base border border-gray-300 focus:ring-blue-500 focus:border-blue-500 bg-white">
-                                <option value="">Pilih Status</option>
-                                @foreach($statusList as $status)
-                                    <option value="{{ $status }}" {{ old('status') == $status ? 'selected' : '' }}>{{ ucfirst(strtolower($status)) }}</option>
-                                @endforeach
-                            </select>
-                            @error('status') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                        </div>
-                    </div>
-                    <div class="space-y-6">
-                        <div>
                             <label for="metode" class="block text-base font-medium text-gray-700 mb-1">Metode Pembayaran</label>
                             <select id="metode" name="metode" class="w-full py-3 px-4 rounded-lg text-base border border-gray-300 focus:ring-blue-500 focus:border-blue-500 bg-white" onchange="toggleBuktiTransfer(this.value)">
                                 <option value="">Pilih Metode</option>

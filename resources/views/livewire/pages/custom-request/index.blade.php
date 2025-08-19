@@ -1,8 +1,15 @@
 <?php
+
+use Livewire\Volt\Component;
 use App\Models\CustomRequest;
 use Illuminate\Support\Str;
 use function Livewire\Volt\{state, with};
 
+new class extends Component {
+    //
+}; ?>
+
+<?php
 state([
     'search' => '',
     'sortField' => 'created_at',
@@ -32,6 +39,7 @@ $delete = function($id) {
 };
 ?>
 
+<div>
 <div class="max-w-full">
     <!-- Header with gradient background -->
     <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-6 mb-6">

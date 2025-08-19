@@ -1,42 +1,47 @@
 <?php
-
-use function Livewire\Volt\{state, with};
-use App\Models\Transaksi;
-use Illuminate\Support\Str;
-
-state([
-    'search' => '',
-    'sortField' => 'tanggal_transaksi',
-    'sortDirection' => 'desc',
-    'page' => 1,
-    'openDetail' => null
-]);
-
-with(function() {
-    return [
-        'transaksis' => Transaksi::query()
-            ->with(['pelanggan.user', 'detailTransaksi.produk'])
-            ->when($this->search, function ($query) {
-                $query->where(function ($q) {
-                    $q->whereHas('pelanggan.user', function ($u) {
-                        $u->where('name', 'like', '%' . $this->search . '%');
-                    })
-                    ->orWhereHas('produk', function ($p) {
-                        $p->where('nama_produk', 'like', '%' . $this->search . '%');
-                    });
-                });
-            })
-            ->orderBy($this->sortField, $this->sortDirection)
-            ->paginate(10)
-    ];
-});
-
-$delete = function($id) {
-    Transaksi::find($id)->delete();
-};
-?>
+use Livewire\Volt\Component;
+new class extends Component {
+    //
+}; ?>
 
 <div>
+    <?php
+    use function Livewire\Volt\{state, with};
+    use App\Models\Transaksi;
+    use Illuminate\Support\Str;
+
+    state([
+        'search' => '',
+        'sortField' => 'tanggal_transaksi',
+        'sortDirection' => 'desc',
+        'page' => 1,
+        'openDetail' => null
+    ]);
+
+    with(function() {
+        return [
+            'transaksis' => Transaksi::query()
+                ->with(['pelanggan.user', 'detailTransaksi.produk'])
+                ->when($this->search, function ($query) {
+                    $query->where(function ($q) {
+                        $q->whereHas('pelanggan.user', function ($u) {
+                            $u->where('name', 'like', '%' . $this->search . '%');
+                        })
+                        ->orWhereHas('produk', function ($p) {
+                            $p->where('nama_produk', 'like', '%' . $this->search . '%');
+                        });
+                    });
+                })
+                ->orderBy($this->sortField, $this->sortDirection)
+                ->paginate(10)
+        ];
+    });
+
+    $delete = function($id) {
+        Transaksi::find($id)->delete();
+    };
+    ?>
+
     <div class="max-w-full">
         <!-- Header with gradient background -->
         <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-6 mb-6">

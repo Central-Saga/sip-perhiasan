@@ -1,9 +1,15 @@
 <?php
 
+use Livewire\Volt\Component;
 use App\Models\Pembayaran;
 use Illuminate\Support\Facades\Storage;
 use function Livewire\Volt\{state, with};
 
+new class extends Component {
+    //
+}; ?>
+
+<?php
 state([
     'search' => '',
     'sortField' => 'created_at',
@@ -29,9 +35,9 @@ $delete = function($id) {
     $pembayaran = Pembayaran::findOrFail($id);
     $pembayaran->delete();
 };
-
 ?>
 
+<div>
 <div class="max-w-full">
     <!-- Header with gradient background -->
     <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 mb-6">

@@ -1,9 +1,15 @@
 <?php
 
+use Livewire\Volt\Component;
 use function Livewire\Volt\{state, with};
 use App\Models\Pelanggan;
 use Illuminate\Support\Str;
 
+new class extends Component {
+    //
+}; ?>
+
+<?php
 state([
     'search' => '',
     'sortField' => 'users.name',
@@ -36,6 +42,7 @@ $delete = function($id) {
 };
 ?>
 
+<div>
 <div class="max-w-full">
     <!-- Header with gradient background -->
     <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-6 mb-6">

@@ -1,8 +1,14 @@
 <?php
 
+use Livewire\Volt\Component;
 use App\Models\Pengiriman;
 use function Livewire\Volt\{state, with};
 
+new class extends Component {
+    //
+}; ?>
+
+<?php
 state([
     'search' => '',
     'sortField' => 'created_at',
