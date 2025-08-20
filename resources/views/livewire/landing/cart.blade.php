@@ -1,11 +1,17 @@
-@extends('layouts.app')
-@section('title', 'Transaksi Saya')
-@section('content')
+@layout('components.layouts.landing')
+
+
+<?php
+use Livewire\Volt\Component;
+new class extends Component {
+    // Tambahkan properti dan logic jika perlu
+};
+?>
 <div class="max-w-4xl mx-auto px-4 py-12">
 <h1 class="text-3xl md:text-4xl font-extrabold text-slate-800 mb-8 flex items-center gap-2"><i class="fa-solid fa-cart-shopping text-indigo-500"></i> Transaksi Saya</h1>
     <div class="bg-white rounded-xl shadow p-6 mb-8">
 <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left text-indigo-400"></i> Riwayat Transaksi</h2>
-        @if(count($transaksis) > 0)
+        @if(count($transaksis ?? []) > 0)
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm">
                     <thead>
@@ -48,26 +54,20 @@
                 // Ambil cart dari localStorage
                 let cart = JSON.parse(localStorage.getItem('cart') || '{}');
                 let produkList = [];
-                
                 function renderCart() {
                     const cartItems = document.getElementById('cartItems');
                     const cartTotal = document.getElementById('cartTotal');
                     let html = '';
                     let total = 0;
-                    
-                    // Jika cart kosong
                     if (Object.keys(cart).length === 0) {
                         cartItems.innerHTML = '<div class="text-center py-6"><i class="fa-solid fa-cart-shopping text-slate-300 text-5xl mb-3"></i><p class="text-slate-400">Keranjang belanja Anda kosong.</p></div>';
                         cartTotal.innerText = 'Rp 0';
                         return;
                     }
-                    
-                    // Render setiap item dalam cart
                     for (const id in cart) {
                         const item = cart[id];
                         const itemTotal = item.harga * item.qty;
                         total += itemTotal;
-                        
                         html += `
                         <div class='py-4'>
                             <div class='flex gap-4'>
@@ -98,24 +98,19 @@
                             </div>
                         </div>`;
                     }
-                    
                     cartItems.innerHTML = html;
                     cartTotal.innerText = 'Rp ' + total.toLocaleString('id-ID');
                 }
-                
                 function updateQty(id, delta) {
                     if (!cart[id]) return;
-                    
                     cart[id].qty += delta;
                     if (cart[id].qty <= 0) {
                         delete cart[id];
                     }
-                    
                     localStorage.setItem('cart', JSON.stringify(cart));
                     updateCartCount();
                     renderCart();
                 }
-                
                 function removeItem(id) {
                     if (confirm('Hapus produk ini dari keranjang?')) {
                         delete cart[id];
@@ -124,36 +119,26 @@
                         renderCart();
                     }
                 }
-                
                 function updateCartCount() {
                     let count = 0;
                     for (const id in cart) count += cart[id].qty;
                     const cartCount = document.getElementById('cartCount');
                     if(cartCount) cartCount.innerText = count;
                 }
-                
                 document.getElementById('checkoutBtn').onclick = function() {
-                    // Simpan custom request details
                     const customRequest = {
                         deskripsi: document.getElementById('customDesc').value.trim(),
                         material: document.getElementById('customMaterial').value,
                         ukuran: document.getElementById('customSize').value.trim(),
                         referensi: document.getElementById('customImageUrl').value.trim()
                     };
-                    
-                    // Hanya simpan jika ada data
                     if (customRequest.deskripsi || customRequest.material || customRequest.ukuran || customRequest.referensi) {
                         localStorage.setItem('customRequest', JSON.stringify(customRequest));
                     }
-                    
                     window.location.href = "{{ route('checkout') }}";
                 };
-                
-                // Inisialisasi cart
                 renderCart();
                 updateCartCount();
-                
-                // Isi form custom request dengan data sebelumnya jika ada
                 const savedCustomRequest = JSON.parse(localStorage.getItem('customRequest') || '{}');
                 if (savedCustomRequest) {
                     document.getElementById('customDesc').value = savedCustomRequest.deskripsi || '';
@@ -165,4 +150,3 @@
         @endif
     </div>
 </div>
-@endsection
