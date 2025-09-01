@@ -19,7 +19,9 @@ state([
     'sortField'      => 'id',
     'sortDirection'  => 'asc',
     'page'           => 1,
-    'protectedNames' => ['Admin', 'Owner'], // role yang tidak boleh dihapus
+    'protectedNames' => ['admin', 'manager', 'owner'], // role yang tidak boleh dihapus
+    'showDeleteDialog' => false,
+    'roleToDelete'   => null,
 ]);
 
 // ---- LIST ROLES (COMPUTED) ----
@@ -54,7 +56,7 @@ $roles = computed(function () {
             $q->orderBy('permissions_count', $this->sortDirection);
         })
         ->paginate(10);
-})->persist();
+});
 
 // ---- ACTIONS ----
 $sortBy = function (string $field) {
@@ -66,12 +68,23 @@ $sortBy = function (string $field) {
     }
 };
 
+$openDeleteDialog = function ($roleId) {
+    $this->roleToDelete = $roleId;
+    $this->showDeleteDialog = true;
+};
+
+$closeDeleteDialog = function () {
+    $this->showDeleteDialog = false;
+    $this->roleToDelete = null;
+};
+
 $delete = function ($id) {
     try {
         Log::channel('role_management')->info('Role Deletion Started', [
             'role_id' => $id,
             'user_id' => auth()->id(),
-            'timestamp' => now()
+            'timestamp' => now(),
+            'protected_names' => $this->protectedNames
         ]);
 
         $role = Role::find($id);
@@ -81,23 +94,27 @@ $delete = function ($id) {
                 'role_id' => $id
             ]);
             session()->flash('error', 'Role tidak ditemukan.');
+            $this->closeDeleteDialog();
             return;
         }
 
         Log::channel('role_management')->info('Role Found for Deletion', [
             'role_id' => $role->id,
             'role_name' => $role->name,
-            'guard_name' => $role->guard_name
+            'guard_name' => $role->guard_name,
+            'is_protected' => in_array(strtolower($role->name), array_map('strtolower', $this->protectedNames), true),
+            'protected_names' => $this->protectedNames
         ]);
 
-        // Proteksi: nama role tertentu tidak boleh dihapus
-        if (in_array($role->name, $this->protectedNames, true)) {
+        // Proteksi: nama role tertentu tidak boleh dihapus (case insensitive)
+        if (in_array(strtolower($role->name), array_map('strtolower', $this->protectedNames), true)) {
             Log::channel('role_management')->warning('Protected Role Deletion Attempted', [
                 'role_id' => $role->id,
                 'role_name' => $role->name,
                 'protected_names' => $this->protectedNames
             ]);
             session()->flash('error', "Role '{$role->name}' dilindungi dan tidak dapat dihapus.");
+            $this->closeDeleteDialog();
             return;
         }
 
@@ -109,7 +126,9 @@ $delete = function ($id) {
 
         Log::channel('role_management')->info('Role Users Count Check', [
             'role_id' => $role->id,
-            'users_count' => $usersCount
+            'role_name' => $role->name,
+            'users_count' => $usersCount,
+            'can_delete' => $usersCount === 0
         ]);
 
         if ($usersCount > 0) {
@@ -119,6 +138,7 @@ $delete = function ($id) {
                 'users_count' => $usersCount
             ]);
             session()->flash('error', "Role '{$role->name}' masih dipakai oleh {$usersCount} pengguna. Lepas role dari user terlebih dahulu.");
+            $this->closeDeleteDialog();
             return;
         }
 
@@ -134,10 +154,17 @@ $delete = function ($id) {
         Log::channel('role_management')->info('Role Successfully Deleted', [
             'role_id' => $id,
             'role_name' => $role->name,
-            'deleted_permissions' => $permissions
+            'guard_name' => $role->guard_name,
+            'deleted_permissions' => $permissions,
+            'deleted_at' => now()
         ]);
 
-        session()->flash('message', "Role '{$role->name}' berhasil dihapus.");
+                session()->flash('message', "Role '{$role->name}' berhasil dihapus.");
+
+        // Tutup dialog setelah berhasil delete
+        $this->closeDeleteDialog();
+
+        // Data akan otomatis refresh karena computed property tanpa persist
 
     } catch (\Exception $e) {
         Log::channel('role_management')->error('Role Deletion Failed', [
@@ -147,6 +174,7 @@ $delete = function ($id) {
         ]);
 
         session()->flash('error', 'Terjadi kesalahan saat menghapus role: ' . $e->getMessage());
+        $this->closeDeleteDialog();
     }
 };
 
@@ -372,12 +400,19 @@ $delete = function ($id) {
                                     Edit
                                 </a>
 
-                                <button wire:click="delete({{ $role->id }})"
-                                    class="inline-flex items-center px-2.5 py-1.5 border border-red-500 text-red-600 hover:bg-red-50 rounded-lg transition duration-150"
-                                    wire:confirm="Hapus role ini? Pastikan tidak terikat ke user.">
+                                @if(!in_array(strtolower($role->name), array_map('strtolower', $this->protectedNames)))
+                                <button wire:click="openDeleteDialog({{ $role->id }})"
+                                    class="inline-flex items-center px-2.5 py-1.5 border border-red-500 text-red-600 hover:bg-red-50 rounded-lg transition duration-150">
                                     <flux:icon name="trash" class="h-4 w-4 mr-1" />
                                     Hapus
                                 </button>
+                                @else
+                                <span
+                                    class="inline-flex items-center px-2.5 py-1.5 border border-gray-300 text-gray-400 rounded-lg cursor-not-allowed">
+                                    <flux:icon name="shield-check" class="h-4 w-4 mr-1" />
+                                    Dilindungi
+                                </span>
+                                @endif
                             </div>
                         </td>
                     </tr>
@@ -435,4 +470,55 @@ $delete = function ($id) {
             </div>
         </div>
     </div>
+
+    <!-- Custom Delete Confirmation Dialog -->
+    @if($showDeleteDialog)
+    <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <!-- Background overlay -->
+            <div class="fixed inset-0 backdrop-blur-sm bg-white/30 transition-opacity" aria-hidden="true"
+                wire:click="closeDeleteDialog"></div>
+
+            <!-- This element is to trick the browser into centering the modal contents. -->
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <!-- Modal panel -->
+            <div
+                class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div
+                            class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <flux:icon name="exclamation-triangle" class="h-6 w-6 text-red-600" />
+                        </div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                                Konfirmasi Hapus Role
+                            </h3>
+                            <div class="mt-2">
+                                <p class="text-sm text-gray-500">
+                                    Apakah Anda yakin ingin menghapus role ini? Pastikan role tidak terikat ke user
+                                    manapun.
+                                    Tindakan ini tidak dapat dibatalkan.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="button" wire:click="delete({{ $roleToDelete }})"
+                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm transition duration-150">
+                        <flux:icon name="trash" class="h-4 w-4 mr-2" />
+                        Ya, Hapus
+                    </button>
+                    <button type="button" wire:click="closeDeleteDialog"
+                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition duration-150">
+                        <flux:icon name="x-mark" class="h-4 w-4 mr-2" />
+                        Batal
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 </div>
