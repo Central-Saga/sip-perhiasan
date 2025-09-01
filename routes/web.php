@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 use Livewire\Volt\Volt;
 
 
@@ -12,9 +13,28 @@ Route::prefix('/')->group(function () {
     Volt::route('/', 'pages.landingpage.home.index')->name('home');
     Volt::route('about', 'pages.landingpage.aboutme.index')->name('about');
     Volt::route('produk', 'pages.landingpage.produk.index')->name('produk');
+    // Alias name for nav compatibility
+    Route::get('produk-landing', function () {
+        return redirect()->route('produk');
+    })->name('produk.landing');
     Volt::route('produk/{id}', 'pages.landingpage.produk.detail')->name('produk.detail');
     Volt::route('custom', 'pages.landingpage.custom.index')->name('custom');
-    Volt::route('custom/submit', 'pages.landingpage.custom.index')->name('custom.submit');
+    // Handle Custom Request form submission (POST)
+    Route::post('custom/submit', function (Request $request) {
+        $validated = $request->validate([
+            'kategori' => 'required|string|max:255',
+            'material' => 'required|string|max:100',
+            'ukuran' => 'nullable|string|max:255',
+            'deskripsi' => 'required|string',
+            'gambar_referensi' => 'nullable|image|max:2048',
+        ]);
+
+        if ($request->hasFile('gambar_referensi')) {
+            $request->file('gambar_referensi')->store('custom-referensi', 'public');
+        }
+
+        return back()->with('message', 'Custom request berhasil dikirim. Kami akan menghubungi Anda.');
+    })->name('custom.submit');
     Volt::route('cart', 'pages.landingpage.cart.index')->name('cart');
     Volt::route('checkout', 'pages.landingpage.checkout.index')->name('checkout');
     Volt::route('checkout/submit', 'pages.landingpage.checkout.index')->name('checkout.submit');

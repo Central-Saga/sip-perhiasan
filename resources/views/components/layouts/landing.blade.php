@@ -17,11 +17,11 @@
 </head>
 
 <body class="font-sans antialiased">
-    <div class="min-h-screen bg-white dark:bg-zinc-900">
+    <div class="min-h-screen bg-white dark:bg-zinc-900 flex flex-col">
         @include('components.layouts.landing.header')
 
         <!-- Page Content -->
-        <flux:main class="pt-24">
+        <flux:main class="pt-24 flex-1">
             {{ $slot }}
         </flux:main>
 
