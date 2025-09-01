@@ -20,7 +20,7 @@ class PelangganFactory extends Factory
             'user_id' => \App\Models\User::factory(),
             'no_telepon' => fake()->phoneNumber(),
             'alamat' => fake()->address(),
-            'status' => fake()->boolean(),
+            'status' => fake()->randomElement(['Aktif', 'Tidak Aktif']),
         ];
     }
 }

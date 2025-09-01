@@ -23,7 +23,7 @@ class ProdukFactory extends Factory
             'stok' => fake()->numberBetween(1, 100),
             'foto' => fake()->imageUrl(),
             'kategori' => fake()->randomElement(['Cincin', 'Kalung', 'Gelang', 'Anting']),
-            'status' => fake()->boolean(),
+            'status' => fake()->randomElement(['Aktif', 'Tidak Aktif']),
         ];
     }
 }

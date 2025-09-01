@@ -28,7 +28,8 @@ class DatabaseSeeder extends Seeder
 
         // Run other seeders in specific order
         $this->call([
-            PelangganSeeder::class,    // First create pelanggans
+            RolePermissionSeeder::class, // First create roles and permissions
+            PelangganSeeder::class,    // Then create pelanggans
             ProdukSeeder::class,       // Then create products
             CustomRequestSeeder::class, // Then create custom requests from pelanggans
             TransaksiSeeder::class,    // Finally create transactions (will also create pembayaran and pengiriman)

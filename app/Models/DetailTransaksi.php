@@ -27,4 +27,12 @@ class DetailTransaksi extends Model
     {
         return $this->belongsTo(Produk::class, 'produk_id');
     }
+
+    /**
+     * Get the custom requests associated with this detail transaction
+     */
+    public function customRequests()
+    {
+        return $this->hasMany(CustomRequest::class);
+    }
 }

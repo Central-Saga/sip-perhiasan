@@ -52,6 +52,16 @@ Route::view('dashboard', 'dashboard')
     ->name('dashboard');
 
 Route::middleware(['auth'])->prefix('admin')->group(function () {
+    // User Routes
+    Volt::route('user', 'pages.users.index')->name('user.index');
+    Volt::route('user/create', 'pages.users.create')->name('user.create');
+    Volt::route('user/{user}/edit', 'pages.users.edit')->name('user.edit');
+
+    // Role Routes
+    Volt::route('role', 'pages.roles.index')->name('role.index');
+    Volt::route('role/create', 'pages.roles.create')->name('role.create');
+    Volt::route('role/{role}/edit', 'pages.roles.edit')->name('role.edit');
+
     // Settings Routes
     Route::redirect('settings', 'admin/settings/profile');
     Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
@@ -90,4 +100,4 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Volt::route('custom-request/{customRequest}/edit', 'pages.custom-request.edit')->name('custom-request.edit');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

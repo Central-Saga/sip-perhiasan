@@ -10,6 +10,12 @@
             <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </flux:navlist.item>
+            <flux:navlist.item icon="users" :href="route('user.index')" :current="request()->routeIs('user.*')">
+                {{ __('User') }}
+            </flux:navlist.item>
+            <flux:navlist.item icon="shield-check" :href="route('role.index')" :current="request()->routeIs('role.*')">
+                {{ __('Role') }}
+            </flux:navlist.item>
             <flux:navlist.item icon="users" :href="route('pelanggan.index')"
                 :current="request()->routeIs('pelanggan.*')">
                 {{ __('Pelanggan') }}
