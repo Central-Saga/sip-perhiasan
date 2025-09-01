@@ -42,3 +42,4 @@ class TransaksiSeeder extends Seeder
         }
     }
 }
+
