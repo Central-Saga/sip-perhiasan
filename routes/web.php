@@ -53,14 +53,14 @@ Route::view('dashboard', 'dashboard')
 
 Route::middleware(['auth'])->prefix('admin')->group(function () {
     // User Routes
-    Volt::route('user', 'pages.user.index')->name('user.index');
-    Volt::route('user/create', 'pages.user.create')->name('user.create');
-    Volt::route('user/{user}/edit', 'pages.user.edit')->name('user.edit');
+    Volt::route('user', 'pages.users.index')->name('user.index');
+    Volt::route('user/create', 'pages.users.create')->name('user.create');
+    Volt::route('user/{user}/edit', 'pages.users.edit')->name('user.edit');
 
     // Role Routes
-    Volt::route('role', 'pages.role.index')->name('role.index');
-    Volt::route('role/create', 'pages.role.create')->name('role.create');
-    Volt::route('role/{role}/edit', 'pages.role.edit')->name('role.edit');
+    Volt::route('role', 'pages.roles.index')->name('role.index');
+    Volt::route('role/create', 'pages.roles.create')->name('role.create');
+    Volt::route('role/{role}/edit', 'pages.roles.edit')->name('role.edit');
 
     // Settings Routes
     Route::redirect('settings', 'admin/settings/profile');
