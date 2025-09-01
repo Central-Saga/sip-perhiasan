@@ -1,6 +1,9 @@
 <?php
 
 use Livewire\Volt\Component;
+use function Livewire\Volt\{ layout, title };
+layout('components.layouts.admin');
+title('Pelanggan - Edit');
 
 new class extends Component {
     //

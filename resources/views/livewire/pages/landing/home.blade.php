@@ -1,5 +1,7 @@
 <?php
 use Livewire\Volt\Component;
+use function Livewire\Volt\layout;
+layout('components.layouts.landing');
 use App\Models\Produk;
 
 new class extends Component {
@@ -12,8 +14,6 @@ new class extends Component {
 };
 ?>
 <div>
-    @include('components.layouts.landing.header')
-    <main>
         <!-- Hero Section: Bliss Silversmith -->
         <section class="relative py-58 md:py-60 bg-gradient-to-br from-slate-50 via-gray-100 to-slate-200 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 overflow-hidden">
             <div class="absolute inset-0 overflow-hidden opacity-10">
@@ -195,6 +195,4 @@ new class extends Component {
                 </div>
             </div>
         </section>
-    </main>
-    @include('components.layouts.landing.footer')
 </div>

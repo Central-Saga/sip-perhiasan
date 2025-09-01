@@ -8,19 +8,19 @@
         <flux:sidebar sticky stashable class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
-            <a href="{{ route('dashboard') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
+            <a href="{{ route('dashboard') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse">
                 <x-app-logo />
             </a>
 
             <flux:navlist variant="outline">
                 <flux:navlist.group :heading="__('Platform')" class="grid">
-                    <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
-                    <flux:navlist.item icon="users" :href="route('pelanggan.index')" :current="request()->routeIs('pelanggan.*')" wire:navigate>{{ __('Pelanggan') }}</flux:navlist.item>                  
-                    <flux:navlist.item icon="sparkles" :href="route('produk.index')" :current="request()->routeIs('produk.*')" wire:navigate>{{ __('Produk') }}</flux:navlist.item>
-                    <flux:navlist.item icon="shopping-cart" :href="route('transaksi.index')" :current="request()->routeIs('transaksi.*')" wire:navigate>{{ __('Transaksi') }}</flux:navlist.item>
-                    <flux:navlist.item icon="paper-airplane" :href="route('pengiriman.index')" :current="request()->routeIs('pengiriman.*')" wire:navigate>{{ __('Pengiriman') }}</flux:navlist.item>
-                    <flux:navlist.item icon="currency-dollar" :href="route('pembayaran.index')" :current="request()->routeIs('pembayaran.*')" wire:navigate>{{ __('Pembayaran') }}</flux:navlist.item>
-                    <flux:navlist.item icon="document-text" :href="route('custom-request.index')" :current="request()->routeIs('custom-request.*')" wire:navigate>{{ __('Custom Request') }}</flux:navlist.item>
+                    <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')">{{ __('Dashboard') }}</flux:navlist.item>
+                    <flux:navlist.item icon="users" :href="route('pelanggan.index')" :current="request()->routeIs('pelanggan.*')">{{ __('Pelanggan') }}</flux:navlist.item>                 
+                    <flux:navlist.item icon="sparkles" :href="route('produk.index')" :current="request()->routeIs('produk.*')">{{ __('Produk') }}</flux:navlist.item>
+                    <flux:navlist.item icon="shopping-cart" :href="route('transaksi.index')" :current="request()->routeIs('transaksi.*')">{{ __('Transaksi') }}</flux:navlist.item>
+                    <flux:navlist.item icon="paper-airplane" :href="route('pengiriman.index')" :current="request()->routeIs('pengiriman.*')">{{ __('Pengiriman') }}</flux:navlist.item>
+                    <flux:navlist.item icon="currency-dollar" :href="route('pembayaran.index')" :current="request()->routeIs('pembayaran.*')">{{ __('Pembayaran') }}</flux:navlist.item>
+                    <flux:navlist.item icon="document-text" :href="route('custom-request.index')" :current="request()->routeIs('custom-request.*')">{{ __('Custom Request') }}</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
 
@@ -67,7 +67,7 @@
                     <flux:menu.separator />
 
                     <flux:menu.radio.group>
-                        <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
+                        <flux:menu.item :href="route('settings.profile')" icon="cog">{{ __('Settings') }}</flux:menu.item>
                     </flux:menu.radio.group>
 
                     <flux:menu.separator />
@@ -117,7 +117,7 @@
                     <flux:menu.separator />
 
                     <flux:menu.radio.group>
-                        <flux:menu.item :href="route('settings.profile')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
+                        <flux:menu.item :href="route('settings.profile')" icon="cog">{{ __('Settings') }}</flux:menu.item>
                     </flux:menu.radio.group>
 
                     <flux:menu.separator />

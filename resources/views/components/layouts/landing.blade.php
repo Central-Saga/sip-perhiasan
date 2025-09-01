@@ -19,7 +19,7 @@
 		@include('components.layouts.landing.header')
 
 		<!-- Page Content -->
-		<main>
+		<main class="pt-24">
 			{{ $slot }}
 		</main>
 

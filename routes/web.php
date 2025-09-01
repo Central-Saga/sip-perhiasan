@@ -8,26 +8,32 @@ use Livewire\Volt\Volt;
 
 
 Route::prefix('/')->group(function () {
-    Volt::route('/', 'landing.home')->name('home');
-    Volt::route('about', 'landing.about')->name('about');
-    Volt::route('custom', 'landing.custom_request')->name('custom');
-    Volt::route('custom/submit', 'landing.custom_request')->name('custom.submit');
-    Volt::route('cart', 'landing.cart')->name('cart');
-    Volt::route('checkout', 'landing.checkout')->name('checkout');
-    Volt::route('checkout/submit', 'landing.checkout')->name('checkout.submit');
-    Volt::route('produk', 'landing.produk')->name('produk');
-    Volt::route('produk/{id}', 'landing.produk_detail')->name('produk.detail');
-    Volt::route('transaksi', 'landing.transaksi')->name('transaksi');
-    Volt::route('transaksi/{id}', 'landing.transaksi_detail')->name('transaksi.detail');
+    // LandingPage (baru)
+    Volt::route('/', 'pages.landingpage.home.index')->name('home');
+    Volt::route('about', 'pages.landingpage.aboutme.index')->name('about');
+    Volt::route('produk', 'pages.landingpage.produk.index')->name('produk');
+    Volt::route('produk/{id}', 'pages.landingpage.produk.detail')->name('produk.detail');
+    Volt::route('custom', 'pages.landingpage.custom.index')->name('custom');
+    Volt::route('custom/submit', 'pages.landingpage.custom.index')->name('custom.submit');
+    Volt::route('cart', 'pages.landingpage.cart.index')->name('cart');
+    Volt::route('checkout', 'pages.landingpage.checkout.index')->name('checkout');
+    Volt::route('checkout/submit', 'pages.landingpage.checkout.index')->name('checkout.submit');
+    Volt::route('transaksi', 'pages.landingpage.transaksi.index')->name('transaksi');
+    Volt::route('transaksi/{id}', 'pages.landingpage.transaksi.detail')->name('transaksi.detail');
+});
+
+// Fallback ke landing bila URL tidak ditemukan
+Route::fallback(function () {
+    return redirect()->route('home');
 });
 
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth'])->prefix('admin')->group(function () {
     // Settings Routes
-    Route::redirect('settings', 'settings/profile');
+    Route::redirect('settings', 'admin/settings/profile');
     Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
     Volt::route('settings/password', 'settings.password')->name('settings.password');
     Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');

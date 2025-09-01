@@ -1,7 +1,9 @@
 <?php
 
 use Livewire\Volt\Component;
-use function Livewire\Volt\{state, with};
+use function Livewire\Volt\{ layout, title, state, with };
+layout('components.layouts.admin');
+title('Pelanggan');
 use App\Models\Pelanggan;
 use Illuminate\Support\Str;
 
