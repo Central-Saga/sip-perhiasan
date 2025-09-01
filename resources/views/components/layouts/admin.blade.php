@@ -7,9 +7,9 @@
 
         <!-- Main Content -->
         <div class="flex-1 flex flex-col">
-            <main class="flex-1 p-6">
+            <flux:main class="flex-1">
                 {{ $slot }}
-            </main>
+            </flux:main>
         </div>
     </div>
 </x-layouts.app>
