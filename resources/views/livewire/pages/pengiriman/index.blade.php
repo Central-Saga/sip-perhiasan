@@ -2,7 +2,10 @@
 
 use Livewire\Volt\Component;
 use App\Models\Pengiriman;
-use function Livewire\Volt\{state, with};
+use function Livewire\\Volt\\{ layout, title, state, with, usesPagination };
+layout('components.layouts.admin');
+title('Pengiriman');
+usesPagination();
 
 new class extends Component {
     public $search = '';

@@ -1,9 +1,10 @@
 
 <?php
 use Livewire\Volt\Component;
-use function Livewire\Volt\{ layout, title, state, with };
+use function Livewire\\Volt\\{ layout, title, state, with, usesPagination };
 layout('components.layouts.admin');
 title('Produk');
+usesPagination();
 use App\Models\Produk;
 use Illuminate\Support\Str;
 

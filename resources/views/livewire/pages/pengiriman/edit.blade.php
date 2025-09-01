@@ -1,4 +1,7 @@
 <?php
+use function Livewire\\Volt\\{ layout, title };
+layout('components.layouts.admin');
+title('Pengiriman - Edit');
 
 use Livewire\Volt\Component;
 

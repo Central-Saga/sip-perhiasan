@@ -1,6 +1,10 @@
 
 <?php
 use Livewire\Volt\Component;
+use function Livewire\\Volt\\{ layout, title, usesPagination };
+layout('components.layouts.admin');
+title('Custom Request');
+usesPagination();
 use App\Models\CustomRequest;
 
 new class extends Component {

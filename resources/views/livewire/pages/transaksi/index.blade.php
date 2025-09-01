@@ -1,8 +1,11 @@
 
 <?php
 use Livewire\Volt\Component;
+use function Livewire\\Volt\\{ layout, title, usesPagination };
 use App\Models\Transaksi;
-
+layout('components.layouts.admin');
+title('Transaksi');
+usesPagination();
 new class extends Component {
     public $search = '';
     public $sortField = 'tanggal_transaksi';
