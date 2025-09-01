@@ -19,6 +19,17 @@ return new class extends Migration
             $table->string('gambar_referensi')->nullable();
             $table->decimal('berat', 8, 2);
             $table->foreignId('detail_transaksi_id')->nullable()->constrained('detail_transaksi')->onDelete('cascade');
+            $table->enum('status', [
+                'pending',
+                'reviewed',
+                'price_proposed',
+                'approved',
+                'rejected',
+                'in_progress',
+                'completed',
+                'cancelled'
+            ])->default('pending');
+
             $table->timestamps();
         });
     }
@@ -28,3 +39,4 @@ return new class extends Migration
         Schema::dropIfExists('custom_request');
     }
 };
+
