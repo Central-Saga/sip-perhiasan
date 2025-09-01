@@ -7,6 +7,7 @@ use function Livewire\Volt\{
 use Spatie\Permission\Models\Role;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 layout('components.layouts.admin');
 title('Role Management');
@@ -66,32 +67,87 @@ $sortBy = function (string $field) {
 };
 
 $delete = function ($id) {
-    $role = Role::find($id);
+    try {
+        Log::channel('role_management')->info('Role Deletion Started', [
+            'role_id' => $id,
+            'user_id' => auth()->id(),
+            'timestamp' => now()
+        ]);
 
-    if (!$role) {
-        session()->flash('error', 'Role tidak ditemukan.');
-        return;
+        $role = Role::find($id);
+
+        if (!$role) {
+            Log::channel('role_management')->warning('Role Not Found for Deletion', [
+                'role_id' => $id
+            ]);
+            session()->flash('error', 'Role tidak ditemukan.');
+            return;
+        }
+
+        Log::channel('role_management')->info('Role Found for Deletion', [
+            'role_id' => $role->id,
+            'role_name' => $role->name,
+            'guard_name' => $role->guard_name
+        ]);
+
+        // Proteksi: nama role tertentu tidak boleh dihapus
+        if (in_array($role->name, $this->protectedNames, true)) {
+            Log::channel('role_management')->warning('Protected Role Deletion Attempted', [
+                'role_id' => $role->id,
+                'role_name' => $role->name,
+                'protected_names' => $this->protectedNames
+            ]);
+            session()->flash('error', "Role '{$role->name}' dilindungi dan tidak dapat dihapus.");
+            return;
+        }
+
+        // Cegah hapus jika masih terikat ke user
+        $usersCount = DB::table('model_has_roles')
+            ->where('role_id', $role->id)
+            ->where('model_type', User::class)
+            ->count();
+
+        Log::channel('role_management')->info('Role Users Count Check', [
+            'role_id' => $role->id,
+            'users_count' => $usersCount
+        ]);
+
+        if ($usersCount > 0) {
+            Log::channel('role_management')->warning('Role Deletion Blocked - Still in Use', [
+                'role_id' => $role->id,
+                'role_name' => $role->name,
+                'users_count' => $usersCount
+            ]);
+            session()->flash('error', "Role '{$role->name}' masih dipakai oleh {$usersCount} pengguna. Lepas role dari user terlebih dahulu.");
+            return;
+        }
+
+        // Log permissions yang akan dihapus
+        $permissions = $role->permissions->pluck('name')->toArray();
+        Log::channel('permissions')->info('Role Permissions Before Deletion', [
+            'role_id' => $role->id,
+            'permissions' => $permissions
+        ]);
+
+        $role->delete();
+
+        Log::channel('role_management')->info('Role Successfully Deleted', [
+            'role_id' => $id,
+            'role_name' => $role->name,
+            'deleted_permissions' => $permissions
+        ]);
+
+        session()->flash('message', "Role '{$role->name}' berhasil dihapus.");
+
+    } catch (\Exception $e) {
+        Log::channel('role_management')->error('Role Deletion Failed', [
+            'role_id' => $id,
+            'error_message' => $e->getMessage(),
+            'error_trace' => $e->getTraceAsString()
+        ]);
+
+        session()->flash('error', 'Terjadi kesalahan saat menghapus role: ' . $e->getMessage());
     }
-
-    // Proteksi: nama role tertentu tidak boleh dihapus
-    if (in_array($role->name, $this->protectedNames, true)) {
-        session()->flash('error', "Role '{$role->name}' dilindungi dan tidak dapat dihapus.");
-        return;
-    }
-
-    // Cegah hapus jika masih terikat ke user
-    $usersCount = DB::table('model_has_roles')
-        ->where('role_id', $role->id)
-        ->where('model_type', User::class)
-        ->count();
-
-    if ($usersCount > 0) {
-        session()->flash('error', "Role '{$role->name}' masih dipakai oleh {$usersCount} pengguna. Lepas role dari user terlebih dahulu.");
-        return;
-    }
-
-    $role->delete();
-    session()->flash('message', "Role '{$role->name}' berhasil dihapus.");
 };
 
 ?>
@@ -119,6 +175,28 @@ $delete = function ($id) {
             </a>
         </div>
     </div>
+
+    <!-- Flash Messages -->
+    @if (session()->has('success'))
+    <div class="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center">
+        <flux:icon name="check-circle" class="h-5 w-5 mr-2" />
+        {{ session('success') }}
+    </div>
+    @endif
+
+    @if (session()->has('error'))
+    <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center">
+        <flux:icon name="exclamation-triangle" class="h-5 w-5 mr-2" />
+        {{ session('error') }}
+    </div>
+    @endif
+
+    @if (session()->has('message'))
+    <div class="mb-6 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg flex items-center">
+        <flux:icon name="information-circle" class="h-5 w-5 mr-2" />
+        {{ session('message') }}
+    </div>
+    @endif
 
     <!-- Search & Stats -->
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
