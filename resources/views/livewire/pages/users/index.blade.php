@@ -23,9 +23,9 @@ state([
 ]);
 
 // ---- LIST USERS (COMPUTED) ----
-// - roles_count: pakai withCount('roles')
+// - roles: pakai with('roles') untuk menampilkan nama role
 // - search: name, email
-// - sorting: name, email, roles_count, created_at, id
+// - sorting: name, email, created_at, id
 $users = computed(function () {
     return User::query()
         ->when($this->search, function ($q) {
@@ -35,12 +35,9 @@ $users = computed(function () {
                   ->orWhere('email', 'like', $term);
             });
         })
-        ->withCount('roles')
+        ->with('roles')
         ->when(in_array($this->sortField, ['name', 'email', 'created_at', 'id']), function ($q) {
             $q->orderBy($this->sortField, $this->sortDirection);
-        })
-        ->when($this->sortField === 'roles_count', function ($q) {
-            $q->orderBy('roles_count', $this->sortDirection);
         })
         ->paginate(10);
 });
@@ -241,15 +238,10 @@ $delete = function ($id) {
                             </div>
                         </th>
 
-                        <th class="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                            wire:click="sortBy('roles_count')">
+                        <th class="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             <div class="flex items-center space-x-1">
                                 <flux:icon name="shield-check" class="h-4 w-4" />
                                 <span>Role</span>
-                                @if($sortField === 'roles_count')
-                                <flux:icon name="{{ $sortDirection === 'asc' ? 'chevron-up' : 'chevron-down' }}"
-                                    class="h-4 w-4" />
-                                @endif
                             </div>
                         </th>
 
@@ -297,11 +289,21 @@ $delete = function ($id) {
                         </td>
 
                         <td class="px-4 py-4">
-                            <span
-                                class="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-700/10">
-                                <flux:icon name="shield-check" class="h-3 w-3" />
-                                {{ $user->roles_count }}
-                            </span>
+                            <div class="flex flex-wrap gap-1">
+                                @forelse($user->roles as $role)
+                                <span
+                                    class="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-700/10">
+                                    <flux:icon name="shield-check" class="h-3 w-3" />
+                                    {{ $role->name }}
+                                </span>
+                                @empty
+                                <span
+                                    class="inline-flex items-center gap-1 rounded-full bg-gray-50 px-2 py-1 text-xs font-medium text-gray-500 ring-1 ring-inset ring-gray-500/10">
+                                    <flux:icon name="minus" class="h-3 w-3" />
+                                    Tidak ada role
+                                </span>
+                                @endforelse
+                            </div>
                         </td>
 
                         <td class="px-4 py-4 text-sm text-gray-700">
