@@ -1,40 +1,40 @@
 
 <?php
-use Livewire\Volt\Component;
-use function Livewire\\Volt\\{ layout, title, usesPagination };
+use function Livewire\Volt\{ layout, title, usesPagination, state, with };
 use App\Models\Transaksi;
 layout('components.layouts.admin');
 title('Transaksi');
 usesPagination();
-new class extends Component {
-    public $search = '';
-    public $sortField = 'tanggal_transaksi';
-    public $sortDirection = 'desc';
-    public $page = 1;
-    public $openDetail = null;
 
-    public function with() {
-        return [
-            'transaksis' => Transaksi::query()
-                ->with(['pelanggan.user', 'detailTransaksi.produk'])
-                ->when($this->search, function ($query) {
-                    $query->where(function ($q) {
-                        $q->whereHas('pelanggan.user', function ($u) {
-                            $u->where('name', 'like', '%' . $this->search . '%');
-                        })
-                        ->orWhereHas('produk', function ($p) {
-                            $p->where('nama_produk', 'like', '%' . $this->search . '%');
-                        });
+state([
+    'search' => '',
+    'sortField' => 'tanggal_transaksi',
+    'sortDirection' => 'desc',
+    'page' => 1,
+    'openDetail' => null,
+]);
+
+with(function () {
+    return [
+        'transaksis' => Transaksi::query()
+            ->with(['pelanggan.user', 'detailTransaksi.produk'])
+            ->when($this->search, function ($query) {
+                $query->where(function ($q) {
+                    $q->whereHas('pelanggan.user', function ($u) {
+                        $u->where('name', 'like', '%' . $this->search . '%');
+                    })
+                    ->orWhereHas('detailTransaksi.produk', function ($p) {
+                        $p->where('nama_produk', 'like', '%' . $this->search . '%');
                     });
-                })
-                ->orderBy($this->sortField, $this->sortDirection)
-                ->paginate(10)
-        ];
-    }
+                });
+            })
+            ->orderBy($this->sortField, $this->sortDirection)
+            ->paginate(10),
+    ];
+});
 
-    public function delete($id) {
-        Transaksi::find($id)->delete();
-    }
+$delete = function ($id) {
+    Transaksi::find($id)?->delete();
 };
 ?>
 
@@ -105,90 +105,33 @@ new class extends Component {
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                <div class="flex items-center space-x-1">
-                                    <flux:icon name="user" class="h-4 w-4" />
-                                    <span>Pelanggan</span>
-                                </div>
-                            </th>
-                            <th class="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                <div class="flex items-center space-x-1">
-                                    <flux:icon name="banknotes" class="h-4 w-4" />
-                                    <span>Total Harga</span>
-                                </div>
-                            </th>
-                            <th class="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                <div class="flex items-center space-x-1">
-                                    <flux:icon name="check-circle" class="h-4 w-4" />
-                                    <span>Status</span>
-                                </div>
-                            </th>
-                            <th class="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                <div class="flex items-center space-x-1">
-                                    <flux:icon name="calendar" class="h-4 w-4" />
-                                    <span>Tanggal</span>
-                                </div>
-                            </th>
-                            <th class="px-4 py-3.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                <div class="flex items-center justify-end space-x-1">
-                                    <flux:icon name="cog" class="h-4 w-4" />
-                                    <span>Aksi</span>
-                                </div>
-                            </th>
+                            <th class="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pelanggan</th>
+                            <th class="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal</th>
+                            <th class="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                            <th class="px-4 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-4 py-3.5 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        @forelse($transaksis as $transaksi)
+                        @forelse ($transaksis as $transaksi)
                             <tr class="hover:bg-gray-50/50 transition duration-150">
                                 <td class="px-4 py-4">
-                                    <div class="flex items-center">
-                                        <div class="h-8 w-8 flex-shrink-0 rounded-full bg-indigo-100 flex items-center justify-center mr-3">
-                                            <flux:icon name="user" class="h-4 w-4 text-indigo-600" />
-                                        </div>
-                                        <div>
-                                            <div class="font-medium text-gray-900">{{ $transaksi->pelanggan->user->name ?? 'N/A' }}</div>
-                                            <div class="text-xs text-gray-500">ID: {{ $transaksi->pelanggan_id }}</div>
-                                        </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-medium text-gray-900">{{ $transaksi->pelanggan->user->name ?? '-' }}</span>
+                                        <span class="text-xs text-gray-500">({{ $transaksi->pelanggan->user->email ?? '-' }})</span>
                                     </div>
                                 </td>
+                                <td class="px-4 py-4 text-gray-700">{{ $transaksi->tanggal_transaksi?->format('d M Y') ?? '-' }}</td>
+                                <td class="px-4 py-4 text-gray-900 font-semibold">Rp {{ number_format($transaksi->total_harga, 0, ',', '.') }}</td>
                                 <td class="px-4 py-4">
-                                    <span class="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-700/10">
-                                        <flux:icon name="banknotes" class="h-3 w-3" />
-                                        Rp {{ number_format($transaksi->total_harga, 0, ',', '.') }}
-                                    </span>
-                                </td>
-                                <td class="px-4 py-4 text-center">
                                     <span class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset"
-                                        :class="[
-                                            $transaksi->status === 'selesai' ? 'bg-emerald-50 text-emerald-700 ring-emerald-700/10' : '',
-                                            $transaksi->status === 'pending' ? 'bg-yellow-50 text-yellow-700 ring-yellow-700/10' : '',
-                                            $transaksi->status === 'diproses' ? 'bg-blue-50 text-blue-700 ring-blue-700/10' : '',
-                                            $transaksi->status === 'dibatalkan' ? 'bg-red-50 text-red-700 ring-red-700/10' : ''
-                                        ]">
-                                        <flux:icon name="{{
-                                            $transaksi->status === 'selesai' ? 'check-circle' :
-                                            ($transaksi->status === 'pending' ? 'clock' :
-                                            ($transaksi->status === 'diproses' ? 'arrow-path' :
-                                            ($transaksi->status === 'dibatalkan' ? 'x-circle' : 'question-mark-circle')))
-                                        }}" class="h-3 w-3" />
-                                        {{ ucfirst($transaksi->status) }}
+                                        :class="$transaksi->status ? 'bg-emerald-50 text-emerald-700 ring-emerald-700/10' : 'bg-red-50 text-red-700 ring-red-700/10'">
+                                        <flux:icon name="{{ $transaksi->status ? 'check-circle' : 'x-circle' }}" class="h-3 w-3" />
+                                        {{ $transaksi->status ? 'Selesai' : 'Pending' }}
                                     </span>
-                                </td>
-                                <td class="px-4 py-4">
-                                    <div class="flex items-center">
-                                        <flux:icon name="calendar" class="h-4 w-4 text-gray-400 mr-1" />
-                                        <span class="font-medium text-gray-900">{{ $transaksi->tanggal_transaksi->format('d M Y') }}</span>
-                                        <span class="ml-2 text-xs text-gray-500">{{ $transaksi->tanggal_transaksi->format('H:i') }}</span>
-                                    </div>
                                 </td>
                                 <td class="px-4 py-4 text-right text-sm font-medium">
                                     <div class="flex items-center justify-end space-x-2">
-                                        <a href="{{ route('transaksi.show', $transaksi) }}"
-                                            class="inline-flex items-center px-2.5 py-1.5 border border-blue-500 text-blue-600 hover:bg-blue-50 rounded-lg transition duration-150"
-                                            wire:navigate>
-                                            <flux:icon name="eye" class="h-4 w-4 mr-1" />
-                                            Detail
-                                        </a>
                                         <a href="{{ route('transaksi.edit', $transaksi) }}" 
                                             class="inline-flex items-center px-2.5 py-1.5 border border-indigo-500 text-indigo-600 hover:bg-indigo-50 rounded-lg transition duration-150"
                                             wire:navigate>
@@ -282,3 +225,4 @@ new class extends Component {
         </div>
     </div>
 </div>
+

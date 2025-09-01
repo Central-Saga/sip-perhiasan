@@ -1,34 +1,35 @@
 
 <?php
 use Livewire\Volt\Component;
-use function Livewire\\Volt\\{ layout, title, state, with, usesPagination };
+use function Livewire\Volt\{ layout, title, state, with, usesPagination };
 layout('components.layouts.admin');
 title('Produk');
 usesPagination();
 use App\Models\Produk;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
-new class extends Component {
-    public $search = '';
-    public $sortField = 'nama_produk';
-    public $sortDirection = 'asc';
-    public $page = 1;
+state([
+    'search' => '',
+    'sortField' => 'nama_produk',
+    'sortDirection' => 'asc',
+    'page' => 1,
+]);
 
-    public function with() {
-        return [
-            'produks' => Produk::query()
-                ->when($this->search, function ($query) {
-                    $query->where('nama_produk', 'like', '%' . $this->search . '%')
-                        ->orWhere('kategori', 'like', '%' . $this->search . '%');
-                })
-                ->orderBy($this->sortField, $this->sortDirection)
-                ->paginate(10)
-        ];
-    }
+with(function () {
+    return [
+        'produks' => Produk::query()
+            ->when($this->search, function ($query) {
+                $query->where('nama_produk', 'like', '%' . $this->search . '%')
+                      ->orWhere('kategori', 'like', '%' . $this->search . '%');
+            })
+            ->orderBy($this->sortField, $this->sortDirection)
+            ->paginate(10),
+    ];
+});
 
-    public function delete($id) {
-        Produk::find($id)->delete();
-    }
+$delete = function ($id) {
+    Produk::find($id)?->delete();
 };
 ?>
 

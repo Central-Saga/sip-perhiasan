@@ -1,70 +1,69 @@
 <?php
-use Livewire\Volt\Component;
-use function Livewire\Volt\{ layout, title };
+use function Livewire\Volt\{ layout, title, state, mount };
+use function Livewire\Volt\{ usesFileUploads };
+use App\Models\Produk;
+use Illuminate\Support\Facades\Storage;
+
 layout('components.layouts.admin');
 title('Produk - Edit');
-new class extends Component {
-    //
-}; ?>
 
-<div>
-    @php
-    use Illuminate\Support\Facades\Storage;
-    use App\Models\Produk;
-    @endphp
+usesFileUploads();
 
-    <?php
-    use function Livewire\Volt\{state, mount, action};
+state([
+    'produkId' => null,
+    'nama_produk' => '',
+    'kategori' => '',
+    'harga' => '',
+    'stok' => '',
+    'deskripsi' => '',
+    'status' => false,
+    'existingFoto' => null,
+    'newFoto' => null,
+]);
 
-    state([
-        'produk' => null,
-        'nama_produk' => '',
-        'kategori' => '',
-        'harga' => '',
-        'stok' => '',
-        'deskripsi' => '',
-        'status' => false,
-        'newFoto' => null,
+mount(function (Produk $produk) {
+    $this->produkId = $produk->id;
+    $this->nama_produk = $produk->nama_produk;
+    $this->kategori = $produk->kategori;
+    $this->harga = $produk->harga;
+    $this->stok = $produk->stok;
+    $this->deskripsi = $produk->deskripsi;
+    $this->status = (bool) $produk->status;
+    $this->existingFoto = $produk->foto;
+});
+
+$update = function () {
+    $this->validate([
+        'nama_produk' => 'required|string|max:255',
+        'kategori' => 'required|string|max:255',
+        'harga' => 'required|numeric',
+        'stok' => 'required|numeric',
+        'deskripsi' => 'required|string',
+        'newFoto' => 'nullable|image|max:2048',
     ]);
 
-    mount(function ($produk) {
-        if ($produk) {
-            $produk = \App\Models\Produk::findOrFail($produk);
-            $this->produk = $produk;
-            $this->nama_produk = $produk->nama_produk;
-            $this->kategori = $produk->kategori;
-            $this->harga = $produk->harga;
-            $this->stok = $produk->stok;
-            $this->deskripsi = $produk->deskripsi;
-            $this->status = $produk->status;
-        }
-    });
+    $produk = Produk::findOrFail($this->produkId);
+    $fotoPath = $this->existingFoto;
+    if ($this->newFoto) {
+        $fotoPath = $this->newFoto->store('produk', 'public');
+    }
 
-    action(function () {
-        $this->validate([
-            'nama_produk' => 'required',
-            'kategori' => 'required',
-            'harga' => 'required|numeric',
-            'stok' => 'required|numeric',
-            'deskripsi' => 'required',
-        ]);
-        $produk = $this->produk;
-        $produk->nama_produk = $this->nama_produk;
-        $produk->kategori = $this->kategori;
-        $produk->harga = $this->harga;
-        $produk->stok = $this->stok;
-        $produk->deskripsi = $this->deskripsi;
-        $produk->status = $this->status ? 1 : 0;
-        if ($this->newFoto) {
-            $path = $this->newFoto->store('produk', 'public');
-            $produk->foto = $path;
-        }
-        $produk->save();
-        session()->flash('success', 'Produk berhasil diperbarui!');
-        return redirect()->route('produk.index');
-    });
-    ?>
+    $produk->update([
+        'nama_produk' => $this->nama_produk,
+        'kategori' => $this->kategori,
+        'harga' => $this->harga,
+        'stok' => $this->stok,
+        'deskripsi' => $this->deskripsi,
+        'status' => (bool) $this->status,
+        'foto' => $fotoPath,
+    ]);
 
+    session()->flash('success', 'Produk berhasil diperbarui!');
+    return redirect()->route('produk.index');
+};
+?>
+
+<div>
     <div class="max-w-7xl mx-auto py-10">
         <div class="bg-white border border-gray-200 shadow-xl rounded-2xl p-10">
             <div class="flex items-center mb-8">
@@ -74,7 +73,7 @@ new class extends Component {
                 <div>
                     <h2 class="text-3xl font-bold text-gray-900">Edit Produk
                         <span class="ml-2 inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
-                            ID: {{ $produk['id'] ?? '-' }}
+                            ID: {{ $produkId ?? '-' }}
                         </span>
                     </h2>
                     <p class="text-base text-gray-600 mt-1">Perbarui informasi produk perhiasan Anda</p>
@@ -130,9 +129,9 @@ new class extends Component {
                     <!-- Kanan: Preview Foto & Upload -->
                     <div class="flex flex-col items-center justify-center h-full space-y-6">
                         <div class="w-56 h-56 flex items-center justify-center bg-white rounded-xl border-2 border-dashed border-indigo-200 shadow-sm overflow-hidden">
-                            @if(isset($produk['foto']) && $produk['foto'] && !$newFoto)
-                                <img src="{{ Storage::url($produk['foto']) }}" class="object-cover w-full h-full">
-                            @elseif($newFoto)
+                            @if($existingFoto && !$newFoto)
+                                <img src="{{ Storage::url($existingFoto) }}" class="object-cover w-full h-full">
+                            @elseif($newFoto && is_object($newFoto) && method_exists($newFoto, 'temporaryUrl'))
                                 <img src="{{ $newFoto->temporaryUrl() }}" class="object-cover w-full h-full">
                             @else
                                 <div class="flex flex-col items-center justify-center text-indigo-300">
@@ -142,7 +141,7 @@ new class extends Component {
                             @endif
                         </div>
                         <div class="w-full flex flex-col items-center">
-                            <input type="file" wire:model="newFoto" id="foto" class="sr-only">
+                            <input type="file" wire:model="newFoto" id="foto" class="sr-only" accept="image/*">
                             <label for="foto" class="cursor-pointer bg-indigo-600 py-2 px-6 rounded-lg text-white font-semibold shadow hover:bg-indigo-700 transition-all">
                                 Ganti Foto
                             </label>
@@ -171,3 +170,4 @@ new class extends Component {
         </div>
     </div>
 </div>
+

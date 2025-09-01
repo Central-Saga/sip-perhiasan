@@ -1,6 +1,7 @@
 <?php
 use function Livewire\Volt\{ layout, state, mount };
 use App\Models\Produk;
+use Illuminate\Support\Facades\Storage;
 
 layout('components.layouts.landing');
 
@@ -15,7 +16,7 @@ mount(function ($id) {
 
 <div class="max-w-3xl mx-auto px-4 py-12">
     <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg flex flex-col md:flex-row gap-8 p-8">
-        <img src="{{ $this->produk->foto }}" alt="{{ $this->produk->nama_produk }}" class="w-full md:w-80 h-64 object-cover rounded-lg border border-slate-200 dark:border-slate-700">
+        <img src="{{ $this->produk->foto ? Storage::url($this->produk->foto) : '' }}" alt="{{ $this->produk->nama_produk }}" class="w-full md:w-80 h-64 object-cover rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-700">
         <div class="flex-1 flex flex-col gap-4">
             <span class="text-xs bg-slate-200/60 dark:bg-slate-700/60 text-indigo-600 dark:text-indigo-300 px-2 py-1 rounded-full w-fit flex items-center gap-1">
                 <i class="fa-solid fa-gem"></i> {{ $this->produk->kategori }}
@@ -34,4 +35,3 @@ mount(function ($id) {
         </a>
     </div>
 </div>
-

@@ -1,11 +1,64 @@
 <?php
-use Livewire\Volt\Component;
-use function Livewire\Volt\{ layout, title };
+use function Livewire\Volt\{ layout, title, state, with };
+use App\Models\Transaksi;
+use App\Models\DetailTransaksi;
+use App\Models\Produk;
+use App\Models\Pelanggan;
+
 layout('components.layouts.admin');
 title('Transaksi - Tambah');
-new class extends Component {
-    //
-}; ?>
+
+state([
+    'user_id' => '',
+    'produk_id' => '',
+    'jumlah' => 1,
+    'status' => 'pending',
+]);
+
+with(function () {
+    $users = Pelanggan::with('user')->get()->pluck('user')->filter();
+    $produks = Produk::where('status', true)->get();
+
+    $harga = 0;
+    if ($this->produk_id) {
+        $harga = optional(Produk::find($this->produk_id))->harga ?? 0;
+    }
+    $totalHarga = ((int)($this->jumlah ?: 0)) * ((int)$harga);
+
+    return compact('users', 'produks', 'totalHarga');
+});
+
+$save = function () {
+    $this->validate([
+        'user_id' => ['required', 'exists:users,id'],
+        'produk_id' => ['required', 'exists:produk,id'],
+        'jumlah' => ['required', 'integer', 'min:1'],
+        'status' => ['required', 'string'],
+    ]);
+
+    $pelanggan = Pelanggan::where('user_id', $this->user_id)->firstOrFail();
+    $produk = Produk::findOrFail($this->produk_id);
+    $total = (int)$this->jumlah * (int)$produk->harga;
+
+    $transaksi = Transaksi::create([
+        'pelanggan_id' => $pelanggan->id,
+        'jumlah' => (int)$this->jumlah,
+        'total_harga' => $total,
+        'status' => $this->status,
+        'tanggal_transaksi' => now(),
+    ]);
+
+    DetailTransaksi::create([
+        'transaksi_id' => $transaksi->id,
+        'produk_id' => $produk->id,
+        'jumlah' => (int)$this->jumlah,
+        'sub_total' => $total,
+    ]);
+
+    session()->flash('message', 'Transaksi berhasil dibuat.');
+    return redirect()->route('transaksi.index');
+};
+?>
 
 <div>
     <div class="py-12">
@@ -22,7 +75,9 @@ new class extends Component {
                                         <option value="{{ $user->id }}">{{ $user->name }} - {{ $user->email }}</option>
                                     @endforeach
                                 </x-select>
-                                <x-input-error for="user_id" class="mt-2" />
+                                @error('user_id')
+                                    <span class="text-red-500 text-sm mt-2 block">{{ $message }}</span>
+                                @enderror
                             </div>
 
                             <div class="col-span-6 sm:col-span-4">
@@ -33,13 +88,17 @@ new class extends Component {
                                         <option value="{{ $produk->id }}">{{ $produk->nama_produk }} - Rp {{ number_format($produk->harga, 0, ',', '.') }}</option>
                                     @endforeach
                                 </x-select>
-                                <x-input-error for="produk_id" class="mt-2" />
+                                @error('produk_id')
+                                    <span class="text-red-500 text-sm mt-2 block">{{ $message }}</span>
+                                @enderror
                             </div>
 
                             <div class="col-span-6 sm:col-span-2">
                                 <x-label for="jumlah" value="Jumlah" />
                                 <x-input id="jumlah" type="number" class="mt-1 block w-full" wire:model="jumlah" min="1" />
-                                <x-input-error for="jumlah" class="mt-2" />
+                                @error('jumlah')
+                                    <span class="text-red-500 text-sm mt-2 block">{{ $message }}</span>
+                                @enderror
                             </div>
 
                             <div class="col-span-6 sm:col-span-3">
@@ -50,10 +109,12 @@ new class extends Component {
                                     <option value="completed">Completed</option>
                                     <option value="cancelled">Cancelled</option>
                                 </x-select>
-                                <x-input-error for="status" class="mt-2" />
+                                @error('status')
+                                    <span class="text-red-500 text-sm mt-2 block">{{ $message }}</span>
+                                @enderror
                             </div>
 
-                            @if($totalHarga)
+                            @if(isset($totalHarga) && $totalHarga)
                                 <div class="col-span-6">
                                     <div class="bg-gray-50 px-4 py-3 sm:px-6">
                                         <div class="text-lg font-medium text-gray-900">
@@ -69,7 +130,7 @@ new class extends Component {
                                 {{ __('Batal') }}
                             </x-button.link>
 
-                            <x-button>
+                            <x-button type="submit">
                                 {{ __('Simpan') }}
                             </x-button>
                         </div>

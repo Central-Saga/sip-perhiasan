@@ -2,6 +2,7 @@
 
 use function Livewire\Volt\{ layout, state, mount };
 use App\Models\Produk;
+use Illuminate\Support\Facades\Storage;
 
 layout('components.layouts.landing');
 
@@ -70,7 +71,7 @@ mount(function () {
                     @foreach($this->produkList as $produk)
                     <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-100 dark:border-slate-700 group">
                         <div class="relative overflow-hidden">
-                            <img src="{{ $produk->foto ?? '' }}" alt="{{ $produk->nama_produk ?? '' }}" class="w-full h-48 object-cover bg-slate-100 dark:bg-slate-700 group-hover:scale-105 transition-transform duration-500">
+                            <img src="{{ $produk->foto ? Storage::url($produk->foto) : '' }}" alt="{{ $produk->nama_produk ?? '' }}" class="w-full h-48 object-cover bg-slate-100 dark:bg-slate-700 group-hover:scale-105 transition-transform duration-500">
                             <span class="absolute top-3 right-3 text-xs bg-indigo-500/90 dark:bg-indigo-600/90 text-white px-3 py-1 rounded-full font-medium shadow-lg backdrop-blur-sm">
                                 {{ $produk->kategori ?? '' }}
                             </span>
@@ -199,4 +200,3 @@ mount(function () {
             </div>
         </section>
 </div>
-

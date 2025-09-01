@@ -1,50 +1,52 @@
 
 <?php
-use Livewire\Volt\Component;
-use function Livewire\\Volt\\{ layout, title };
+use function Livewire\Volt\{ layout, title, state };
+use function Livewire\Volt\{ usesFileUploads };
 layout('components.layouts.admin');
 title('Produk - Tambah');
 use App\Models\Produk;
 
-new class extends Component {
-    use \Livewire\WithFileUploads;
+// Enable file uploads for Livewire
+usesFileUploads();
 
-    public $nama_produk = '';
-    public $kategori = '';
-    public $harga = '';
-    public $stok = '';
-    public $deskripsi = '';
-    public $status = false;
-    public $foto;
+// Form state
+state([
+    'nama_produk' => '',
+    'kategori' => '',
+    'harga' => '',
+    'stok' => '',
+    'deskripsi' => '',
+    'status' => false,
+    'foto' => null,
+]);
 
-    public function save() {
-        $this->validate([
-            'nama_produk' => 'required',
-            'kategori' => 'required',
-            'harga' => 'required|numeric',
-            'stok' => 'required|numeric',
-            'deskripsi' => 'required',
-            'foto' => 'nullable|image|max:2048',
-        ]);
+$save = function () {
+    $this->validate([
+        'nama_produk' => 'required|string|max:255',
+        'kategori' => 'required|string|max:255',
+        'harga' => 'required|numeric',
+        'stok' => 'required|numeric',
+        'deskripsi' => 'required|string',
+        'foto' => 'nullable|image|max:2048',
+    ]);
 
-        $path = null;
-        if ($this->foto) {
-            $path = $this->foto->store('produk', 'public');
-        }
-
-        Produk::create([
-            'nama_produk' => $this->nama_produk,
-            'kategori' => $this->kategori,
-            'harga' => $this->harga,
-            'stok' => $this->stok,
-            'deskripsi' => $this->deskripsi,
-            'status' => $this->status ? 1 : 0,
-            'foto' => $path,
-        ]);
-
-        session()->flash('success', 'Produk berhasil ditambahkan!');
-        return redirect()->route('produk.index');
+    $path = null;
+    if ($this->foto) {
+        $path = $this->foto->store('produk', 'public');
     }
+
+    Produk::create([
+        'nama_produk' => $this->nama_produk,
+        'kategori' => $this->kategori,
+        'harga' => $this->harga,
+        'stok' => $this->stok,
+        'deskripsi' => $this->deskripsi,
+        'status' => $this->status ? 1 : 0,
+        'foto' => $path,
+    ]);
+
+    session()->flash('success', 'Produk berhasil ditambahkan!');
+    return redirect()->route('produk.index');
 };
 ?>
 
@@ -114,8 +116,10 @@ new class extends Component {
                         <div class="flex flex-col items-center justify-center h-full space-y-6">
                             <div class="w-56 h-56 flex items-center justify-center bg-white rounded-xl border-2 border-dashed border-indigo-200 shadow-sm overflow-hidden">
                                 @if ($foto)
-                                    @if ($foto instanceof \Livewire\TemporaryUploadedFile)
+                                    @if (is_object($foto) && method_exists($foto, 'temporaryUrl'))
                                         <img src="{{ $foto->temporaryUrl() }}" class="object-cover w-full h-full">
+                                    @elseif (is_string($foto))
+                                        <img src="{{ Storage::url($foto) }}" class="object-cover w-full h-full">
                                     @else
                                         <div class="flex flex-col items-center justify-center text-indigo-300">
                                             <svg class="h-12 w-12 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3"/></svg>
@@ -159,4 +163,4 @@ new class extends Component {
             </div>
         </div>
     </div>
-</div>
+    </div>
