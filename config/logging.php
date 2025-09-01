@@ -143,6 +143,14 @@ return [
             'replace_placeholders' => true,
         ],
 
+        'pelanggan_management' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/pelanggan-management.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => env('LOG_DAILY_DAYS', 30),
+            'replace_placeholders' => true,
+        ],
+
     ],
 
 ];

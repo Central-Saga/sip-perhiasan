@@ -12,7 +12,7 @@ state([
     'email' => '',
     'no_telepon' => '',
     'alamat' => '',
-    'status' => true,
+    'status' => 'Aktif',
 ]);
 
 $save = function () {
@@ -21,7 +21,7 @@ $save = function () {
         'email' => 'required|email|unique:users,email',
         'no_telepon' => 'required|string|min:8',
         'alamat' => 'required|string|min:5',
-        'status' => 'boolean',
+        'status' => 'required|in:Aktif,Tidak Aktif',
     ]);
 
     $user = User::create([
@@ -34,7 +34,7 @@ $save = function () {
         'user_id' => $user->id,
         'no_telepon' => $validated['no_telepon'],
         'alamat' => $validated['alamat'],
-        'status' => $this->status ? 1 : 0,
+        'status' => $this->status,
     ]);
 
     session()->flash('success', 'Pelanggan berhasil ditambahkan!');
@@ -110,12 +110,30 @@ $save = function () {
                             <span class="text-sm text-red-600 mt-2">{{ $message }}</span>
                             @enderror
                         </div>
+                        
+                        <!-- Status Section -->
                         <div>
-                            <label class="flex items-center">
-                                <x-checkbox wire:model="status"
-                                    class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" />
-                                <span class="ml-2 text-sm text-gray-600">{{ __('Aktif') }}</span>
+                            <label class="block text-sm font-semibold text-gray-700 mb-3">
+                                Status Pelanggan
+                                <span class="text-xs text-gray-500 font-normal ml-1">(Pilih status pelanggan)</span>
                             </label>
+                            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <label class="flex items-center p-3 hover:bg-gray-100 rounded-lg transition-colors duration-150 cursor-pointer">
+                                        <input type="radio" wire:model="status" value="Aktif"
+                                            class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500" />
+                                        <span class="ml-3 text-sm text-gray-700">Aktif</span>
+                                    </label>
+                                    <label class="flex items-center p-3 hover:bg-gray-100 rounded-lg transition-colors duration-150 cursor-pointer">
+                                        <input type="radio" wire:model="status" value="Tidak Aktif"
+                                            class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500" />
+                                        <span class="ml-3 text-sm text-gray-700">Tidak Aktif</span>
+                                    </label>
+                                </div>
+                            </div>
+                            @error('status')
+                            <span class="text-sm text-red-600 mt-2">{{ $message }}</span>
+                            @enderror
                         </div>
                     </div>
                     <div class="flex items-center justify-end mt-10 gap-3">
