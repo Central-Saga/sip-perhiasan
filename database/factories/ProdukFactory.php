@@ -21,7 +21,7 @@ class ProdukFactory extends Factory
             'deskripsi' => fake()->paragraph(),
             'harga' => fake()->numberBetween(100000, 10000000),
             'stok' => fake()->numberBetween(1, 100),
-            'foto' => fake()->imageUrl(),
+            'foto' => 'produk/' . fake()->randomElement(['1.png', '2.png', '3.png', '4.png', '5.png']),
             'kategori' => fake()->randomElement(['Cincin', 'Kalung', 'Gelang', 'Anting']),
             'status' => fake()->randomElement(['Aktif', 'Tidak Aktif']),
         ];
