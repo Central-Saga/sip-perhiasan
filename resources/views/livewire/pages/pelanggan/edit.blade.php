@@ -26,7 +26,7 @@ mount(function (Pelanggan $pelanggan) {
     $this->status = $pelanggan->status ?? 'Aktif';
 });
 
-$update = function () {
+$save = function () {
     try {
         $pelanggan = Pelanggan::with('user')->findOrFail($this->pelangganId);
         $userId = $pelanggan->user_id;
@@ -172,7 +172,7 @@ $statusOptions = computed(function () {
 
             <!-- Form Card -->
             <div class="bg-white/90 backdrop-blur-xl border border-gray-200 shadow-xl rounded-2xl p-8">
-                <form wire:submit="update">
+                <form wire:submit="save">
                     <div class="grid grid-cols-1 gap-6">
                         <x-mary-input label="Nama Lengkap" wire:model="name" placeholder="Nama lengkap pelanggan"
                             icon="o-user" class="input-bordered" />
@@ -212,14 +212,31 @@ $statusOptions = computed(function () {
                         @enderror
 
                         <!-- Status Section -->
-                        <x-mary-radio label="Status Pelanggan" wire:model="status" :options="$this->statusOptions"
-                            inline />
-                        <p class="text-xs text-gray-500 mt-1">Pilih status pelanggan</p>
-                        @error('status')
-                        <x-mary-alert icon="o-exclamation-triangle" class="alert-error text-sm">
-                            {{ $message }}
-                        </x-mary-alert>
-                        @enderror
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Status Pelanggan</span>
+                            </label>
+                            <p class="text-xs text-gray-500 mb-3">Pilih status pelanggan</p>
+                            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                                <div class="grid grid-cols-1 gap-3">
+                                    @foreach($this->statusOptions as $option)
+                                    <label
+                                        class="flex items-center p-2 hover:bg-gray-100 rounded-lg transition-colors duration-150">
+                                        <x-mary-radio wire:model="status" value="{{ $option['id'] }}" />
+                                        <div class="ml-3">
+                                            <span class="text-sm text-gray-700 font-medium">{{ $option['name'] }}</span>
+                                            <p class="text-xs text-gray-500">{{ $option['hint'] }}</p>
+                                        </div>
+                                    </label>
+                                    @endforeach
+                                </div>
+                            </div>
+                            @error('status')
+                            <x-mary-alert icon="o-exclamation-triangle" class="alert-error text-sm">
+                                {{ $message }}
+                            </x-mary-alert>
+                            @enderror
+                        </div>
                     </div>
 
                     <div class="flex items-center justify-end mt-10 gap-3">

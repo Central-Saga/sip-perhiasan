@@ -16,14 +16,14 @@ state([
     'harga' => '',
     'stok' => '',
     'deskripsi' => '',
-    'status' => '1',
+    'status' => 'Aktif',
     'foto' => null,
 ]);
 
 $getStatusOptions = function () {
     return [
-        ['id' => 1, 'name' => 'Aktif', 'hint' => 'Produk dapat dijual.'],
-        ['id' => 2, 'name' => 'Tidak Aktif', 'hint' => 'Produk tidak dapat dijual.'],
+        ['id' => 'Aktif', 'name' => 'Aktif', 'hint' => 'Produk dapat dijual.'],
+        ['id' => 'Tidak Aktif', 'name' => 'Tidak Aktif', 'hint' => 'Produk tidak dapat dijual.'],
     ];
 };
 
@@ -43,6 +43,7 @@ $save = function () {
         'harga' => 'required|numeric',
         'stok' => 'required|numeric',
         'deskripsi' => 'required|string',
+        'status' => 'required|in:Aktif,Tidak Aktif',
         'foto' => 'nullable|image|max:2048',
     ]);
 
@@ -57,7 +58,7 @@ $save = function () {
         'harga' => $this->harga,
         'stok' => $this->stok,
         'deskripsi' => $this->deskripsi,
-        'status' => (bool) $this->status,
+        'status' => $this->status,
         'foto' => $path,
     ]);
 

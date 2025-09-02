@@ -7,12 +7,15 @@ usesPagination();
 use App\Models\Produk;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 state([
     'search' => '',
     'sortField' => 'nama_produk',
     'sortDirection' => 'asc',
     'page' => 1,
+    'showDeleteDialog' => false,
+    'produkToDelete' => null,
 ]);
 
 with(function () {
@@ -27,8 +30,63 @@ with(function () {
     ];
 });
 
+$openDeleteDialog = function ($produkId) {
+    $this->produkToDelete = $produkId;
+    $this->showDeleteDialog = true;
+};
+
+$closeDeleteDialog = function () {
+    $this->showDeleteDialog = false;
+    $this->produkToDelete = null;
+};
+
 $delete = function ($id) {
-    Produk::find($id)?->delete();
+    try {
+        Log::channel('produk_management')->info('Produk Deletion Started', [
+            'produk_id' => $id,
+            'admin_id' => auth()->id(),
+            'timestamp' => now()
+        ]);
+
+        $produk = Produk::find($id);
+
+        if (!$produk) {
+            Log::channel('produk_management')->warning('Produk Not Found for Deletion', [
+                'produk_id' => $id
+            ]);
+            session()->flash('error', 'Produk tidak ditemukan.');
+            $this->closeDeleteDialog();
+            return;
+        }
+
+        $produkName = $produk->nama_produk;
+
+        // Hapus foto jika ada
+        if ($produk->foto) {
+            Storage::disk('public')->delete($produk->foto);
+        }
+
+        $produk->delete();
+
+        Log::channel('produk_management')->info('Produk Successfully Deleted', [
+            'produk_id' => $id,
+            'produk_name' => $produkName,
+            'deleted_at' => now()
+        ]);
+
+        session()->flash('message', "Produk '{$produkName}' berhasil dihapus.");
+        $this->closeDeleteDialog();
+
+    } catch (\Exception $e) {
+        Log::channel('produk_management')->error('Produk Deletion Failed', [
+            'produk_id' => $id,
+            'error_message' => $e->getMessage(),
+            'error_trace' => $e->getTraceAsString()
+        ]);
+
+        session()->flash('error', 'Terjadi kesalahan saat menghapus produk: ' . $e->getMessage());
+        $this->closeDeleteDialog();
+    }
 };
 ?>
 
@@ -55,6 +113,28 @@ $delete = function ($id) {
             </a>
         </div>
     </div>
+
+    <!-- Flash Messages -->
+    @if (session()->has('success'))
+    <div class="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center">
+        <flux:icon name="check-circle" class="h-5 w-5 mr-2" />
+        {{ session('success') }}
+    </div>
+    @endif
+
+    @if (session()->has('error'))
+    <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center">
+        <flux:icon name="exclamation-triangle" class="h-5 w-5 mr-2" />
+        {{ session('error') }}
+    </div>
+    @endif
+
+    @if (session()->has('message'))
+    <div class="mb-6 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg flex items-center">
+        <flux:icon name="information-circle" class="h-5 w-5 mr-2" />
+        {{ session('message') }}
+    </div>
+    @endif
 
     <!-- Search and Stats Cards -->
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
@@ -212,9 +292,8 @@ $delete = function ($id) {
                                     <flux:icon name="pencil-square" class="h-4 w-4 mr-1" />
                                     Edit
                                 </a>
-                                <button wire:click="delete({{ $produk->id }})"
-                                    class="inline-flex items-center px-2.5 py-1.5 border border-red-500 text-red-600 hover:bg-red-50 rounded-lg transition duration-150"
-                                    wire:confirm="Apakah anda yakin ingin menghapus data ini?">
+                                <button wire:click="openDeleteDialog({{ $produk->id }})"
+                                    class="inline-flex items-center px-2.5 py-1.5 border border-red-500 text-red-600 hover:bg-red-50 rounded-lg transition duration-150">
                                     <flux:icon name="trash" class="h-4 w-4 mr-1" />
                                     Hapus
                                 </button>
@@ -273,7 +352,7 @@ $delete = function ($id) {
     </div>
 
     <!-- Image Modal -->
-    <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-50 flex items-center justify-center p-4">
+    <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-50 items-center justify-center p-4">
         <div class="relative max-w-4xl max-h-full">
             <div class="bg-white rounded-lg shadow-2xl overflow-hidden">
                 <div class="flex items-center justify-between p-4 border-b border-gray-200">
@@ -296,11 +375,13 @@ $delete = function ($id) {
             document.getElementById('modalImage').src = imageSrc;
             document.getElementById('modalTitle').textContent = productName;
             document.getElementById('imageModal').classList.remove('hidden');
+            document.getElementById('imageModal').classList.add('flex');
             document.body.style.overflow = 'hidden';
         }
 
         function closeImageModal() {
             document.getElementById('imageModal').classList.add('hidden');
+            document.getElementById('imageModal').classList.remove('flex');
             document.body.style.overflow = 'auto';
         }
 
@@ -318,4 +399,84 @@ $delete = function ($id) {
             }
         });
     </script>
+
+    <!-- Simple but Beautiful Delete Modal -->
+    @if($showDeleteDialog)
+    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center;"
+        wire:click="closeDeleteDialog">
+        <div style="background: white; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-width: 400px; width: 90%; margin: 20px;"
+            wire:click.stop>
+
+            <!-- Header -->
+            <div
+                style="background: linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%); padding: 24px; border-bottom: 1px solid #fecaca; border-radius: 16px 16px 0 0;">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div style="position: relative;">
+                        <div
+                            style="width: 56px; height: 56px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.3);">
+                            <flux:icon name="exclamation-triangle" style="width: 28px; height: 28px; color: white;" />
+                        </div>
+                        <div
+                            style="position: absolute; top: -4px; right: -4px; width: 20px; height: 20px; background: #f87171; border-radius: 50%; animation: pulse 2s infinite;">
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 18px; font-weight: 700; color: #111827; margin: 0 0 4px 0;">Konfirmasi
+                            Hapus Produk</h3>
+                        <p style="font-size: 14px; color: #6b7280; margin: 0;">Tindakan yang tidak dapat dibatalkan</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div style="padding: 24px;">
+                <div style="background: #fffbeb; border: 1px solid #fed7aa; border-radius: 12px; padding: 16px;">
+                    <div style="display: flex; align-items: flex-start; gap: 12px;">
+                        <flux:icon name="information-circle"
+                            style="width: 20px; height: 20px; color: #d97706; margin-top: 2px; flex-shrink: 0;" />
+                        <div>
+                            <p style="color: #92400e; font-weight: 600; font-size: 14px; margin: 0 0 4px 0;">⚠️
+                                Peringatan!</p>
+                            <p style="color: #b45309; font-size: 14px; line-height: 1.5; margin: 0;">
+                                Apakah Anda yakin ingin menghapus produk ini? Semua data terkait akan dihapus secara
+                                permanen dan tidak dapat dipulihkan.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div style="padding: 0 24px 24px 24px;">
+                <div style="display: flex; gap: 12px;">
+                    <button type="button" wire:click="closeDeleteDialog"
+                        style="flex: 1; padding: 12px 16px; font-size: 14px; font-weight: 500; color: #374151; background: white; border: 1px solid #d1d5db; border-radius: 8px; cursor: pointer; transition: all 0.2s;"
+                        onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
+                        Batal
+                    </button>
+                    <button type="button" wire:click="delete({{ $produkToDelete }})"
+                        style="flex: 1; padding: 12px 16px; font-size: 14px; font-weight: 500; color: white; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3); transition: all 0.2s;"
+                        onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 10px 15px -3px rgba(239, 68, 68, 0.4)'"
+                        onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 6px -1px rgba(239, 68, 68, 0.3)'">
+                        Ya, Hapus
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+    </style>
+    @endif
 </div>

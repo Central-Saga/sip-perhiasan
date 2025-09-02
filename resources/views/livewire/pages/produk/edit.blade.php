@@ -1,8 +1,11 @@
 <?php
-use function Livewire\Volt\{ layout, title, state, mount };
+
+use function Livewire\Volt\{ layout, title, state, mount, computed };
 use function Livewire\Volt\{ usesFileUploads };
 use App\Models\Produk;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
 
 layout('components.layouts.admin');
 title('Produk - Edit');
@@ -16,7 +19,7 @@ state([
     'harga' => '',
     'stok' => '',
     'deskripsi' => '',
-    'status' => false,
+    'status' => 'Aktif',
     'existingFoto' => null,
     'newFoto' => null,
 ]);
@@ -28,146 +31,268 @@ mount(function (Produk $produk) {
     $this->harga = $produk->harga;
     $this->stok = $produk->stok;
     $this->deskripsi = $produk->deskripsi;
-    $this->status = (bool) $produk->status;
+    $this->status = $produk->status;
     $this->existingFoto = $produk->foto;
 });
 
-$update = function () {
-    $this->validate([
-        'nama_produk' => 'required|string|max:255',
-        'kategori' => 'required|string|max:255',
-        'harga' => 'required|numeric',
-        'stok' => 'required|numeric',
-        'deskripsi' => 'required|string',
-        'newFoto' => 'nullable|image|max:2048',
-    ]);
+$save = function () {
+    try {
+        $produk = Produk::findOrFail($this->produkId);
 
-    $produk = Produk::findOrFail($this->produkId);
-    $fotoPath = $this->existingFoto;
-    if ($this->newFoto) {
-        $fotoPath = $this->newFoto->store('produk', 'public');
+        // Log awal proses update
+        Log::channel('produk_management')->info('Produk Update Started', [
+            'produk_id' => $produk->id,
+            'current_name' => $produk->nama_produk,
+            'current_category' => $produk->kategori,
+            'new_name' => $this->nama_produk,
+            'new_category' => $this->kategori,
+            'new_price' => $this->harga,
+            'new_stock' => $this->stok,
+            'new_status' => $this->status,
+            'has_new_photo' => $this->newFoto ? true : false,
+            'admin_id' => auth()->id(),
+            'timestamp' => now()
+        ]);
+
+        $validated = $this->validate([
+            'nama_produk' => 'required|string|max:255',
+            'kategori' => 'required|string|max:255',
+            'harga' => 'required|numeric|min:0',
+            'stok' => 'required|numeric|min:0',
+            'deskripsi' => 'required|string',
+            'status' => 'required|in:Aktif,Tidak Aktif',
+            'newFoto' => 'nullable|image|max:2048',
+        ]);
+
+        Log::channel('produk_management')->info('Produk Validation Passed', [
+            'produk_id' => $produk->id,
+            'validated_data' => $validated
+        ]);
+
+        $fotoPath = $this->existingFoto;
+        if ($this->newFoto) {
+            // Hapus foto lama jika ada
+            if ($this->existingFoto && Storage::disk('public')->exists($this->existingFoto)) {
+                Storage::disk('public')->delete($this->existingFoto);
+            }
+            $fotoPath = $this->newFoto->store('produk', 'public');
+
+            Log::channel('produk_management')->info('New Photo Uploaded', [
+                'produk_id' => $produk->id,
+                'old_photo' => $this->existingFoto,
+                'new_photo' => $fotoPath
+            ]);
+        }
+
+        // Update produk data
+        $produk->update([
+            'nama_produk' => $validated['nama_produk'],
+            'kategori' => $validated['kategori'],
+            'harga' => $validated['harga'],
+            'stok' => $validated['stok'],
+            'deskripsi' => $validated['deskripsi'],
+            'status' => $validated['status'],
+            'foto' => $fotoPath,
+        ]);
+
+        Log::channel('produk_management')->info('Produk Update Completed Successfully', [
+            'produk_id' => $produk->id,
+            'updated_name' => $validated['nama_produk'],
+            'updated_at' => now()
+        ]);
+
+        session()->flash('success', 'Produk berhasil diperbarui!');
+        return redirect()->route('produk.index');
+
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        Log::channel('produk_management')->error('Produk Update Validation Failed', [
+            'produk_id' => $this->produkId,
+            'errors' => $e->errors(),
+            'input_data' => [
+                'nama_produk' => $this->nama_produk,
+                'kategori' => $this->kategori,
+                'harga' => $this->harga,
+                'stok' => $this->stok,
+                'deskripsi' => $this->deskripsi,
+                'status' => $this->status
+            ]
+        ]);
+        throw $e;
+
+    } catch (\Exception $e) {
+        Log::channel('produk_management')->error('Produk Update Failed', [
+            'produk_id' => $this->produkId,
+            'error_message' => $e->getMessage(),
+            'error_trace' => $e->getTraceAsString(),
+            'input_data' => [
+                'nama_produk' => $this->nama_produk,
+                'kategori' => $this->kategori,
+                'harga' => $this->harga,
+                'stok' => $this->stok,
+                'deskripsi' => $this->deskripsi,
+                'status' => $this->status
+            ]
+        ]);
+
+        session()->flash('error', 'Terjadi kesalahan saat memperbarui produk: ' . $e->getMessage());
+        return;
     }
-
-    $produk->update([
-        'nama_produk' => $this->nama_produk,
-        'kategori' => $this->kategori,
-        'harga' => $this->harga,
-        'stok' => $this->stok,
-        'deskripsi' => $this->deskripsi,
-        'status' => (bool) $this->status,
-        'foto' => $fotoPath,
-    ]);
-
-    session()->flash('success', 'Produk berhasil diperbarui!');
-    return redirect()->route('produk.index');
 };
+
+// Get kategori options for the form
+$kategoriOptions = computed(function () {
+    return [
+        ['id' => 'Cincin', 'name' => 'Cincin'],
+        ['id' => 'Kalung', 'name' => 'Kalung'],
+        ['id' => 'Gelang', 'name' => 'Gelang'],
+        ['id' => 'Anting', 'name' => 'Anting'],
+    ];
+});
+
+// Get status options for the form
+$statusOptions = computed(function () {
+    return [
+        ['id' => 'Aktif', 'name' => 'Aktif', 'hint' => 'Produk dapat dijual.'],
+        ['id' => 'Tidak Aktif', 'name' => 'Tidak Aktif', 'hint' => 'Produk tidak dapat dijual.'],
+    ];
+});
 ?>
 
 <div>
-    <div class="max-w-7xl mx-auto py-10">
-        <div class="bg-white border border-gray-200 shadow-xl rounded-2xl p-10">
-            <div class="flex items-center mb-8">
-                <div class="p-4 bg-white rounded-xl shadow mr-5">
-                    <svg class="h-10 w-10 text-indigo-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3"/></svg>
+    <div class="py-12 bg-gradient-to-br from-indigo-50 to-purple-50 min-h-screen">
+        <div class="max-w-2xl mx-auto">
+            <!-- Header Card -->
+            <div class="flex items-center space-x-4 mb-8">
+                <div class="p-3 bg-white rounded-lg shadow-sm">
+                    <flux:icon name="pencil-square" class="h-8 w-8 text-indigo-600" />
                 </div>
                 <div>
-                    <h2 class="text-3xl font-bold text-gray-900">Edit Produk
-                        <span class="ml-2 inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-indigo-100 text-indigo-800">
-                            ID: {{ $produkId ?? '-' }}
-                        </span>
-                    </h2>
-                    <p class="text-base text-gray-600 mt-1">Perbarui informasi produk perhiasan Anda</p>
+                    <h2 class="text-2xl font-bold text-gray-900">Edit Produk</h2>
+                    <p class="text-sm text-gray-600 mt-1 flex items-center">
+                        <flux:icon name="information-circle" class="h-4 w-4 mr-1 text-gray-400" />
+                        Perbarui data produk perhiasan yang ada.
+                    </p>
                 </div>
             </div>
-            <form wire:submit.prevent="update">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                    <!-- Kiri: Field -->
-                    <div class="space-y-6">
-                        <div>
-                            <label for="nama_produk" class="block text-base font-medium text-gray-700 mb-1">Nama Produk</label>
-                            <input type="text" wire:model.defer="nama_produk" id="nama_produk" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm text-base border border-gray-300 rounded-lg py-3 px-4 bg-white">
-                            @error('nama_produk') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+
+            <!-- Form Card dengan Mary UI -->
+            <x-mary-card class="bg-white/90 backdrop-blur-xl shadow-xl p-8">
+                <form wire:submit="save" enctype="multipart/form-data">
+                    <div class="grid grid-cols-1 gap-6">
+                        <!-- Nama Produk -->
+                        <x-mary-input label="Nama Produk" wire:model="nama_produk" placeholder="Nama produk perhiasan"
+                            icon="o-sparkles" class="input-bordered" />
+                        @error('nama_produk')
+                        <x-mary-alert icon="o-exclamation-triangle" class="alert-error text-sm">
+                            {{ $message }}
+                        </x-mary-alert>
+                        @enderror
+
+                        <!-- Kategori -->
+                        <div class="form-control">
+                            <x-mary-select label="Kategori" wire:model="kategori" :options="$this->kategoriOptions"
+                                icon="o-tag" placeholder="Pilih Kategori" />
                         </div>
-                        <div>
-                            <label for="kategori" class="block text-base font-medium text-gray-700 mb-1">Kategori</label>
-                            <select wire:model.defer="kategori" id="kategori" class="mt-1 block w-full py-3 px-4 border border-gray-300 bg-white rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-base">
-                                <option value="">Pilih Kategori</option>
-                                <option value="Cincin">Cincin</option>
-                                <option value="Kalung">Kalung</option>
-                                <option value="Gelang">Gelang</option>
-                                <option value="Anting">Anting</option>
-                            </select>
-                            @error('kategori') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                        </div>
+                        @error('kategori')
+                        <x-mary-alert icon="o-exclamation-triangle" class="alert-error text-sm">
+                            {{ $message }}
+                        </x-mary-alert>
+                        @enderror
+                        <!-- Harga dan Stok -->
                         <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label for="harga" class="block text-base font-medium text-gray-700 mb-1">Harga</label>
-                                <div class="flex rounded-lg shadow-sm">
-                                    <span class="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-base">Rp</span>
-                                    <input type="number" wire:model.defer="harga" id="harga" class="focus:ring-indigo-500 focus:border-indigo-500 flex-1 block w-full rounded-none rounded-r-lg text-base border border-gray-300 py-3 px-4 bg-white">
-                                </div>
-                                @error('harga') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                            </div>
-                            <div>
-                                <label for="stok" class="block text-base font-medium text-gray-700 mb-1">Stok</label>
-                                <input type="number" wire:model.defer="stok" id="stok" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm text-base border border-gray-300 rounded-lg py-3 px-4 bg-white">
-                                @error('stok') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                            </div>
+                            <x-mary-input label="Harga" wire:model="harga" placeholder="Harga produk" icon="o-banknotes"
+                                type="number" class="input-bordered" />
+                            @error('harga')
+                            <x-mary-alert icon="o-exclamation-triangle" class="alert-error text-sm">
+                                {{ $message }}
+                            </x-mary-alert>
+                            @enderror
+
+                            <x-mary-input label="Stok" wire:model="stok" placeholder="Jumlah stok" icon="o-cube"
+                                type="number" class="input-bordered" />
+                            @error('stok')
+                            <x-mary-alert icon="o-exclamation-triangle" class="alert-error text-sm">
+                                {{ $message }}
+                            </x-mary-alert>
+                            @enderror
                         </div>
-                        <div>
-                            <label for="deskripsi" class="block text-base font-medium text-gray-700 mb-1">Deskripsi</label>
-                            <textarea wire:model.defer="deskripsi" id="deskripsi" rows="4" class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm text-base border border-gray-300 rounded-lg py-3 px-4 bg-white"></textarea>
-                            @error('deskripsi') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                        <!-- Deskripsi -->
+                        <x-mary-textarea label="Deskripsi" wire:model="deskripsi"
+                            placeholder="Deskripsi lengkap produk..." icon="o-document-text" rows="4"
+                            class="textarea-bordered" />
+                        @error('deskripsi')
+                        <x-mary-alert icon="o-exclamation-triangle" class="alert-error text-sm">
+                            {{ $message }}
+                        </x-mary-alert>
+                        @enderror
+                        <!-- Status -->
+                        <div class="form-control">
+                            <x-mary-radio label="Status Produk" wire:model="status" :options="$this->statusOptions"
+                                class="radio-primary" />
+                            @error('status')
+                            <x-mary-alert icon="o-exclamation-triangle" class="alert-error text-sm">
+                                {{ $message }}
+                            </x-mary-alert>
+                            @enderror
                         </div>
-                        <div>
-                            <label class="inline-flex items-center">
-                                <input type="checkbox" wire:model.defer="status" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                <span class="ml-2 text-base text-gray-600">Aktif</span>
+
+                        <!-- Foto Upload -->
+                        <x-mary-file label="Foto Produk" wire:model="newFoto" accept="image/*"
+                            class="file-input-bordered" />
+                        @error('newFoto')
+                        <x-mary-alert icon="o-exclamation-triangle" class="alert-error text-sm">
+                            {{ $message }}
+                        </x-mary-alert>
+                        @enderror
+
+                        <!-- Preview Foto -->
+                        @if($existingFoto || $newFoto)
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Preview Foto</span>
                             </label>
-                        </div>
-                    </div>
-                    <!-- Kanan: Preview Foto & Upload -->
-                    <div class="flex flex-col items-center justify-center h-full space-y-6">
-                        <div class="w-56 h-56 flex items-center justify-center bg-white rounded-xl border-2 border-dashed border-indigo-200 shadow-sm overflow-hidden">
-                            @if($existingFoto && !$newFoto)
-                                <img src="{{ Storage::url($existingFoto) }}" class="object-cover w-full h-full">
-                            @elseif($newFoto && is_object($newFoto) && method_exists($newFoto, 'temporaryUrl'))
-                                <img src="{{ $newFoto->temporaryUrl() }}" class="object-cover w-full h-full">
-                            @else
-                                <div class="flex flex-col items-center justify-center text-indigo-300">
-                                    <svg class="h-12 w-12 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8v4l3 3"/></svg>
-                                    <span class="text-sm">Belum ada foto</span>
+                            <div class="flex justify-center">
+                                <div
+                                    class="w-64 h-64 bg-white rounded-xl border-2 border-gray-200 shadow-sm overflow-hidden">
+                                    @if($newFoto && is_object($newFoto) && method_exists($newFoto, 'temporaryUrl'))
+                                    <img src="{{ $newFoto->temporaryUrl() }}"
+                                        class="object-cover w-full h-full rounded-xl" alt="Preview foto baru">
+                                    @elseif($existingFoto)
+                                    <img src="{{ Storage::url($existingFoto) }}"
+                                        class="object-cover w-full h-full rounded-xl" alt="Foto produk saat ini">
+                                    @endif
                                 </div>
-                            @endif
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2 text-center">
+                                @if($newFoto)
+                                Preview foto baru yang akan diupload
+                                @else
+                                Foto produk saat ini
+                                @endif
+                            </p>
                         </div>
-                        <div class="w-full flex flex-col items-center">
-                            <input type="file" wire:model="newFoto" id="foto" class="sr-only" accept="image/*">
-                            <label for="foto" class="cursor-pointer bg-indigo-600 py-2 px-6 rounded-lg text-white font-semibold shadow hover:bg-indigo-700 transition-all">
-                                Ganti Foto
-                            </label>
-                            @error('newFoto') <span class="text-red-500 text-xs mt-2">{{ $message }}</span> @enderror
-                        </div>
+                        @endif
                     </div>
-                </div>
-                <div class="mt-10 flex justify-end space-x-3">
-                    <a href="{{ route('produk.index') }}" class="inline-flex items-center px-6 py-3 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium shadow">Batal</a>
-                    <button type="submit" class="inline-flex items-center px-6 py-3 bg-indigo-600 border border-transparent rounded-lg text-white hover:bg-indigo-700 font-semibold shadow">
-                        <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
-                        Perbarui
-                    </button>
-                </div>
+                    <!-- Tombol -->
+                    <div class="flex items-center justify-end mt-10 gap-3">
+                        <x-mary-button label="Batal" link="{{ route('produk.index') }}" class="btn-outline" />
+                        <x-mary-button label="Perbarui" type="submit" class="btn-primary" spinner="save" />
+                    </div>
+                </form>
+
+                <!-- Flash Messages -->
                 @if (session()->has('success'))
-                    <div class="mt-6 p-4 bg-green-100 text-green-800 rounded-lg">
-                        {{ session('success') }}
-                    </div>
+                <x-mary-alert icon="o-check-circle" class="alert-success mt-6">
+                    {{ session('success') }}
+                </x-mary-alert>
                 @endif
+
                 @if (session()->has('error'))
-                    <div class="mt-6 p-4 bg-red-100 text-red-800 rounded-lg">
-                        {{ session('error') }}
-                    </div>
+                <x-mary-alert icon="o-exclamation-triangle" class="alert-error mt-6">
+                    {{ session('error') }}
+                </x-mary-alert>
                 @endif
-            </form>
+            </x-mary-card>
         </div>
     </div>
 </div>
-
