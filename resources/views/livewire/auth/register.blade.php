@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Models\Pelanggan;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -13,6 +14,8 @@ new #[Layout('components.layouts.auth')] class extends Component {
     public string $email = '';
     public string $password = '';
     public string $password_confirmation = '';
+    public string $no_telepon = '';
+    public string $alamat = '';
 
     /**
      * Handle an incoming registration request.
@@ -23,11 +26,28 @@ new #[Layout('components.layouts.auth')] class extends Component {
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:' . User::class],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
+            'no_telepon' => ['required', 'string', 'max:255'],
+            'alamat' => ['required', 'string'],
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
 
-        event(new Registered(($user = User::create($validated))));
+        $userData = [
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => $validated['password'],
+        ];
+        event(new Registered(($user = User::create($userData))));
+
+        if (method_exists($user, 'assignRole')) {
+            $user->assignRole('Pelanggan');
+        }
+        Pelanggan::create([
+            'user_id' => $user->id,
+            'no_telepon' => $validated['no_telepon'],
+            'alamat' => $validated['alamat'],
+            'status' => true,
+        ]);
 
         Auth::login($user);
 
@@ -66,6 +86,44 @@ new #[Layout('components.layouts.auth')] class extends Component {
                 >
             </div>
             @error('name') <span class="text-xs text-rose-500">{{ $message }}</span> @enderror
+        </div>
+
+        <!-- Phone Number -->
+        <div class="space-y-1.5">
+            <label for="no_telepon" class="block text-sm font-medium text-slate-700 dark:text-slate-300">No. Telepon</label>
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500 dark:text-slate-400">
+                    <i class="fa-solid fa-phone"></i>
+                </span>
+                <input
+                    wire:model="no_telepon"
+                    type="text"
+                    id="no_telepon"
+                    required
+                    placeholder="08xxxxxxxxxx"
+                    class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent dark:bg-slate-700 dark:text-white text-sm"
+                >
+            </div>
+            @error('no_telepon') <span class="text-xs text-rose-500">{{ $message }}</span> @enderror
+        </div>
+
+        <!-- Address -->
+        <div class="space-y-1.5">
+            <label for="alamat" class="block text-sm font-medium text-slate-700 dark:text-slate-300">Alamat</label>
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 flex items-start pl-3 pt-2 text-slate-500 dark:text-slate-400">
+                    <i class="fa-solid fa-map-location-dot"></i>
+                </span>
+                <textarea
+                    wire:model="alamat"
+                    id="alamat"
+                    required
+                    rows="3"
+                    placeholder="Alamat lengkap Anda"
+                    class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 focus:border-transparent dark:bg-slate-700 dark:text-white text-sm"
+                ></textarea>
+            </div>
+            @error('alamat') <span class="text-xs text-rose-500">{{ $message }}</span> @enderror
         </div>
 
         <!-- Email Address -->
