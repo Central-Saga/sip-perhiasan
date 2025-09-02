@@ -18,12 +18,12 @@ class CustomRequestSeeder extends Seeder
             $pelanggans = Pelanggan::factory(5)->create();
         }
         
-        // Create custom requests for each pelanggan
+        // Create custom requests for each pelanggan with varied statuses
         foreach ($pelanggans as $pelanggan) {
             CustomRequest::factory()
                 ->count(rand(1, 3))
                 ->create([
-                    'pelanggan_id' => $pelanggan->id
+                    'pelanggan_id' => $pelanggan->id,
                 ]);
         }
     }

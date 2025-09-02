@@ -18,13 +18,27 @@ class CustomRequest extends Model
         'ukuran',
         'gambar_referensi',
         'berat',
-        'detail_transaksi_id'
+        'detail_transaksi_id',
+        'status'
+
     ];
 
     protected $casts = [
         'estimasi_harga' => 'decimal:2',
         'created_at' => 'datetime',
         'updated_at' => 'datetime'
+    ];
+
+    // Allowed status values aligned with migration enum
+    public const STATUSES = [
+        'pending',
+        'reviewed',
+        'price_proposed',
+        'approved',
+        'rejected',
+        'in_progress',
+        'completed',
+        'cancelled',
     ];
 
     /**
