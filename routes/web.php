@@ -2,169 +2,68 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 use Livewire\Volt\Volt;
 
 
-Route::get('/', function () {
-    $produkList = [
-        [
-            'id' => 1,
-            'nama_produk' => 'Cincin Emas Klasik',
-            'harga' => 2750000,
-            'stok' => 8,
-            'foto' => 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80',
-            'kategori' => 'Cincin',
-        ],
-        [
-            'id' => 2,
-            'nama_produk' => 'Kalung Silver Bliss',
-            'harga' => 3200000,
-            'stok' => 5,
-            'foto' => 'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=400&q=80',
-            'kategori' => 'Kalung',
-        ],
-        [
-            'id' => 3,
-            'nama_produk' => 'Gelang Berlian Mewah',
-            'harga' => 4500000,
-            'stok' => 3,
-            'foto' => 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80',
-            'kategori' => 'Gelang',
-        ],
-    ];
-    
-    return view('welcome', compact('produkList'));
-})->name('home');
 
-// Landing page custom menu (produk landing statis)
-Route::get('/produk-landing', function () {
-    $produkList = [
-        [
-            'id' => 1,
-            'nama_produk' => 'Cincin Emas Klasik',
-            'harga' => 2750000,
-            'stok' => 8,
-            'foto' => 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80',
-            'kategori' => 'Cincin',
-        ],
-        [
-            'id' => 2,
-            'nama_produk' => 'Kalung Silver Bliss',
-            'harga' => 3200000,
-            'stok' => 5,
-            'foto' => 'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=400&q=80',
-            'kategori' => 'Kalung',
-        ],
-        [
-            'id' => 3,
-            'nama_produk' => 'Gelang Berlian Mewah',
-            'harga' => 4500000,
-            'stok' => 3,
-            'foto' => 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80',
-            'kategori' => 'Gelang',
-        ],
-        [
-            'id' => 4,
-            'nama_produk' => 'Anting Silver Premium',
-            'harga' => 1200000,
-            'stok' => 10,
-            'foto' => 'https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=400&q=80',
-            'kategori' => 'Anting',
-        ],
-        [
-            'id' => 5,
-            'nama_produk' => 'Liontin Gold Elegant',
-            'harga' => 2900000,
-            'stok' => 4,
-            'foto' => 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=400&q=80',
-            'kategori' => 'Liontin',
-        ],
-    ];
-    
-    return view('Public.produk', compact('produkList'));
-})->name('produk.landing');
 
-Route::get('/about', function () {
-    return view('Public.about');
-})->name('about');
-
-Route::get('/custom', function () {
-    return view('Public.custom');
-})->name('custom');
-
-Route::post('/custom', function (Illuminate\Http\Request $request) {
-    // Validate form
-    $request->validate([
-        'deskripsi' => 'required|min:10',
-        'material' => 'required',
-        'ukuran' => 'required',
-        'kategori' => 'required',
-        'gambar_referensi' => 'nullable|image|max:2048',
-    ]);
-
-    // Handle file upload
-    $gambarPath = null;
-    if ($request->hasFile('gambar_referensi')) {
-        $gambarPath = $request->file('gambar_referensi')->store('custom-requests', 'public');
-    }
-    
-    // Check if user is logged in
-    if (Auth::check()) {
-        // Create custom request in database
-        $customRequest = \App\Models\CustomRequest::create([
-            'pelanggan_id' => Auth::user()->pelanggan->id,
-            'deskripsi' => $request->deskripsi,
-            'material' => $request->material,
-            'ukuran' => $request->ukuran,
-            'kategori' => $request->kategori,
-            'gambar_referensi' => $gambarPath,
-            'estimasi_harga' => 0, // Will be set by admin later
-            'berat' => 0, // Will be set by admin later
+Route::prefix('/')->group(function () {
+    // LandingPage (baru)
+    Volt::route('/', 'pages.landingpage.home.index')->name('home');
+    Volt::route('about', 'pages.landingpage.aboutme.index')->name('about');
+    Volt::route('produk', 'pages.landingpage.produk.index')->name('produk');
+    // Alias name for nav compatibility
+    Route::get('produk-landing', function () {
+        return redirect()->route('produk');
+    })->name('produk.landing');
+    Volt::route('produk/{id}', 'pages.landingpage.produk.detail')->name('produk.detail');
+    Volt::route('custom', 'pages.landingpage.custom.index')->name('custom');
+    // Handle Custom Request form submission (POST)
+    Route::post('custom/submit', function (Request $request) {
+        $validated = $request->validate([
+            'kategori' => 'required|string|max:255',
+            'material' => 'required|string|max:100',
+            'ukuran' => 'nullable|string|max:255',
+            'deskripsi' => 'required|string',
+            'gambar_referensi' => 'nullable|image|max:2048',
         ]);
-        
-        return redirect()->route('custom')->with('message', 'Custom request berhasil dikirim! Tim kami akan segera menghubungi Anda.');
-    } else {
-        // Store in session for guest users
-        $request->session()->put('custom_request', [
-            'deskripsi' => $request->deskripsi,
-            'material' => $request->material,
-            'ukuran' => $request->ukuran,
-            'kategori' => $request->kategori,
-            'gambar_referensi' => $gambarPath,
-        ]);
-        
-        return redirect()->route('login')->with('message', 'Silakan login terlebih dahulu untuk melanjutkan custom request.');
-    }
-})->name('custom.submit');
 
-Route::get('/cart', function () {
-    // Dummy transaksi, ganti dengan query ke database jika sudah dinamis
-    $transaksis = [];
-    return view('Public.cart', compact('transaksis'));
-})->name('cart');
+        if ($request->hasFile('gambar_referensi')) {
+            $request->file('gambar_referensi')->store('custom-referensi', 'public');
+        }
 
+        return back()->with('message', 'Custom request berhasil dikirim. Kami akan menghubungi Anda.');
+    })->name('custom.submit');
+    Volt::route('cart', 'pages.landingpage.cart.index')->name('cart');
+    Volt::route('checkout', 'pages.landingpage.checkout.index')->name('checkout');
+    Volt::route('checkout/submit', 'pages.landingpage.checkout.index')->name('checkout.submit');
+    Volt::route('transaksi', 'pages.landingpage.transaksi.index')->name('transaksi');
+    Volt::route('transaksi/{id}', 'pages.landingpage.transaksi.detail')->name('transaksi.detail');
+});
 
-
-// Checkout page
-Route::get('/checkout', function () {
-    return view('Public.checkout');
-})->name('checkout');
-
-// Checkout submit (dummy, redirect to home)
-Route::post('/checkout', function () {
-    // Proses custom request dan pembayaran di sini
-    // ...
-    // Kosongkan cart localStorage via JS setelah submit
-    return redirect('/')->with('success', 'Pembayaran & custom request berhasil diproses!');
-})->name('checkout.submit');
+// Fallback ke landing bila URL tidak ditemukan
+Route::fallback(function () {
+    return redirect()->route('home');
+});
 
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth'])->prefix('admin')->group(function () {
+    // User Routes
+    Volt::route('user', 'pages.users.index')->name('user.index');
+    Volt::route('user/create', 'pages.users.create')->name('user.create');
+    Volt::route('user/{user}/edit', 'pages.users.edit')->name('user.edit');
+
+    // Role Routes
+    Volt::route('role', 'pages.roles.index')->name('role.index');
+    Volt::route('role/create', 'pages.roles.create')->name('role.create');
+    Volt::route('role/{role}/edit', 'pages.roles.edit')->name('role.edit');
+
     // Settings Routes
-    Route::redirect('settings', 'settings/profile');
+    Route::redirect('settings', 'admin/settings/profile');
     Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
     Volt::route('settings/password', 'settings.password')->name('settings.password');
     Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
@@ -201,8 +100,4 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('custom-request/{customRequest}/edit', 'pages.custom-request.edit')->name('custom-request.edit');
 });
 
-Route::get('/katalog', function () {
-    return view('Public.katalog');
-})->name('katalog');
-
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

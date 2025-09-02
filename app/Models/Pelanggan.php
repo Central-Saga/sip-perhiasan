@@ -23,6 +23,30 @@ class Pelanggan extends Model
         'password'
     ];
 
+    // Accessor untuk status
+    public function getStatusAttribute($value)
+    {
+        return $value;
+    }
+
+    // Mutator untuk status
+    public function setStatusAttribute($value)
+    {
+        $this->attributes['status'] = $value;
+    }
+
+    // Helper method untuk cek status aktif
+    public function isActive()
+    {
+        return $this->status === 'Aktif';
+    }
+
+    // Helper method untuk cek status tidak aktif
+    public function isInactive()
+    {
+        return $this->status === 'Tidak Aktif';
+    }
+
     public function transaksis()
     {
         return $this->hasMany(Transaksi::class);
@@ -32,6 +56,7 @@ class Pelanggan extends Model
     {
         return $this->belongsTo(User::class);
     }
+
     public function customRequests()
     {
         return $this->hasMany(CustomRequest::class);

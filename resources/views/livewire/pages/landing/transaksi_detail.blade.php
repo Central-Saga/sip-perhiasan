@@ -1,6 +1,12 @@
-@extends('layouts.app')
-@section('title', 'Detail Transaksi')
-@section('content')
+@layout('components.layouts.landing')
+
+
+<?php
+use Livewire\Volt\Component;
+new class extends Component {
+    // Tambahkan properti dan logic jika perlu
+};
+?>
 <div class="max-w-3xl mx-auto px-4 py-12">
 <h1 class="text-xl md:text-2xl font-bold text-slate-700 mb-4 flex items-center gap-2"><i class="fa-solid fa-file-invoice-dollar text-indigo-500"></i> Detail Transaksi</h1>
     <div class="bg-white rounded-xl shadow p-6 mb-8">
@@ -52,4 +58,3 @@
         </div>
     </div>
 </div>
-@endsection

@@ -19,7 +19,7 @@ return new class extends Migration
             $table->integer('stok');
             $table->string('foto')->nullable();
             $table->string('kategori');
-            $table->boolean('status')->default(true);
+            $table->enum('status', ['Aktif', 'Tidak Aktif'])->default('Aktif');
             $table->timestamps();
         });
     }

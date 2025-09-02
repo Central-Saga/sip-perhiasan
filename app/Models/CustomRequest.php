@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class CustomRequest extends Model
 {
     use HasFactory;
-   protected $table = 'custom_request'; // Explicitly set the table name
+    protected $table = 'custom_request'; // Explicitly set the table name
     protected $fillable = [
         'pelanggan_id',
         'deskripsi',
@@ -18,7 +18,7 @@ class CustomRequest extends Model
         'ukuran',
         'gambar_referensi',
         'berat',
-        'transaksi_id'
+        'detail_transaksi_id'
     ];
 
     protected $casts = [
@@ -36,10 +36,10 @@ class CustomRequest extends Model
     }
 
     /**
-     * Get the transaksi associated with the custom request
+     * Get the detail transaksi associated with the custom request
      */
-    public function transaksi()
+    public function detailTransaksi()
     {
-        return $this->belongsTo(Transaksi::class);
+        return $this->belongsTo(DetailTransaksi::class);
     }
 }

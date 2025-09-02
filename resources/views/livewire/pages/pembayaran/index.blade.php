@@ -3,7 +3,10 @@
 use Livewire\Volt\Component;
 use App\Models\Pembayaran;
 use Illuminate\Support\Facades\Storage;
-use function Livewire\Volt\{state, with};
+use function Livewire\\Volt\\{ layout, title, state, with, usesPagination };
+layout('components.layouts.admin');
+title('Pembayaran');
+usesPagination();
 
 new class extends Component {
     public $search = '';

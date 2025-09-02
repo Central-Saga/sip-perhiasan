@@ -10,10 +10,10 @@ class CustomRequestFactory extends Factory
     public function definition(): array
     {
         $jenis = fake()->randomElement(['Cincin', 'Kalung', 'Gelang', 'Anting']);
-        
+
         $materials = ['Emas', 'Perak', 'Platinum', 'Titanium', 'Stainless Steel'];
         $sizes = ['5', '6', '7', '8', '9', '10', 'S', 'M', 'L'];
-        
+
         return [
             'pelanggan_id' => Pelanggan::factory(), // Create a new Pelanggan instance
             'deskripsi' => fake()->sentences(3, true),
@@ -23,7 +23,7 @@ class CustomRequestFactory extends Factory
             'ukuran' => fake()->randomElement($sizes),
             'gambar_referensi' => fake()->optional(0.7)->imageUrl(640, 480, 'jewelry', true),
             'berat' => fake()->randomFloat(2, 1, 100),
-            'transaksi_id' => null // Will be set when a transaction is created
+            'detail_transaksi_id' => null // Will be set when a detail transaction is created
         ];
     }
 }
