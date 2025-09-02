@@ -171,53 +171,38 @@ $allPermissions = computed(function () {
             <div class="bg-white/90 backdrop-blur-xl border border-gray-200 shadow-xl rounded-2xl p-8">
                 <form wire:submit="save">
                     <div class="grid grid-cols-1 gap-6">
-                        <div class="relative">
-                            <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">
-                                Nama Role <span class="text-red-500">*</span>
-                            </label>
-                            <span class="absolute left-3 top-9 text-indigo-400">
-                                <flux:icon name="shield-check" class="h-5 w-5" />
-                            </span>
-                            <input id="name" type="text"
-                                class="mt-1 block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-gray-50 transition-all duration-200"
-                                wire:model="name" placeholder="Nama role (contoh: Manager, Staff)" />
-                            <p class="text-xs text-gray-500 mt-1">Nama role harus unik dan tidak boleh sama dengan role
-                                yang sudah ada</p>
-                            @error('name')
-                            <span class="text-sm text-red-600 mt-2">{{ $message }}</span>
-                            @enderror
-                        </div>
+                        <x-mary-input label="Nama Role" wire:model="name"
+                            placeholder="Nama role (contoh: Manager, Staff)" icon="o-shield-check"
+                            class="input-bordered" />
+                        <p class="text-xs text-gray-500 mt-1">Nama role harus unik dan tidak boleh sama dengan role yang
+                            sudah ada</p>
+                        @error('name')
+                        <x-mary-alert icon="o-exclamation-triangle" class="alert-error text-sm">
+                            {{ $message }}
+                        </x-mary-alert>
+                        @enderror
 
-                        <div class="relative">
-                            <label for="guard_name" class="block text-sm font-semibold text-gray-700 mb-2">
-                                Guard Name <span class="text-red-500">*</span>
-                            </label>
-                            <span class="absolute left-3 top-9 text-indigo-400">
-                                <flux:icon name="lock-closed" class="h-5 w-5" />
-                            </span>
-                            <input id="guard_name" type="text"
-                                class="mt-1 block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-gray-50 transition-all duration-200"
-                                wire:model="guard_name" placeholder="web" />
-                            <p class="text-xs text-gray-500 mt-1">Biasanya menggunakan "web" untuk aplikasi web</p>
-                            @error('guard_name')
-                            <span class="text-sm text-red-600 mt-2">{{ $message }}</span>
-                            @enderror
-                        </div>
+                        <x-mary-input label="Guard Name" wire:model="guard_name" placeholder="web" icon="o-lock-closed"
+                            class="input-bordered" />
+                        <p class="text-xs text-gray-500 mt-1">Biasanya menggunakan "web" untuk aplikasi web</p>
+                        @error('guard_name')
+                        <x-mary-alert icon="o-exclamation-triangle" class="alert-error text-sm">
+                            {{ $message }}
+                        </x-mary-alert>
+                        @enderror
 
                         <!-- Permissions Section -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-3">
-                                Permissions
-                                <span class="text-xs text-gray-500 font-normal ml-1">(Pilih permissions yang akan
-                                    diberikan ke role ini)</span>
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Permissions</span>
                             </label>
+                            <p class="text-xs text-gray-500 mb-3">Pilih permissions yang akan diberikan ke role ini</p>
                             <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 max-h-64 overflow-y-auto">
                                 <div class="grid grid-cols-1 gap-3">
                                     @foreach($this->allPermissions as $permission)
                                     <label
                                         class="flex items-center p-2 hover:bg-gray-100 rounded-lg transition-colors duration-150">
-                                        <input type="checkbox" wire:model="permissions" value="{{ $permission->name }}"
-                                            class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" />
+                                        <x-mary-checkbox wire:model="permissions" value="{{ $permission->name }}" />
                                         <span class="ml-3 text-sm text-gray-700">{{ $permission->name }}</span>
                                     </label>
                                     @endforeach
@@ -231,20 +216,16 @@ $allPermissions = computed(function () {
                                 @endif
                             </div>
                             @error('permissions')
-                            <span class="text-sm text-red-600 mt-2">{{ $message }}</span>
+                            <x-mary-alert icon="o-exclamation-triangle" class="alert-error text-sm">
+                                {{ $message }}
+                            </x-mary-alert>
                             @enderror
                         </div>
                     </div>
 
                     <div class="flex items-center justify-end mt-10 gap-3">
-                        <x-button.link href="{{ route('role.index') }}"
-                            class="px-5 py-2 text-indigo-600 border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 rounded-lg font-medium transition-all duration-150">
-                            {{ __('Batal') }}
-                        </x-button.link>
-                        <x-button type="submit"
-                            class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold shadow-md transition-all duration-150">
-                            {{ __('Perbarui') }}
-                        </x-button>
+                        <x-mary-button label="Batal" href="{{ route('role.index') }}" class="btn-outline" />
+                        <x-mary-button label="Perbarui" type="submit" class="btn-primary" />
                     </div>
                 </form>
             </div>
