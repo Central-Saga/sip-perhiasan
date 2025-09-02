@@ -150,15 +150,11 @@ $delete = function ($id) {
                             <div class="flex items-center space-x-3">
                                 @if($produk->foto)
                                 <div class="relative group">
-                                    <img class="h-16 w-16 rounded-lg object-cover ring-2 ring-indigo-100 shadow-sm hover:ring-indigo-300 transition-all duration-200 cursor-pointer"
-                                        src="{{ Storage::url($produk->foto) }}" alt="{{ $produk->nama_produk }}"
-                                        onclick="openImageModal('{{ Storage::url($produk->foto) }}', '{{ $produk->nama_produk }}')">
-                                    <!-- Hover effect -->
-                                    <div
-                                        class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-all duration-200 flex items-center justify-center">
-                                        <flux:icon name="eye"
-                                            class="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                                    </div>
+
+                                    <img src="{{ asset('storage/' . $produk->foto) }}"
+                                        class="h-16 w-16 rounded-lg object-cover cursor-pointer"
+                                        alt="{{ $produk->nama_produk }}"
+                                        onclick="openImageModal('{{ asset('storage/' . $produk->foto) }}', '{{ $produk->nama_produk }}')">
                                 </div>
                                 @else
                                 <div
@@ -194,12 +190,19 @@ $delete = function ($id) {
                             </span>
                         </td>
                         <td class="px-4 py-4 text-center">
+                            @if($produk->status)
                             <span
-                                class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset"
-                                :class="$produk->status ? 'bg-emerald-50 text-emerald-700 ring-emerald-700/10' : 'bg-red-50 text-red-700 ring-red-700/10'">
-                                <flux:icon name="{{ $produk->status ? 'check-circle' : 'x-circle' }}" class="h-3 w-3" />
-                                {{ $produk->status ? 'Aktif' : 'Tidak Aktif' }}
+                                class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset bg-emerald-50 text-emerald-700 ring-emerald-700/10">
+                                <flux:icon name="check-circle" class="h-3 w-3" />
+                                Aktif
                             </span>
+                            @else
+                            <span
+                                class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset bg-red-50 text-red-700 ring-red-700/10">
+                                <flux:icon name="x-circle" class="h-3 w-3" />
+                                Tidak Aktif
+                            </span>
+                            @endif
                         </td>
                         <td class="px-4 py-4 text-right text-sm font-medium">
                             <div class="flex items-center justify-end space-x-2">

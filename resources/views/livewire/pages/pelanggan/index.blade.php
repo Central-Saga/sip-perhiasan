@@ -300,13 +300,19 @@ $closeDeleteDialog = function () {
                                 </div>
                             </td>
                             <td class="px-4 py-4 text-center">
+                                @if($pelanggan->status === 'Aktif')
                                 <span
-                                    class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset"
-                                    :class="$pelanggan->status === 'Aktif' ? 'bg-emerald-50 text-emerald-700 ring-emerald-700/10' : 'bg-red-50 text-red-700 ring-red-700/10'">
-                                    <flux:icon name="{{ $pelanggan->status === 'Aktif' ? 'check-circle' : 'x-circle' }}"
-                                        class="h-3 w-3" />
+                                    class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset bg-emerald-50 text-emerald-700 ring-emerald-700/10">
+                                    <flux:icon name="check-circle" class="h-3 w-3" />
                                     {{ $pelanggan->status }}
                                 </span>
+                                @else
+                                <span
+                                    class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset bg-red-50 text-red-700 ring-red-700/10">
+                                    <flux:icon name="x-circle" class="h-3 w-3" />
+                                    {{ $pelanggan->status }}
+                                </span>
+                                @endif
                             </td>
                             <td class="px-4 py-4 text-right text-sm font-medium">
                                 <div class="flex items-center justify-end space-x-2">
