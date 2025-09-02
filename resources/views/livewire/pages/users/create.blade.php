@@ -141,89 +141,61 @@ $allRoles = computed(function () {
             </div>
             @endif
 
-            <!-- Form Card -->
-            <div class="bg-white/90 backdrop-blur-xl border border-gray-200 shadow-xl rounded-2xl p-8">
+            <!-- Form Card dengan Mary UI -->
+            <x-mary-card class="bg-white/90 backdrop-blur-xl shadow-xl p-8">
                 <form wire:submit="save">
                     <div class="grid grid-cols-1 gap-6">
-                        <div class="relative">
-                            <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">
-                                Nama Lengkap <span class="text-red-500">*</span>
-                            </label>
-                            <span class="absolute left-3 top-9 text-blue-400">
-                                <flux:icon name="user" class="h-5 w-5" />
-                            </span>
-                            <input id="name" type="text"
-                                class="mt-1 block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 transition-all duration-200"
-                                wire:model="name" placeholder="Nama lengkap user" />
-                            <p class="text-xs text-gray-500 mt-1">Masukkan nama lengkap user yang akan dibuat</p>
-                            @error('name')
-                            <span class="text-sm text-red-600 mt-2">{{ $message }}</span>
-                            @enderror
-                        </div>
+                        <!-- Nama Lengkap -->
+                        <x-mary-input label="Nama Lengkap" wire:model="name" placeholder="Nama lengkap user"
+                            icon="o-user" class="input-bordered" />
+                        @error('name')
+                        <x-mary-alert icon="o-exclamation-triangle" class="alert-error text-sm">
+                            {{ $message }}
+                        </x-mary-alert>
+                        @enderror
 
-                        <div class="relative">
-                            <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
-                                Email <span class="text-red-500">*</span>
-                            </label>
-                            <span class="absolute left-3 top-9 text-blue-400">
-                                <flux:icon name="envelope" class="h-5 w-5" />
-                            </span>
-                            <input id="email" type="email"
-                                class="mt-1 block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 transition-all duration-200"
-                                wire:model="email" placeholder="user@example.com" />
-                            <p class="text-xs text-gray-500 mt-1">Email harus unik dan akan digunakan untuk login</p>
-                            @error('email')
-                            <span class="text-sm text-red-600 mt-2">{{ $message }}</span>
-                            @enderror
-                        </div>
+                        <!-- Email -->
+                        <x-mary-input label="Email" wire:model="email" placeholder="user@example.com" icon="o-envelope"
+                            type="email" class="input-bordered" />
+                        @error('email')
+                        <x-mary-alert icon="o-exclamation-triangle" class="alert-error text-sm">
+                            {{ $message }}
+                        </x-mary-alert>
+                        @enderror
 
-                        <div class="relative">
-                            <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">
-                                Password <span class="text-red-500">*</span>
-                            </label>
-                            <span class="absolute left-3 top-9 text-blue-400">
-                                <flux:icon name="lock-closed" class="h-5 w-5" />
-                            </span>
-                            <input id="password" type="password"
-                                class="mt-1 block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 transition-all duration-200"
-                                wire:model="password" placeholder="Minimal 8 karakter" />
-                            <p class="text-xs text-gray-500 mt-1">Password minimal 8 karakter</p>
-                            @error('password')
-                            <span class="text-sm text-red-600 mt-2">{{ $message }}</span>
-                            @enderror
-                        </div>
+                        <!-- Password -->
+                        <x-mary-input label="Password" wire:model="password" placeholder="Minimal 8 karakter"
+                            icon="o-lock-closed" type="password" class="input-bordered" />
+                        @error('password')
+                        <x-mary-alert icon="o-exclamation-triangle" class="alert-error text-sm">
+                            {{ $message }}
+                        </x-mary-alert>
+                        @enderror
 
-                        <div class="relative">
-                            <label for="password_confirmation" class="block text-sm font-semibold text-gray-700 mb-2">
-                                Konfirmasi Password <span class="text-red-500">*</span>
-                            </label>
-                            <span class="absolute left-3 top-9 text-blue-400">
-                                <flux:icon name="lock-closed" class="h-5 w-5" />
-                            </span>
-                            <input id="password_confirmation" type="password"
-                                class="mt-1 block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50 transition-all duration-200"
-                                wire:model="password_confirmation" placeholder="Ulangi password" />
-                            <p class="text-xs text-gray-500 mt-1">Masukkan password yang sama untuk konfirmasi</p>
-                            @error('password_confirmation')
-                            <span class="text-sm text-red-600 mt-2">{{ $message }}</span>
-                            @enderror
-                        </div>
+                        <!-- Konfirmasi Password -->
+                        <x-mary-input label="Konfirmasi Password" wire:model="password_confirmation"
+                            placeholder="Ulangi password" icon="o-lock-closed" type="password" class="input-bordered" />
+                        @error('password_confirmation')
+                        <x-mary-alert icon="o-exclamation-triangle" class="alert-error text-sm">
+                            {{ $message }}
+                        </x-mary-alert>
+                        @enderror
 
                         <!-- Roles Section -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-3">
-                                Role
-                                <span class="text-xs text-gray-500 font-normal ml-1">(Pilih role yang akan diberikan ke
-                                    user ini)</span>
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text font-semibold">Role</span>
+                                <span class="label-text-alt text-xs text-gray-500">Pilih role yang akan diberikan ke
+                                    user ini</span>
                             </label>
-                            <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 max-h-64 overflow-y-auto">
+                            <div class="bg-base-100 border border-base-300 rounded-lg p-4 max-h-64 overflow-y-auto">
                                 <div class="grid grid-cols-1 gap-3">
                                     @foreach($this->allRoles as $role)
                                     <label
-                                        class="flex items-center p-2 hover:bg-gray-100 rounded-lg transition-colors duration-150">
-                                        <x-checkbox wire:model="roles" value="{{ $role->name }}"
-                                            class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500" />
-                                        <span class="ml-3 text-sm text-gray-700">{{ $role->name }}</span>
+                                        class="flex items-center p-2 hover:bg-base-200 rounded-lg transition-colors duration-150 cursor-pointer">
+                                        <input type="checkbox" wire:model="roles" value="{{ $role->name }}"
+                                            class="checkbox checkbox-info" />
+                                        <span class="ml-3 text-sm">{{ $role->name }}</span>
                                     </label>
                                     @endforeach
                                 </div>
@@ -236,23 +208,19 @@ $allRoles = computed(function () {
                                 @endif
                             </div>
                             @error('roles')
-                            <span class="text-sm text-red-600 mt-2">{{ $message }}</span>
+                            <x-mary-alert icon="o-exclamation-triangle" class="alert-error text-sm">
+                                {{ $message }}
+                            </x-mary-alert>
                             @enderror
                         </div>
                     </div>
 
                     <div class="flex items-center justify-end mt-10 gap-3">
-                        <x-button.link href="{{ route('user.index') }}"
-                            class="px-5 py-2 text-blue-600 border border-blue-200 bg-blue-50 hover:bg-blue-100 rounded-lg font-medium transition-all duration-150">
-                            {{ __('Batal') }}
-                        </x-button.link>
-                        <x-button type="submit"
-                            class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold shadow-md transition-all duration-150">
-                            {{ __('Simpan') }}
-                        </x-button>
+                        <x-mary-button label="Batal" href="{{ route('user.index') }}" class="btn-outline" />
+                        <x-mary-button label="Simpan" type="submit" class="btn-primary" />
                     </div>
                 </form>
-            </div>
+            </x-mary-card>
         </div>
     </div>
 </div>

@@ -386,52 +386,83 @@ $delete = function ($id) {
         </div>
     </div>
 
-    <!-- Custom Delete Confirmation Dialog -->
+    <!-- Simple but Beautiful Delete Modal -->
     @if($showDeleteDialog)
-    <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <!-- Background overlay -->
-            <div class="fixed inset-0 backdrop-blur-sm bg-white/30 transition-opacity" aria-hidden="true"
-                wire:click="closeDeleteDialog"></div>
+    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center;"
+        wire:click="closeDeleteDialog">
+        <div style="background: white; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-width: 400px; width: 90%; margin: 20px;"
+            wire:click.stop>
 
-            <!-- This element is to trick the browser into centering the modal contents. -->
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-            <!-- Modal panel -->
+            <!-- Header -->
             <div
-                class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                    <div class="sm:flex sm:items-start">
+                style="background: linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%); padding: 24px; border-bottom: 1px solid #fecaca; border-radius: 16px 16px 0 0;">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div style="position: relative;">
                         <div
-                            class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                            <flux:icon name="exclamation-triangle" class="h-6 w-6 text-red-600" />
+                            style="width: 56px; height: 56px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.3);">
+                            <flux:icon name="exclamation-triangle" style="width: 28px; height: 28px; color: white;" />
                         </div>
-                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                                Konfirmasi Hapus User
-                            </h3>
-                            <div class="mt-2">
-                                <p class="text-sm text-gray-500">
-                                    Apakah Anda yakin ingin menghapus user ini? Tindakan ini tidak dapat dibatalkan.
-                                </p>
-                            </div>
+                        <div
+                            style="position: absolute; top: -4px; right: -4px; width: 20px; height: 20px; background: #f87171; border-radius: 50%; animation: pulse 2s infinite;">
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 18px; font-weight: 700; color: #111827; margin: 0 0 4px 0;">Konfirmasi
+                            Hapus User</h3>
+                        <p style="font-size: 14px; color: #6b7280; margin: 0;">Tindakan yang tidak dapat dibatalkan</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div style="padding: 24px;">
+                <div style="background: #fffbeb; border: 1px solid #fed7aa; border-radius: 12px; padding: 16px;">
+                    <div style="display: flex; align-items: flex-start; gap: 12px;">
+                        <flux:icon name="information-circle"
+                            style="width: 20px; height: 20px; color: #d97706; margin-top: 2px; flex-shrink: 0;" />
+                        <div>
+                            <p style="color: #92400e; font-weight: 600; font-size: 14px; margin: 0 0 4px 0;">⚠️
+                                Peringatan!</p>
+                            <p style="color: #b45309; font-size: 14px; line-height: 1.5; margin: 0;">
+                                Apakah Anda yakin ingin menghapus user ini? Semua data terkait akan dihapus secara
+                                permanen dan tidak dapat dipulihkan.
+                            </p>
                         </div>
                     </div>
                 </div>
-                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                    <button type="button" wire:click="delete({{ $userToDelete }})"
-                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm transition duration-150">
-                        <flux:icon name="trash" class="h-4 w-4 mr-2" />
-                        Ya, Hapus
-                    </button>
+            </div>
+
+            <!-- Actions -->
+            <div style="padding: 0 24px 24px 24px;">
+                <div style="display: flex; gap: 12px;">
                     <button type="button" wire:click="closeDeleteDialog"
-                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition duration-150">
-                        <flux:icon name="x-mark" class="h-4 w-4 mr-2" />
+                        style="flex: 1; padding: 12px 16px; font-size: 14px; font-weight: 500; color: #374151; background: white; border: 1px solid #d1d5db; border-radius: 8px; cursor: pointer; transition: all 0.2s;"
+                        onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
                         Batal
+                    </button>
+                    <button type="button" wire:click="delete({{ $userToDelete }})"
+                        style="flex: 1; padding: 12px 16px; font-size: 14px; font-weight: 500; color: white; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3); transition: all 0.2s;"
+                        onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 10px 15px -3px rgba(239, 68, 68, 0.4)'"
+                        onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 6px -1px rgba(239, 68, 68, 0.3)'">
+                        Ya, Hapus
                     </button>
                 </div>
             </div>
         </div>
     </div>
+
+    <style>
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+    </style>
     @endif
 </div>
