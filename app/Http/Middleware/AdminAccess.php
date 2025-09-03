@@ -10,7 +10,7 @@ class AdminAccess
 {
     /**
      * Allow only users with admin-side roles to access.
-     * Permitted roles: Admin, Owner, Manager, Staff.
+     * Permitted roles: Admin, Owner.
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -19,11 +19,10 @@ class AdminAccess
             return redirect()->route('login');
         }
 
-        if ($user->hasAnyRole(['Admin', 'Owner', 'Manager', 'Staff'])) {
+        if ($user->hasAnyRole(['Admin', 'Owner'])) {
             return $next($request);
         }
 
         return redirect()->route('home')->with('error', 'Akses ditolak untuk area admin.');
     }
 }
-
