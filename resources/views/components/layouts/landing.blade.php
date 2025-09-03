@@ -25,6 +25,9 @@
 
     <!-- Product Animations -->
     <script src="{{ asset('js/product-animations.js') }}"></script>
+
+    <!-- About Animations -->
+    <script src="{{ asset('js/about-animations.js') }}"></script>
 </head>
 
 <body class="font-sans antialiased">
