@@ -14,6 +14,17 @@
 
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <!-- GSAP CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js"></script>
+
+    <!-- Hero Animations -->
+    <script src="{{ asset('js/hero-animations.js') }}"></script>
+
+    <!-- Product Animations -->
+    <script src="{{ asset('js/product-animations.js') }}"></script>
 </head>
 
 <body class="font-sans antialiased">
@@ -21,9 +32,11 @@
         @include('components.layouts.landing.header')
 
         <!-- Page Content -->
-        <flux:main class="pt-24 flex-1">
-            {{ $slot }}
-        </flux:main>
+        <main class="flex-1 pt-16">
+            <flux:main class="!p-0">
+                {{ $slot }}
+            </flux:main>
+        </main>
 
         @include('components.layouts.landing.footer')
 
