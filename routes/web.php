@@ -53,7 +53,7 @@ Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
-Route::middleware(['auth'])->prefix('admin')->group(function () {
+Route::middleware(['auth','admin.access'])->prefix('admin')->group(function () {
     // User Routes
     Volt::route('user', 'pages.users.index')->name('user.index');
     Volt::route('user/create', 'pages.users.create')->name('user.create');

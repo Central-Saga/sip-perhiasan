@@ -6,40 +6,61 @@
     </a>
 
     <flux:navlist variant="outline">
+        @unlessrole('Pelanggan')
         <flux:navlist.group :heading="__('Platform')" class="grid">
             <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </flux:navlist.item>
+
+            @can('mengelola user')
             <flux:navlist.item icon="users" :href="route('user.index')" :current="request()->routeIs('user.*')">
                 {{ __('User') }}
             </flux:navlist.item>
+            @endcan
+
+            @can('mengelola role')
             <flux:navlist.item icon="shield-check" :href="route('role.index')" :current="request()->routeIs('role.*')">
                 {{ __('Role') }}
             </flux:navlist.item>
-            <flux:navlist.item icon="users" :href="route('pelanggan.index')"
-                :current="request()->routeIs('pelanggan.*')">
+            @endcan
+
+            @can('mengelola pelanggan')
+            <flux:navlist.item icon="users" :href="route('pelanggan.index')" :current="request()->routeIs('pelanggan.*')">
                 {{ __('Pelanggan') }}
             </flux:navlist.item>
+            @endcan
+
+            @can('mengelola produk')
             <flux:navlist.item icon="sparkles" :href="route('produk.index')" :current="request()->routeIs('produk.*')">
                 {{ __('Produk') }}
             </flux:navlist.item>
-            <flux:navlist.item icon="shopping-cart" :href="route('transaksi.index')"
-                :current="request()->routeIs('transaksi.*')">
+            @endcan
+
+            @can('mengelola transaksi')
+            <flux:navlist.item icon="shopping-cart" :href="route('transaksi.index')" :current="request()->routeIs('transaksi.*')">
                 {{ __('Transaksi') }}
             </flux:navlist.item>
-            <flux:navlist.item icon="paper-airplane" :href="route('pengiriman.index')"
-                :current="request()->routeIs('pengiriman.*')">
+            @endcan
+
+            @can('mengelola pengiriman')
+            <flux:navlist.item icon="paper-airplane" :href="route('pengiriman.index')" :current="request()->routeIs('pengiriman.*')">
                 {{ __('Pengiriman') }}
             </flux:navlist.item>
-            <flux:navlist.item icon="currency-dollar" :href="route('pembayaran.index')"
-                :current="request()->routeIs('pembayaran.*')">
+            @endcan
+
+            @can('mengelola pembayaran')
+            <flux:navlist.item icon="currency-dollar" :href="route('pembayaran.index')" :current="request()->routeIs('pembayaran.*')">
                 {{ __('Pembayaran') }}
             </flux:navlist.item>
-            <flux:navlist.item icon="document-text" :href="route('custom-request.index')"
-                :current="request()->routeIs('custom-request.*')">
+            @endcan
+
+            @can('mengelola custom request')
+            <flux:navlist.item icon="document-text" :href="route('custom-request.index')" :current="request()->routeIs('custom-request.*')">
                 {{ __('Custom Request') }}
             </flux:navlist.item>
+            @endcan
         </flux:navlist.group>
+        @endunlessrole
     </flux:navlist>
 
     <flux:spacer />

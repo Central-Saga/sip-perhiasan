@@ -62,6 +62,36 @@
 
             <!-- Auth Buttons -->
             @auth
+                @php($user = auth()->user())
+                @if($user && $user->hasRole('Pelanggan'))
+                    <div class="relative">
+                        <button id="userMenuBtn"
+                            class="flex items-center gap-2 px-4 py-2 rounded-full border border-slate-400 text-slate-700 dark:text-slate-200 bg-white/50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-700/30 transition">
+                            <i class="fa-solid fa-user"></i>
+                            <span class="max-w-[140px] truncate">{{ $user->name }}</span>
+                            <i class="fa-solid fa-chevron-down text-xs opacity-70"></i>
+                        </button>
+                        <div id="userMenu" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg overflow-hidden z-[60]">
+                            <a href="{{ route('cart') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60">
+                                <i class="fa-solid fa-cart-shopping"></i> Keranjang
+                            </a>
+                            <a href="{{ route('transaksi') }}" class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60">
+                                <i class="fa-solid fa-receipt"></i> Transaksi
+                            </a>
+                            <div class="h-px bg-slate-200 dark:bg-slate-700"></div>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="w-full text-left flex items-center gap-2 px-4 py-2 text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20">
+                                    <i class="fa-solid fa-right-from-bracket"></i> Keluar
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                @else
+                    <a href="{{ url('/dashboard') }}" class="flex items-center gap-2 px-4 py-2 rounded-full border border-slate-400 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/20 transition">
+                        <i class="fa-solid fa-user"></i> {{ $user?->name ?? 'Profil' }}
+                    </a>
+                @endif
             <a href="{{ url('/dashboard') }}"
                 class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/20 transition-all duration-300">
                 <i class="fa-solid fa-user text-sm"></i>
@@ -158,6 +188,24 @@
             mobileMenuBtn.innerHTML = '<i class="fa-solid fa-bars text-lg"></i>';
         }
     }
+})();
+
+// Simple dropdown for pelanggan menu
+document.addEventListener('DOMContentLoaded', function(){
+    const btn = document.getElementById('userMenuBtn');
+    const menu = document.getElementById('userMenu');
+    if(!btn || !menu) return;
+    btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        menu.classList.toggle('hidden');
+    });
+    document.addEventListener('click', function(){
+        if(!menu.classList.contains('hidden')) menu.classList.add('hidden');
+    });
+    document.addEventListener('keydown', function(e){
+        if(e.key === 'Escape' && !menu.classList.contains('hidden')) menu.classList.add('hidden');
+    });
+});
 
     // Initialize theme on load for landing layout
     (function() {

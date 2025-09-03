@@ -61,37 +61,20 @@ class RolePermissionSeeder extends Seeder
             'mencetak laporan',
         ]);
 
-        // Create role for Manager
-        $manager = Role::firstOrCreate(['name' => 'Manager']);
-        $manager->syncPermissions([
+        // Create role for Owner (owner can manage users and generally has admin-level access)
+        $owner = Role::firstOrCreate(['name' => 'Owner']);
+        $owner->syncPermissions([
+            'mengelola user',
+            'mengelola role',
             'mengelola pelanggan',
             'mengelola produk',
             'mengelola transaksi',
             'mengelola pengiriman',
             'mengelola pembayaran',
             'mengelola custom request',
+            'mengelola laporan',
             'melihat dashboard',
-            'melihat produk',
-            'melihat transaksi',
-            'melihat pengiriman',
-            'melihat pembayaran',
-            'melihat custom request',
             'mencetak laporan',
-        ]);
-
-        // Create role for Staff
-        $staff = Role::firstOrCreate(['name' => 'Staff']);
-        $staff->syncPermissions([
-            'mengelola pelanggan',
-            'mengelola transaksi',
-            'mengelola pengiriman',
-            'mengelola pembayaran',
-            'melihat dashboard',
-            'melihat produk',
-            'melihat transaksi',
-            'melihat pengiriman',
-            'melihat pembayaran',
-            'melihat custom request',
         ]);
 
         // Create role for Pelanggan
@@ -103,16 +86,24 @@ class RolePermissionSeeder extends Seeder
             'mengajukan custom request',
         ]);
 
-        // Assign roles to users
+        // Assign roles to specific users if they exist
         $adminUser = User::where('email', 'admin@example.com')->first();
         if ($adminUser) {
-            $adminUser->assignRole('Admin');
+            $adminUser->syncRoles(['Admin']);
         }
 
-        // Assign Pelanggan role to other users
-        $otherUsers = User::where('email', '!=', 'admin@example.com')->get();
+        $ownerUser = User::where('email', 'owner@example.com')->first();
+        if ($ownerUser) {
+            $ownerUser->syncRoles(['Owner']);
+        }
+
+        // Assign Pelanggan role to other users (exclude admin and owner)
+        $otherUsers = User::whereNotIn('email', ['admin@example.com', 'owner@example.com'])->get();
         foreach ($otherUsers as $user) {
-            $user->assignRole('Pelanggan');
+            // Keep existing special roles if any, otherwise set Pelanggan
+            if ($user->roles()->count() === 0) {
+                $user->assignRole('Pelanggan');
+            }
         }
     }
 }
