@@ -721,5 +721,12 @@ layout('components.layouts.landing');
       reader.readAsDataURL(file);
     });
   });
+
+    // Cart count initialization for custom request page
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.updateCartCount) {
+            window.updateCartCount();
+        }
+    });
     </script>
 </div>

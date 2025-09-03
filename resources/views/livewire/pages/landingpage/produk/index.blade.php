@@ -204,7 +204,7 @@ mount(function () {
                                 </div>
 
                                 <!-- Features -->
-                                <div class="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-300 mb-4">
+                                <div class="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-300">
                                     <div class="flex items-center gap-1">
                                         <i class="fa-solid fa-medal text-indigo-500"></i>
                                         <span>Premium</span>
@@ -213,24 +213,6 @@ mount(function () {
                                         <i class="fa-solid fa-shipping-fast text-green-500"></i>
                                         <span>Gratis Ongkir</span>
                                     </div>
-                                </div>
-
-                                <!-- Action Buttons -->
-                                <div class="flex gap-2">
-                                    <a href="{{ route('produk.detail', $produk->id) }}"
-                                        class="flex-1 px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700/60 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl font-medium transition flex items-center justify-center gap-2 text-sm">
-                                        <i class="fa-solid fa-eye"></i>
-                                        <span>Detail</span>
-                                    </a>
-                                    <button
-                                        class="btn-add-cart flex-1 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white rounded-xl font-medium transition flex items-center justify-center gap-2 text-sm"
-                                        data-id="{{ $produk->id }}" data-nama="{{ e($produk->nama_produk) }}"
-                                        data-kategori="{{ e($produk->kategori) }}"
-                                        data-harga="{{ (float) $produk->harga }}" data-stok="{{ (int) $produk->stok }}"
-                                        data-foto="{{ $produk->foto ? e(Storage::url($produk->foto)) : '' }}">
-                                        <i class="fa-solid fa-cart-plus"></i>
-                                        <span>Tambah</span>
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -272,31 +254,56 @@ function setCart(cart){
 }
 
 function updateCartCount(){
-  const cart = getCart();
-  let count = 0; for(const id in cart) count += cart[id].qty || 0;
-  const el = document.getElementById('cartCount');
-  if(el) el.innerText = count;
+  // Use CartManager if available, otherwise fallback
+  if (window.cartManager) {
+    window.cartManager.updateCartCount();
+  } else {
+    // Fallback implementation
+    const cart = getCart();
+    let count = 0; for(const id in cart) count += cart[id].qty || 0;
+    const el = document.getElementById('cartCount');
+    if(el) el.innerText = count;
+  }
 }
 
 function addToCart(prod){
-  const cart = getCart();
-  const id = String(prod.id);
-  if(!cart[id]){
-    cart[id] = {
-      id: prod.id,
-      nama_produk: prod.nama,
-      kategori: prod.kategori,
-      harga: Number(prod.harga) || 0,
-      stok: Number(prod.stok) || 0,
-      foto: prod.foto || '',
-      qty: 0,
-    };
+  // Check if user is logged in
+  const isLoggedIn = {{ auth()->check() ? 'true' : 'false' }};
+
+  if (!isLoggedIn) {
+    // Redirect to login page if not logged in
+    window.location.href = "{{ route('login') }}";
+    return;
   }
-  if(cart[id].qty < (cart[id].stok || 0)){
-    cart[id].qty += 1;
+
+  // Use CartManager if available, otherwise fallback
+  if (window.cartManager) {
+    const success = window.cartManager.addToCart(prod);
+    if (success) {
+      // Redirect to cart page
+      window.location.href = "{{ route('cart') }}";
+    }
+  } else {
+    // Fallback implementation
+    const cart = getCart();
+    const id = String(prod.id);
+    if(!cart[id]){
+      cart[id] = {
+        id: prod.id,
+        nama_produk: prod.nama,
+        kategori: prod.kategori,
+        harga: Number(prod.harga) || 0,
+        stok: Number(prod.stok) || 0,
+        foto: prod.foto || '',
+        qty: 0,
+      };
+    }
+    if(cart[id].qty < (cart[id].stok || 0)){
+      cart[id].qty += 1;
+    }
+    setCart(cart);
+    updateCartCount();
   }
-  setCart(cart);
-  updateCartCount();
 }
 
 document.addEventListener('DOMContentLoaded', function(){
@@ -348,38 +355,6 @@ document.addEventListener('DOMContentLoaded', function(){
     });
   });
 
-  document.querySelectorAll('.btn-add-cart').forEach(btn => {
-    btn.addEventListener('click', function(){
-      const prod = {
-        id: this.dataset.id,
-        nama: this.dataset.nama,
-        kategori: this.dataset.kategori,
-        harga: this.dataset.harga,
-        stok: this.dataset.stok,
-        foto: this.dataset.foto,
-      };
-      addToCart(prod);
-      // Enhanced feedback with GSAP animation
-      this.disabled = true;
-      const old = this.innerHTML;
-      this.innerHTML = '<i class="fa-solid fa-check"></i> Ditambahkan';
 
-      // Add success animation
-      if (typeof gsap !== 'undefined') {
-        gsap.to(this, {
-          scale: 1.1,
-          duration: 0.2,
-          yoyo: true,
-          repeat: 1,
-          ease: "power2.inOut",
-        });
-      }
-
-      setTimeout(() => {
-        this.disabled = false;
-        this.innerHTML = old;
-      }, 1200);
-    });
-  });
 });
 </script>

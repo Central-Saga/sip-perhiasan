@@ -21,25 +21,42 @@ layout('components.layouts.landing');
       </h3>
       <div class="rounded-lg border border-slate-200 dark:border-slate-700 p-4 bg-slate-50 dark:bg-slate-900/30">
         <div class="flex items-start gap-4">
-          <div class="w-20 h-20 flex-shrink-0 rounded-md overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800" id="crImageWrap"></div>
+          <div
+            class="w-20 h-20 flex-shrink-0 rounded-md overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800"
+            id="crImageWrap"></div>
           <div class="flex-1">
             <div class="flex items-center justify-between">
               <div class="font-semibold text-slate-800 dark:text-slate-100">Detail Kustom</div>
-              <span id="crStatus" class="text-xs px-2 py-1 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200">pending</span>
+              <span id="crStatus"
+                class="text-xs px-2 py-1 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200">pending</span>
             </div>
             <dl class="mt-2 text-sm text-slate-600 dark:text-slate-300 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1">
-              <div><dt class="inline text-slate-500">Kategori:</dt> <dd class="inline" id="crKategori">-</dd></div>
-              <div><dt class="inline text-slate-500">Material:</dt> <dd class="inline" id="crMaterial">-</dd></div>
-              <div><dt class="inline text-slate-500">Ukuran:</dt> <dd class="inline" id="crUkuran">-</dd></div>
-              <div><dt class="inline text-slate-500">Berat:</dt> <dd class="inline" id="crBerat">0 gram</dd></div>
+              <div>
+                <dt class="inline text-slate-500">Kategori:</dt>
+                <dd class="inline" id="crKategori">-</dd>
+              </div>
+              <div>
+                <dt class="inline text-slate-500">Material:</dt>
+                <dd class="inline" id="crMaterial">-</dd>
+              </div>
+              <div>
+                <dt class="inline text-slate-500">Ukuran:</dt>
+                <dd class="inline" id="crUkuran">-</dd>
+              </div>
+              <div>
+                <dt class="inline text-slate-500">Berat:</dt>
+                <dd class="inline" id="crBerat">0 gram</dd>
+              </div>
             </dl>
             <p class="mt-2 text-sm text-slate-600 dark:text-slate-300" id="crDeskripsi"></p>
-            <a href="{{ route('custom.detail') }}" class="mt-3 inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-300 text-sm hover:underline">
+            <a href="{{ route('custom.detail') }}"
+              class="mt-3 inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-300 text-sm hover:underline">
               <i class="fa-solid fa-eye"></i> Lihat Detail
             </a>
           </div>
         </div>
-        <p class="mt-3 text-xs text-slate-500 dark:text-slate-400">Tidak ada harga untuk custom request pada tahap ini.</p>
+        <p class="mt-3 text-xs text-slate-500 dark:text-slate-400">Tidak ada harga untuk custom request pada tahap ini.
+        </p>
       </div>
     </div>
 
@@ -49,10 +66,12 @@ layout('components.layouts.landing');
     </div>
 
     <div class="flex flex-col sm:flex-row gap-3">
-      <a href="{{ route('produk') }}" class="flex-1 sm:flex-none sm:px-5 sm:py-3 px-4 py-3 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold transition flex items-center justify-center gap-2 text-sm">
+      <a href="{{ route('produk') }}"
+        class="flex-1 sm:flex-none sm:px-5 sm:py-3 px-4 py-3 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold transition flex items-center justify-center gap-2 text-sm">
         <i class="fa-solid fa-arrow-left"></i> Lanjut Belanja
       </a>
-      <button id="checkoutBtn" class="flex-1 sm:flex-none sm:px-5 sm:py-3 px-4 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-semibold transition flex items-center justify-center gap-2 text-sm">
+      <button id="checkoutBtn"
+        class="flex-1 sm:flex-none sm:px-5 sm:py-3 px-4 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-semibold transition flex items-center justify-center gap-2 text-sm">
         <i class="fa-solid fa-credit-card"></i> Checkout
       </button>
     </div>
@@ -69,10 +88,16 @@ layout('components.layouts.landing');
   }
 
   function updateCartCount() {
-    let count = 0;
-    for (const id in cart) count += cart[id].qty;
-    const cartCount = document.getElementById('cartCount');
-    if (cartCount) cartCount.innerText = count;
+    // Use CartManager if available, otherwise fallback
+    if (window.cartManager) {
+      window.cartManager.updateCartCount();
+    } else {
+      // Fallback implementation
+      let count = 0;
+      for (const id in cart) count += cart[id].qty;
+      const cartCount = document.getElementById('cartCount');
+      if (cartCount) cartCount.innerText = count;
+    }
   }
 
   function renderCart() {

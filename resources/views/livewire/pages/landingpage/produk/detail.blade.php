@@ -427,6 +427,15 @@ document.addEventListener('DOMContentLoaded', function(){
   const addBtn = document.querySelector('#btnAddDetail');
   if(addBtn){
     addBtn.addEventListener('click', function(){
+      // Check if user is logged in
+      const isLoggedIn = {{ auth()->check() ? 'true' : 'false' }};
+
+      if (!isLoggedIn) {
+        // Redirect to login page if not logged in
+        window.location.href = "{{ route('login') }}";
+        return;
+      }
+
       const prod = {
         id: this.dataset.id,
         nama: this.dataset.nama,
@@ -435,16 +444,27 @@ document.addEventListener('DOMContentLoaded', function(){
         stok: Number(this.dataset.stok) || 0,
         foto: this.dataset.foto || ''
       };
-      const cart = getCart();
-      const key = String(prod.id);
-      if(!cart[key]){
-        cart[key] = { id: prod.id, nama_produk: prod.nama, kategori: prod.kategori, harga: prod.harga, stok: prod.stok, foto: prod.foto, qty: 0 };
+
+      // Use CartManager if available, otherwise fallback
+      if (window.cartManager) {
+        const success = window.cartManager.addToCart(prod);
+        if (success) {
+          // Redirect to cart page
+          window.location.href = "{{ route('cart') }}";
+        }
+      } else {
+        // Fallback implementation
+        const cart = getCart();
+        const key = String(prod.id);
+        if(!cart[key]){
+          cart[key] = { id: prod.id, nama_produk: prod.nama, kategori: prod.kategori, harga: prod.harga, stok: prod.stok, foto: prod.foto, qty: 0 };
+        }
+        if(cart[key].qty < (cart[key].stok || 0)){
+          cart[key].qty += 1;
+        }
+        setCart(cart);
+        updateCartCount();
       }
-      if(cart[key].qty < (cart[key].stok || 0)){
-        cart[key].qty += 1;
-      }
-      setCart(cart);
-      updateCartCount();
 
       // Button animation
       if (typeof gsap !== "undefined") {

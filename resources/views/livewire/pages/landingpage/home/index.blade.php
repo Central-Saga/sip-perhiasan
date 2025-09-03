@@ -759,3 +759,13 @@ mount(function () {
         </section>
     </div>
 </div>
+
+<script>
+    // Cart count initialization for home page
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize cart count when page loads
+        if (window.updateCartCount) {
+            window.updateCartCount();
+        }
+    });
+</script>

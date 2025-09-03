@@ -453,3 +453,15 @@ layout('components.layouts.landing');
                 </div>
             </div>
         </div>
+    </section>
+</div>
+
+<script>
+    // Cart count initialization for about page
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize cart count when page loads
+        if (window.updateCartCount) {
+            window.updateCartCount();
+        }
+    });
+</script>

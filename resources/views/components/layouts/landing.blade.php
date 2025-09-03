@@ -28,6 +28,12 @@
 
     <!-- About Animations -->
     <script src="{{ asset('js/about-animations.js') }}"></script>
+
+    <!-- Theme Manager -->
+    <script src="{{ asset('js/theme-manager.js') }}"></script>
+
+    <!-- Cart Manager -->
+    <script src="{{ asset('js/cart-manager.js') }}"></script>
 </head>
 
 <body class="font-sans antialiased">
