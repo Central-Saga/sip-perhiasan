@@ -34,17 +34,64 @@ layout('components.layouts.landing');
                         <option value="Stainless Steel">Stainless Steel</option>
                     </select>
                     @error('material') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                </div>
+</div>
+</div>
+<script>
+  // Intercept form submit to store Custom Request locally and redirect to cart
+  document.addEventListener('DOMContentLoaded', function(){
+    const form = document.querySelector('form[action="{{ route('custom.submit') }}"]');
+    if(!form) return;
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      const kategori = document.getElementById('kategori')?.value?.trim() || '';
+      const material = document.getElementById('material')?.value || '';
+      const ukuran = document.getElementById('ukuran')?.value?.trim() || '';
+      const berat = parseFloat(document.getElementById('berat')?.value || '0') || 0;
+      const deskripsi = document.getElementById('deskripsi')?.value?.trim() || '';
+      const fileInput = document.getElementById('file-upload');
+
+      const saveAndGo = (gambarRefDataUrl = null) => {
+        const customReq = {
+          kategori, material, ukuran, berat, deskripsi,
+          gambar_referensi: gambarRefDataUrl, // data URL atau null
+          status: 'pending',
+          created_at: new Date().toISOString(),
+        };
+        try { localStorage.setItem('customRequest', JSON.stringify(customReq)); } catch(_) {}
+        window.location.href = "{{ route('cart') }}";
+      };
+
+      if (fileInput && fileInput.files && fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(ev){ saveAndGo(ev.target.result); };
+        reader.onerror = function(){ saveAndGo(null); };
+        reader.readAsDataURL(fileInput.files[0]);
+      } else {
+        saveAndGo(null);
+      }
+    });
+  });
+</script>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label for="ukuran" class="block text-slate-700 dark:text-slate-300 font-medium mb-2">Ukuran</label>
                     <input type="text" name="ukuran" id="ukuran" placeholder="Contoh: Cincin ukuran 7, Gelang 18cm, dll" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-3 bg-white dark:bg-zinc-700/50 text-slate-800 dark:text-slate-200 focus:ring focus:ring-indigo-200">
                     @error('ukuran') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                 </div>
+                <div>
+                    <label for="berat" class="block text-slate-700 dark:text-slate-300 font-medium mb-2">Berat</label>
+                    <div class="relative">
+                        <input type="number" step="0.01" min="0" name="berat" id="berat" placeholder="Masukkan angka, contoh: 3" class="w-full border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-3 pr-16 bg-white dark:bg-zinc-700/50 text-slate-800 dark:text-slate-200 focus:ring focus:ring-indigo-200">
+                        <span class="absolute inset-y-0 right-3 flex items-center text-slate-500 dark:text-slate-400 text-sm">gram</span>
+                    </div>
+                    @error('berat') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                </div>
             </div>
             <div>
                 <label for="gambar_referensi" class="block text-slate-700 dark:text-slate-300 font-medium mb-2">Upload Referensi</label>
                 <div class="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg p-6 text-center">
-                    <label for="file-upload" class="cursor-pointer">
+                    <label for="file-upload" class="cursor-pointer block">
                         <div class="text-slate-500 dark:text-slate-400">
                             <i class="fa-solid fa-cloud-arrow-up text-3xl mb-2"></i>
                             <p>Klik untuk upload gambar referensi</p>
@@ -52,6 +99,12 @@ layout('components.layouts.landing');
                         </div>
                         <input id="file-upload" type="file" name="gambar_referensi" class="hidden" accept="image/*">
                     </label>
+                    <div id="previewWrap" class="mt-4 hidden">
+                        <div class="text-left text-sm text-slate-600 dark:text-slate-300 mb-2">Pratinjau:</div>
+                        <div class="mx-auto w-48 h-48 rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800">
+                            <img id="previewImg" src="" alt="Preview" class="w-full h-full object-cover">
+                        </div>
+                    </div>
                 </div>
                 @error('gambar_referensi') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
             </div>
@@ -95,3 +148,26 @@ layout('components.layouts.landing');
         </div>
     </div>
 </div>
+
+<script>
+  // Preview gambar saat dipilih (<= 2MB)
+  document.addEventListener('DOMContentLoaded', function(){
+    const fileInput = document.getElementById('file-upload');
+    const wrap = document.getElementById('previewWrap');
+    const img = document.getElementById('previewImg');
+    if (!fileInput) return;
+    fileInput.addEventListener('change', function(){
+      const file = this.files && this.files[0] ? this.files[0] : null;
+      if (!file) { if (wrap) wrap.classList.add('hidden'); return; }
+      if (file.size > 2 * 1024 * 1024) {
+        alert('Ukuran gambar melebihi 2MB. Silakan pilih file yang lebih kecil.');
+        this.value = '';
+        if (wrap) wrap.classList.add('hidden');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function(ev){ if (img && wrap) { img.src = ev.target.result; wrap.classList.remove('hidden'); } };
+      reader.readAsDataURL(file);
+    });
+  });
+</script>

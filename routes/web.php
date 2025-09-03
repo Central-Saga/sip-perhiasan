@@ -19,6 +19,8 @@ Route::prefix('/')->group(function () {
     })->name('produk.landing');
     Volt::route('produk/{id}', 'pages.landingpage.produk.detail')->name('produk.detail');
     Volt::route('custom', 'pages.landingpage.custom.index')->name('custom');
+    Volt::route('custom/detail', 'pages.landingpage.custom.detail')->name('custom.detail');
+    
     // Handle Custom Request form submission (POST)
     Route::post('custom/submit', function (Request $request) {
         $validated = $request->validate([
