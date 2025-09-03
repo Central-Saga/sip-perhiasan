@@ -41,11 +41,13 @@ new #[Layout('components.layouts.auth')] class extends Component {
         Session::regenerate();
 
         $user = Auth::user();
-        $defaultRoute = ($user && $user->hasRole('Pelanggan'))
+        $isPelanggan = $user && $user->hasRole('Pelanggan');
+        $defaultRoute = $isPelanggan
             ? route('home', absolute: false)
             : route('dashboard', absolute: false);
 
-        $this->redirectIntended(default: $defaultRoute, navigate: true);
+        // Untuk Pelanggan, lakukan full reload (navigate: false) agar header/landing tersinkron.
+        $this->redirectIntended(default: $defaultRoute, navigate: ! $isPelanggan);
     }
 
     /**
