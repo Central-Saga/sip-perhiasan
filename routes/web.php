@@ -50,7 +50,7 @@ Route::fallback(function () {
 });
 
 Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth', 'verified', 'admin.access'])
     ->name('dashboard');
 
 Route::middleware(['auth','admin.access'])->prefix('admin')->group(function () {

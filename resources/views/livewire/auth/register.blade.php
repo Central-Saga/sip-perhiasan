@@ -51,7 +51,8 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
         Auth::login($user);
 
-        $this->redirectIntended(route('dashboard', absolute: false), navigate: true);
+        // Default redirect for newly registered users (Pelanggan) to landing page
+        $this->redirectIntended(route('home', absolute: false), navigate: true);
     }
 }; ?>
 
