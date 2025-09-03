@@ -142,11 +142,20 @@
         <!-- Mobile Auth Buttons -->
         <div class="pt-4 border-t border-slate-200 dark:border-slate-700 space-y-2">
             @auth
+            @php($user = auth()->user())
+            @if($user && $user->hasRole('Pelanggan'))
+            <a href="{{ route('transaksi') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-300">
+                <i class="fa-solid fa-receipt text-sm"></i>
+                <span>Transaksi Saya</span>
+            </a>
+            @else
             <a href="{{ url('/dashboard') }}"
                 class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-300">
-                <i class="fa-solid fa-user text-sm"></i>
-                <span>Profil</span>
+                <i class="fa-solid fa-gauge-high text-sm"></i>
+                <span>Dashboard</span>
             </a>
+            @endif
             @else
             <a href="{{ route('login') }}"
                 class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-300">
