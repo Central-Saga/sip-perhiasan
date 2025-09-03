@@ -37,7 +37,7 @@
 </head>
 
 <body class="font-sans antialiased">
-    <div class="min-h-screen bg-white dark:bg-zinc-900 flex flex-col">
+    <div class="landing-layout min-h-screen bg-white dark:bg-zinc-900 flex flex-col">
         @include('components.layouts.landing.header')
 
         <!-- Page Content -->
