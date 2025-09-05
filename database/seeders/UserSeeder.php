@@ -17,13 +17,13 @@ class UserSeeder extends Seeder
         // Ensure a single Admin user exists (idempotent)
         User::updateOrCreate(
             ['email' => 'admin@example.com'],
-                [
-                    'name' => 'Admin',
-                    'password' => Hash::make('password'),
-                    'email_verified_at' => now(),
-                    // Keep the existing enum column in sync
-                    'role' => 'admin',
-                ]
+            [
+                'name' => 'Admin',
+                'password' => Hash::make('password'),
+                'email_verified_at' => now(),
+                // Keep the existing enum column in sync
+                'role' => 'admin',
+            ]
         );
 
         // Ensure a single Owner user exists (idempotent)
@@ -49,6 +49,16 @@ class UserSeeder extends Seeder
                 'role' => 'user',
             ]
         );
+
+        // Create pelanggan data directly (simple approach)
+        if (!$pelangganUser->pelanggan) {
+            \App\Models\Pelanggan::create([
+                'user_id' => $pelangganUser->id,
+                'no_telepon' => '081234567890',
+                'alamat' => 'Jl. Contoh No. 123, Jakarta',
+                'status' => 'Aktif',
+            ]);
+        }
 
 
         // Ensure there are at least 10 regular users

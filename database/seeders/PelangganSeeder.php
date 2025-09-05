@@ -12,9 +12,10 @@ class PelangganSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create customers
+        // Create customers with pelanggan role and data
         \App\Models\User::factory()
             ->count(10)
+            ->pelanggan()
             ->create([
                 'role' => 'user' // Using 'user' instead of 'customer' to match DatabaseSeeder's role
             ]);

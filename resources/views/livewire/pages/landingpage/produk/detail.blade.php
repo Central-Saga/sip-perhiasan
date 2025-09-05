@@ -30,12 +30,6 @@ function addToCart()
         return;
     }
 
-    // Cek status pelanggan
-    if (!$pelanggan->isActive()) {
-        session()->flash('error', 'Akun pelanggan Anda tidak aktif. Silakan hubungi administrator.');
-        return;
-    }
-
     // Cek stok produk
     if ($this->produk->stok <= 0) {
         session()->flash('error', 'Maaf, produk ini sedang tidak tersedia.');
