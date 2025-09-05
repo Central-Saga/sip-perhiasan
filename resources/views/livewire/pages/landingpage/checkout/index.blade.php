@@ -1,9 +1,15 @@
 <?php
-use function Livewire\Volt\layout;
+use function Livewire\Volt\{ layout, state, mount, action };
 use App\Models\Keranjang;
 use App\Models\Pelanggan;
+use App\Models\Transaksi;
+use App\Models\Pembayaran;
+use App\Models\DetailTransaksi;
+use App\Models\Produk;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 layout('components.layouts.landing');
 
@@ -12,33 +18,131 @@ if (!Auth::check()) {
     return redirect()->route('login');
 }
 
+state([
+    'metode_pembayaran' => 'cash',
+    'tipe_pesanan' => 'biasa',
+    'bukti_pembayaran' => null,
+    'isProcessing' => false,
+    'keranjangItems' => collect(),
+    'total' => 0,
+    'customRequest' => null,
+    'user' => null,
+    'pelanggan' => null,
+]);
+
+mount(function () {
+    $this->user = Auth::user();
+    $this->pelanggan = Pelanggan::where('user_id', $this->user->id)->first();
+    $this->loadCartData();
+});
+
+$loadCartData = function () {
+    $user = Auth::user();
+    $pelanggan = Pelanggan::where('user_id', $user->id)->first();
+
+    if ($pelanggan) {
+        $this->keranjangItems = Keranjang::with(['produk', 'customRequest'])
+            ->where('pelanggan_id', $pelanggan->id)
+            ->get();
+
+        $this->total = $this->keranjangItems->sum(function ($item) {
+            return $item->subtotal ?? ($item->harga_satuan * $item->jumlah);
+        });
+
+        $this->customRequest = $this->keranjangItems->where('custom_request_id', '!=', null)->first()?->customRequest;
+    }
+};
+
+$processCheckout = action(function () {
+    $this->isProcessing = true;
+
+    try {
+        DB::beginTransaction();
+
+        $user = Auth::user();
+        $pelanggan = Pelanggan::where('user_id', $user->id)->first();
+
+        if (!$pelanggan) {
+            session()->flash('error', 'Profil pelanggan tidak ditemukan.');
+        } elseif ($this->keranjangItems->isEmpty()) {
+            session()->flash('error', 'Keranjang belanja kosong.');
+        } else {
+            // Generate kode transaksi
+        $kodeTransaksi = 'TRX-' . date('Ymd') . '-' . strtoupper(Str::random(6));
+
+        // Buat transaksi
+        $transaksi = Transaksi::create([
+            'user_id' => $user->id,
+            'pelanggan_id' => $pelanggan->id,
+            'kode_transaksi' => $kodeTransaksi,
+            'total_harga' => $this->total,
+            'status' => 'PENDING',
+            'tipe_pesanan' => $this->tipe_pesanan,
+        ]);
+
+        // Buat detail transaksi
+        foreach ($this->keranjangItems as $item) {
+            if ($item->produk) {
+                DetailTransaksi::create([
+                    'transaksi_id' => $transaksi->id,
+                    'produk_id' => $item->produk_id,
+                    'jumlah' => $item->jumlah,
+                    'harga_satuan' => $item->harga_satuan,
+                    'subtotal' => $item->subtotal ?? ($item->harga_satuan * $item->jumlah),
+                ]);
+
+                // Update stok produk
+                $produk = Produk::find($item->produk_id);
+                if ($produk) {
+                    $produk->decrement('stok', $item->jumlah);
+                }
+            }
+        }
+
+        // Handle bukti pembayaran
+        $buktiTransferPath = null;
+        if ($this->metode_pembayaran === 'transfer' && $this->bukti_pembayaran) {
+            $filename = 'bukti_transfer_' . $transaksi->id . '_' . time() . '.' . $this->bukti_pembayaran->getClientOriginalExtension();
+            $buktiTransferPath = $this->bukti_pembayaran->storeAs('bukti_pembayaran', $filename, 'public');
+        }
+
+        // Buat pembayaran
+        $pembayaran = Pembayaran::create([
+            'transaksi_id' => $transaksi->id,
+            'metode' => $this->metode_pembayaran,
+            'bukti_transfer' => $buktiTransferPath,
+            'status' => $this->metode_pembayaran === 'cash' ? 'DIBAYAR' : 'PENDING',
+            'tanggal_bayar' => $this->metode_pembayaran === 'cash' ? now() : null,
+        ]);
+
+        // Update status transaksi
+        if ($this->metode_pembayaran === 'cash') {
+            $transaksi->update(['status' => 'DIBAYAR']);
+        }
+
+        // Hapus keranjang setelah checkout
+        Keranjang::where('pelanggan_id', $pelanggan->id)->delete();
+
+        DB::commit();
+
+        $message = $this->metode_pembayaran === 'cash'
+            ? 'Pesanan berhasil dibuat! Silakan tunggu konfirmasi dari admin.'
+            : 'Pesanan berhasil dibuat! Silakan upload bukti pembayaran dan tunggu konfirmasi dari admin.';
+
+        session()->flash('success', $message);
+
+        // Redirect ke halaman transaksi
+        $this->redirect(route('transaksi'));
+        }
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        session()->flash('error', 'Terjadi kesalahan saat memproses checkout: ' . $e->getMessage());
+    } finally {
+        $this->isProcessing = false;
+    }
+});
 ?>
-
-@php
-// Ambil data keranjang dari database
-$user = Auth::user();
-$pelanggan = Pelanggan::where('user_id', $user->id)->first();
-
-$keranjangItems = collect();
-$customRequest = null;
-$total = 0;
-
-if ($pelanggan) {
-$keranjangItems = Keranjang::with(['produk', 'customRequest'])
-->where('pelanggan_id', $pelanggan->id)
-->get();
-
-// Hitung total
-foreach ($keranjangItems as $item) {
-if ($item->produk_id) {
-$total += $item->subtotal ?? ($item->harga_satuan * $item->jumlah);
-}
-}
-
-// Ambil custom request jika ada
-$customRequest = $keranjangItems->where('custom_request_id', '!=', null)->first()?->customRequest;
-}
-@endphp
 
 <div>
     <!-- Success/Error Messages -->
@@ -158,9 +262,9 @@ $customRequest = $keranjangItems->where('custom_request_id', '!=', null)->first(
                         Ringkasan Pesanan
                     </h3>
 
-                    @if($keranjangItems->count() > 0)
+                    @if($this->keranjangItems->count() > 0)
                     <div class="space-y-4">
-                        @foreach($keranjangItems as $item)
+                        @foreach($this->keranjangItems as $item)
                         @if($item->produk)
                         <div class="flex gap-6 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
                             <div class="w-20 h-20 flex-shrink-0">
@@ -205,9 +309,10 @@ $customRequest = $keranjangItems->where('custom_request_id', '!=', null)->first(
                         <div class="flex justify-between items-center">
                             <span class="text-2xl font-bold text-slate-800 dark:text-slate-100">Total Pembayaran</span>
                             <span class="text-3xl font-black text-indigo-600 dark:text-indigo-400">Rp {{
-                                number_format($total, 0, ',', '.') }}</span>
+                                number_format($this->total, 0, ',', '.') }}</span>
                         </div>
-                        <div class="text-sm text-slate-500 dark:text-slate-400 mt-1">{{ $keranjangItems->count() }} item
+                        <div class="text-sm text-slate-500 dark:text-slate-400 mt-1">{{ $this->keranjangItems->count()
+                            }} item
                         </div>
                     </div>
                     @else
@@ -219,11 +324,9 @@ $customRequest = $keranjangItems->where('custom_request_id', '!=', null)->first(
                     @endif
                 </div>
 
-                @if($keranjangItems->count() > 0)
+                @if($this->keranjangItems->count() > 0)
                 <!-- Checkout Form -->
-                <form action="{{ route('checkout.process') }}" method="POST" enctype="multipart/form-data"
-                    class="p-8 space-y-8">
-                    @csrf
+                <form wire:submit="processCheckout" class="p-8 space-y-8">
 
                     <!-- Data Pelanggan -->
                     <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl overflow-hidden">
@@ -240,7 +343,7 @@ $customRequest = $keranjangItems->where('custom_request_id', '!=', null)->first(
                                             <i class="fa-solid fa-user mr-2"></i>Nama Lengkap
                                         </label>
                                         <div class="relative">
-                                            <input type="text" value="{{ $user->name }}"
+                                            <input type="text" value="{{ $this->user->name }}"
                                                 class="w-full px-4 py-3 border-2 border-white/20 rounded-xl bg-white/10 text-white placeholder-white/70 cursor-not-allowed font-medium"
                                                 readonly>
                                             <div class="absolute inset-y-0 right-0 flex items-center pr-3">
@@ -254,7 +357,7 @@ $customRequest = $keranjangItems->where('custom_request_id', '!=', null)->first(
                                             <i class="fa-solid fa-envelope mr-2"></i>Email
                                         </label>
                                         <div class="relative">
-                                            <input type="email" value="{{ $user->email }}"
+                                            <input type="email" value="{{ $this->user->email }}"
                                                 class="w-full px-4 py-3 border-2 border-white/20 rounded-xl bg-white/10 text-white placeholder-white/70 cursor-not-allowed font-medium"
                                                 readonly>
                                             <div class="absolute inset-y-0 right-0 flex items-center pr-3">
@@ -270,7 +373,8 @@ $customRequest = $keranjangItems->where('custom_request_id', '!=', null)->first(
                                             <i class="fa-solid fa-phone mr-2"></i>No. Telepon
                                         </label>
                                         <div class="relative">
-                                            <input type="tel" value="{{ $pelanggan->no_telepon ?? 'Belum diisi' }}"
+                                            <input type="tel"
+                                                value="{{ $this->pelanggan->no_telepon ?? 'Belum diisi' }}"
                                                 class="w-full px-4 py-3 border-2 border-white/20 rounded-xl bg-white/10 text-white placeholder-white/70 cursor-not-allowed font-medium"
                                                 readonly>
                                             <div class="absolute inset-y-0 right-0 flex items-center pr-3">
@@ -286,7 +390,7 @@ $customRequest = $keranjangItems->where('custom_request_id', '!=', null)->first(
                                         <div class="relative">
                                             <textarea rows="3"
                                                 class="w-full px-4 py-3 border-2 border-white/20 rounded-xl bg-white/10 text-white placeholder-white/70 cursor-not-allowed resize-none font-medium"
-                                                readonly>{{ $pelanggan->alamat ?? 'Belum diisi' }}</textarea>
+                                                readonly>{{ $this->pelanggan->alamat ?? 'Belum diisi' }}</textarea>
                                             <div class="absolute top-3 right-3">
                                                 <i class="fa-solid fa-lock text-white/50"></i>
                                             </div>
@@ -318,7 +422,8 @@ $customRequest = $keranjangItems->where('custom_request_id', '!=', null)->first(
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <label class="group relative cursor-pointer">
-                                    <input type="radio" name="metode_pembayaran" value="cash" class="sr-only" checked>
+                                    <input type="radio" wire:model="metode_pembayaran" name="metode_pembayaran"
+                                        value="cash" class="sr-only">
                                     <div id="cash-card"
                                         class="p-6 border-2 border-white bg-white/20 backdrop-blur-sm rounded-2xl transition-all duration-300 group-hover:bg-white/30 group-hover:border-white">
                                         <div class="flex items-center gap-4">
@@ -343,7 +448,8 @@ $customRequest = $keranjangItems->where('custom_request_id', '!=', null)->first(
                                 </label>
 
                                 <label class="group relative cursor-pointer">
-                                    <input type="radio" name="metode_pembayaran" value="transfer" class="sr-only">
+                                    <input type="radio" wire:model="metode_pembayaran" name="metode_pembayaran"
+                                        value="transfer" class="sr-only">
                                     <div id="transfer-card"
                                         class="p-6 border-2 border-white/30 bg-white/10 backdrop-blur-sm rounded-2xl transition-all duration-300 group-hover:bg-white/20 group-hover:border-white/50">
                                         <div class="flex items-center gap-4">
@@ -382,11 +488,54 @@ $customRequest = $keranjangItems->where('custom_request_id', '!=', null)->first(
                                 <label class="block text-sm font-semibold text-white/90 mb-2">
                                     <i class="fa-solid fa-image mr-2"></i>File Bukti Transfer
                                 </label>
-                                <div class="relative">
-                                    <input type="file" name="bukti_pembayaran" id="bukti_pembayaran" accept="image/*"
-                                        class="w-full px-4 py-3 border-2 border-white/20 rounded-xl bg-white/10 text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-white/20 file:text-white hover:file:bg-white/30">
+
+                                <!-- Drag & Drop Area -->
+                                <div id="drop-zone"
+                                    class="relative border-2 border-dashed border-white/30 rounded-xl p-8 text-center transition-all duration-300 hover:border-white/50 hover:bg-white/5">
+                                    <input type="file" wire:model="bukti_pembayaran" id="bukti_pembayaran"
+                                        accept="image/*" class="hidden">
+
+                                    <!-- Default State -->
+                                    <div id="drop-zone-content" class="space-y-4">
+                                        <div
+                                            class="mx-auto w-16 h-16 bg-white/10 rounded-full flex items-center justify-center">
+                                            <i class="fa-solid fa-cloud-upload-alt text-white text-2xl"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-white font-medium">Drag & drop file bukti transfer di sini
+                                            </p>
+                                            <p class="text-white/70 text-sm mt-1">atau klik untuk memilih file</p>
+                                        </div>
+                                        <div class="text-xs text-white/60">
+                                            Format: JPG, PNG, PDF (Max: 5MB)
+                                        </div>
+                                    </div>
+
+                                    <!-- Preview State -->
+                                    <div id="preview-content" class="hidden">
+                                        <div class="flex items-center justify-center space-x-4">
+                                            <div id="preview-image"
+                                                class="w-20 h-20 rounded-lg overflow-hidden border-2 border-white/30">
+                                                <img id="preview-img" src="" alt="Preview"
+                                                    class="w-full h-full object-cover">
+                                            </div>
+                                            <div class="text-left">
+                                                <p id="preview-name" class="text-white font-medium"></p>
+                                                <p id="preview-size" class="text-white/70 text-sm"></p>
+                                                <button type="button" id="remove-file"
+                                                    class="text-red-300 hover:text-red-200 text-sm mt-1">
+                                                    <i class="fa-solid fa-trash mr-1"></i>Hapus
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <p class="text-white/70 text-sm mt-2">Format: JPG, PNG, PDF (Max: 5MB)</p>
+
+                                <!-- Error Message -->
+                                <div id="file-error"
+                                    class="hidden mt-2 p-2 bg-red-500/20 border border-red-500/30 rounded-lg">
+                                    <p class="text-red-200 text-sm"></p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -402,7 +551,7 @@ $customRequest = $keranjangItems->where('custom_request_id', '!=', null)->first(
                             <div class="space-y-4">
                                 <label
                                     class="flex items-center p-6 border-2 border-white/30 bg-white/10 backdrop-blur-sm rounded-2xl cursor-pointer hover:bg-white/20 transition-all duration-300">
-                                    <input type="radio" name="tipe_pesanan" value="biasa" class="mr-4" checked>
+                                    <input type="radio" wire:model="tipe_pesanan" value="biasa" class="mr-4">
                                     <div class="flex items-center gap-4">
                                         <i class="fa-solid fa-shopping-bag text-white text-2xl"></i>
                                         <div>
@@ -412,10 +561,10 @@ $customRequest = $keranjangItems->where('custom_request_id', '!=', null)->first(
                                     </div>
                                 </label>
 
-                                @if($customRequest)
+                                @if($this->customRequest)
                                 <label
                                     class="flex items-center p-6 border-2 border-white/30 bg-white/10 backdrop-blur-sm rounded-2xl cursor-pointer hover:bg-white/20 transition-all duration-300">
-                                    <input type="radio" name="tipe_pesanan" value="custom" class="mr-4">
+                                    <input type="radio" wire:model="tipe_pesanan" value="custom" class="mr-4">
                                     <div class="flex items-center gap-4">
                                         <i class="fa-solid fa-wand-magic-sparkles text-white text-2xl"></i>
                                         <div>
@@ -437,10 +586,16 @@ $customRequest = $keranjangItems->where('custom_request_id', '!=', null)->first(
                             Kembali ke Keranjang
                         </a>
 
-                        <button type="submit"
-                            class="flex-1 sm:flex-none sm:px-8 sm:py-4 px-6 py-4 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-3 text-lg shadow-xl hover:shadow-2xl transform hover:scale-105">
-                            <i class="fa-solid fa-credit-card"></i>
-                            Proses Checkout
+                        <button type="submit" wire:loading.attr="disabled" wire:target="processCheckout"
+                            class="flex-1 sm:flex-none sm:px-8 sm:py-4 px-6 py-4 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-3 text-lg shadow-xl hover:shadow-2xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <div wire:loading.remove wire:target="processCheckout">
+                                <i class="fa-solid fa-credit-card"></i>
+                                Proses Checkout
+                            </div>
+                            <div wire:loading wire:target="processCheckout" class="flex items-center gap-2">
+                                <i class="fa-solid fa-spinner fa-spin"></i>
+                                Memproses...
+                            </div>
                         </button>
                     </div>
                 </form>
@@ -488,41 +643,145 @@ $customRequest = $keranjangItems->where('custom_request_id', '!=', null)->first(
         const cashCheck = document.getElementById('cash-check');
         const transferCheck = document.getElementById('transfer-check');
 
-        // Function to update visual state
+        // Function to update visual state with GSAP animations
         function updateVisualState(selectedValue) {
             if (selectedValue === 'cash') {
-                // Cash selected
-                cashCard.classList.remove('border-white/30', 'bg-white/10');
-                cashCard.classList.add('border-white', 'bg-white/20');
-                cashCheck.classList.remove('border-white/50');
-                cashCheck.classList.add('border-white', 'bg-white');
-                cashCheck.innerHTML = '<i class="fa-solid fa-check text-emerald-600 text-xs"></i>';
+                // Cash selected - Animate cash card selection
+                gsap.to(cashCard, {
+                    duration: 0.3,
+                    scale: 1.02,
+                    ease: "power2.out",
+                    onComplete: () => {
+                        gsap.to(cashCard, { duration: 0.2, scale: 1, ease: "power2.out" });
+                    }
+                });
 
-                transferCard.classList.remove('border-white', 'bg-white/20');
-                transferCard.classList.add('border-white/30', 'bg-white/10');
-                transferCheck.classList.remove('border-white', 'bg-white');
-                transferCheck.classList.add('border-white/50');
-                transferCheck.innerHTML = '';
+                // Animate cash check appearance
+                gsap.fromTo(cashCheck,
+                    { scale: 0, opacity: 0 },
+                    {
+                        duration: 0.4,
+                        scale: 1,
+                        opacity: 1,
+                        ease: "back.out(1.7)",
+                        onStart: () => {
+                            cashCard.classList.remove('border-white/30', 'bg-white/10');
+                            cashCard.classList.add('border-white', 'bg-white/20');
+                            cashCheck.classList.remove('border-white/50');
+                            cashCheck.classList.add('border-white', 'bg-white');
+                            cashCheck.innerHTML = '<i class="fa-solid fa-check text-emerald-600 text-xs"></i>';
+                        }
+                    }
+                );
 
-                uploadSection.classList.add('hidden');
-                fileInput.required = false;
-                fileInput.value = '';
+                // Animate transfer card deselection
+                gsap.to(transferCard, {
+                    duration: 0.3,
+                    scale: 0.98,
+                    ease: "power2.out",
+                    onComplete: () => {
+                        gsap.to(transferCard, { duration: 0.2, scale: 1, ease: "power2.out" });
+                    }
+                });
+
+                // Animate transfer check disappearance
+                gsap.to(transferCheck, {
+                    duration: 0.2,
+                    scale: 0,
+                    opacity: 0,
+                    ease: "power2.in",
+                    onComplete: () => {
+                        transferCard.classList.remove('border-white', 'bg-white/20');
+                        transferCard.classList.add('border-white/30', 'bg-white/10');
+                        transferCheck.classList.remove('border-white', 'bg-white');
+                        transferCheck.classList.add('border-white/50');
+                        transferCheck.innerHTML = '';
+                    }
+                });
+
+                // Animate upload section slide out
+                gsap.to(uploadSection, {
+                    duration: 0.4,
+                    height: 0,
+                    opacity: 0,
+                    y: -20,
+                    ease: "power2.inOut",
+                    onComplete: () => {
+                        uploadSection.classList.add('hidden');
+                        fileInput.required = false;
+                        fileInput.value = '';
+                    }
+                });
+
             } else if (selectedValue === 'transfer') {
-                // Transfer selected
-                transferCard.classList.remove('border-white/30', 'bg-white/10');
-                transferCard.classList.add('border-white', 'bg-white/20');
-                transferCheck.classList.remove('border-white/50');
-                transferCheck.classList.add('border-white', 'bg-white');
-                transferCheck.innerHTML = '<i class="fa-solid fa-check text-emerald-600 text-xs"></i>';
+                // Transfer selected - Animate transfer card selection
+                gsap.to(transferCard, {
+                    duration: 0.3,
+                    scale: 1.02,
+                    ease: "power2.out",
+                    onComplete: () => {
+                        gsap.to(transferCard, { duration: 0.2, scale: 1, ease: "power2.out" });
+                    }
+                });
 
-                cashCard.classList.remove('border-white', 'bg-white/20');
-                cashCard.classList.add('border-white/30', 'bg-white/10');
-                cashCheck.classList.remove('border-white', 'bg-white');
-                cashCheck.classList.add('border-white/50');
-                cashCheck.innerHTML = '';
+                // Animate transfer check appearance
+                gsap.fromTo(transferCheck,
+                    { scale: 0, opacity: 0 },
+                    {
+                        duration: 0.4,
+                        scale: 1,
+                        opacity: 1,
+                        ease: "back.out(1.7)",
+                        onStart: () => {
+                            transferCard.classList.remove('border-white/30', 'bg-white/10');
+                            transferCard.classList.add('border-white', 'bg-white/20');
+                            transferCheck.classList.remove('border-white/50');
+                            transferCheck.classList.add('border-white', 'bg-white');
+                            transferCheck.innerHTML = '<i class="fa-solid fa-check text-emerald-600 text-xs"></i>';
+                        }
+                    }
+                );
 
+                // Animate cash card deselection
+                gsap.to(cashCard, {
+                    duration: 0.3,
+                    scale: 0.98,
+                    ease: "power2.out",
+                    onComplete: () => {
+                        gsap.to(cashCard, { duration: 0.2, scale: 1, ease: "power2.out" });
+                    }
+                });
+
+                // Animate cash check disappearance
+                gsap.to(cashCheck, {
+                    duration: 0.2,
+                    scale: 0,
+                    opacity: 0,
+                    ease: "power2.in",
+                    onComplete: () => {
+                        cashCard.classList.remove('border-white', 'bg-white/20');
+                        cashCard.classList.add('border-white/30', 'bg-white/10');
+                        cashCheck.classList.remove('border-white', 'bg-white');
+                        cashCheck.classList.add('border-white/50');
+                        cashCheck.innerHTML = '';
+                    }
+                });
+
+                // Animate upload section slide in
                 uploadSection.classList.remove('hidden');
-                fileInput.required = true;
+                gsap.fromTo(uploadSection,
+                    { height: 0, opacity: 0, y: -20 },
+                    {
+                        duration: 0.5,
+                        height: "auto",
+                        opacity: 1,
+                        y: 0,
+                        ease: "power2.out",
+                        onComplete: () => {
+                            fileInput.required = true;
+                        }
+                    }
+                );
             }
         }
 
@@ -532,25 +791,257 @@ $customRequest = $keranjangItems->where('custom_request_id', '!=', null)->first(
             });
         });
 
-        // File upload validation
+        // Initialize animations on page load
+        function initializeAnimations() {
+            // Set initial state for cards
+            gsap.set([cashCard, transferCard], { scale: 1 });
+            gsap.set([cashCheck, transferCheck], { scale: 1, opacity: 1 });
+
+            // Animate cards entrance
+            gsap.fromTo([cashCard, transferCard],
+                { y: 30, opacity: 0 },
+                {
+                    duration: 0.6,
+                    y: 0,
+                    opacity: 1,
+                    ease: "power2.out",
+                    stagger: 0.1
+                }
+            );
+
+            // Set initial state based on default selection (cash)
+            updateVisualState('cash');
+        }
+
+        // Add smooth hover effects
+        function addHoverEffects() {
+            [cashCard, transferCard].forEach(card => {
+                card.addEventListener('mouseenter', () => {
+                    if (!card.classList.contains('border-white')) {
+                        gsap.to(card, {
+                            duration: 0.2,
+                            scale: 1.02,
+                            ease: "power2.out"
+                        });
+                    }
+                });
+
+                card.addEventListener('mouseleave', () => {
+                    if (!card.classList.contains('border-white')) {
+                        gsap.to(card, {
+                            duration: 0.2,
+                            scale: 1,
+                            ease: "power2.out"
+                        });
+                    }
+                });
+            });
+        }
+
+        // Initialize everything
+        initializeAnimations();
+        addHoverEffects();
+
+        // Drag & Drop functionality
+        const dropZone = document.getElementById('drop-zone');
+        const dropZoneContent = document.getElementById('drop-zone-content');
+        const previewContent = document.getElementById('preview-content');
+        const previewImg = document.getElementById('preview-img');
+        const previewName = document.getElementById('preview-name');
+        const previewSize = document.getElementById('preview-size');
+        const removeFileBtn = document.getElementById('remove-file');
+        const fileError = document.getElementById('file-error');
+
+        // File validation function
+        function validateFile(file) {
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+
+            if (file.size > maxSize) {
+                showError('File terlalu besar. Maksimal 5MB.');
+                return false;
+            }
+
+            if (!allowedTypes.includes(file.type)) {
+                showError('Format file tidak didukung. Gunakan JPG, PNG, atau PDF.');
+                return false;
+            }
+
+            return true;
+        }
+
+        // Show error message
+        function showError(message) {
+            fileError.querySelector('p').textContent = message;
+            fileError.classList.remove('hidden');
+            setTimeout(() => {
+                fileError.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Hide error message
+        function hideError() {
+            fileError.classList.add('hidden');
+        }
+
+        // Show preview with GSAP animation
+        function showPreview(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                previewName.textContent = file.name;
+                previewSize.textContent = formatFileSize(file.size);
+
+                // Animate out drop zone content
+                gsap.to(dropZoneContent, {
+                    duration: 0.3,
+                    opacity: 0,
+                    scale: 0.9,
+                    y: -10,
+                    ease: "power2.in",
+                    onComplete: () => {
+                        dropZoneContent.classList.add('hidden');
+                    }
+                });
+
+                // Animate in preview content
+                previewContent.classList.remove('hidden');
+                gsap.fromTo(previewContent,
+                    { opacity: 0, scale: 0.9, y: 10 },
+                    {
+                        duration: 0.4,
+                        opacity: 1,
+                        scale: 1,
+                        y: 0,
+                        ease: "back.out(1.7)",
+                        delay: 0.1
+                    }
+                );
+
+                hideError();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Reset file input with GSAP animation
+        function resetFileInput() {
+            fileInput.value = '';
+
+            // Animate out preview content
+            gsap.to(previewContent, {
+                duration: 0.3,
+                opacity: 0,
+                scale: 0.9,
+                y: 10,
+                ease: "power2.in",
+                onComplete: () => {
+                    previewContent.classList.add('hidden');
+                }
+            });
+
+            // Animate in drop zone content
+            dropZoneContent.classList.remove('hidden');
+            gsap.fromTo(dropZoneContent,
+                { opacity: 0, scale: 0.9, y: -10 },
+                {
+                    duration: 0.4,
+                    opacity: 1,
+                    scale: 1,
+                    y: 0,
+                    ease: "back.out(1.7)",
+                    delay: 0.1
+                }
+            );
+
+            hideError();
+        }
+
+        // Handle file selection
+        function handleFile(file) {
+            if (validateFile(file)) {
+                fileInput.files = new DataTransfer().files; // Clear existing files
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                fileInput.files = dataTransfer.files;
+                showPreview(file);
+            }
+        }
+
+        // Click to select file
+        dropZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // File input change
         fileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
-                // Validate file size (5MB max)
-                if (file.size > 5 * 1024 * 1024) {
-                    alert('File terlalu besar. Maksimal 5MB.');
-                    this.value = '';
-                    return;
-                }
-
-                // Validate file type
-                const allowedTypes = ['image/jpeg', 'image/png', 'application/pdf'];
-                if (!allowedTypes.includes(file.type)) {
-                    alert('Format file tidak didukung. Gunakan JPG, PNG, atau PDF.');
-                    this.value = '';
-                    return;
-                }
+                handleFile(file);
             }
+        });
+
+        // Drag and drop events with GSAP animations
+        dropZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            dropZone.classList.add('border-white/50', 'bg-white/10');
+
+            // Animate drag over effect
+            gsap.to(dropZone, {
+                duration: 0.2,
+                scale: 1.02,
+                ease: "power2.out"
+            });
+        });
+
+        dropZone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            dropZone.classList.remove('border-white/50', 'bg-white/10');
+
+            // Animate drag leave effect
+            gsap.to(dropZone, {
+                duration: 0.2,
+                scale: 1,
+                ease: "power2.out"
+            });
+        });
+
+        dropZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            dropZone.classList.remove('border-white/50', 'bg-white/10');
+
+            // Animate drop effect
+            gsap.to(dropZone, {
+                duration: 0.1,
+                scale: 0.98,
+                ease: "power2.out",
+                onComplete: () => {
+                    gsap.to(dropZone, {
+                        duration: 0.2,
+                        scale: 1,
+                        ease: "back.out(1.7)"
+                    });
+                }
+            });
+
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        // Remove file
+        removeFileBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            resetFileInput();
         });
 
         // Initialize visual state
