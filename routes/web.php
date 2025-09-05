@@ -52,6 +52,7 @@ Route::prefix('/')->group(function () {
     })->name('cart.count');
 
     Volt::route('checkout', 'pages.landingpage.checkout.index')->name('checkout');
+    Route::post('checkout/process', [App\Http\Controllers\CheckoutController::class, 'process'])->name('checkout.process');
     Volt::route('transaksi', 'pages.landingpage.transaksi.index')->name('transaksi');
     Volt::route('transaksi/{id}', 'pages.landingpage.transaksi.detail')->name('transaksi.detail');
 });

@@ -12,30 +12,33 @@ if (!Auth::check()) {
     return redirect()->route('login');
 }
 
-$keranjangItems = collect();
-$customRequest = null;
-$total = 0;
+?>
 
+@php
 // Ambil data keranjang dari database
 $user = Auth::user();
 $pelanggan = Pelanggan::where('user_id', $user->id)->first();
 
+$keranjangItems = collect();
+$customRequest = null;
+$total = 0;
+
 if ($pelanggan) {
-    $keranjangItems = Keranjang::with(['produk', 'customRequest'])
-        ->where('pelanggan_id', $pelanggan->id)
-        ->get();
+$keranjangItems = Keranjang::with(['produk', 'customRequest'])
+->where('pelanggan_id', $pelanggan->id)
+->get();
 
-    // Hitung total
-    foreach ($keranjangItems as $item) {
-        if ($item->produk_id) {
-            $total += $item->subtotal ?? ($item->harga_satuan * $item->jumlah);
-        }
-    }
-
-    // Ambil custom request jika ada
-    $customRequest = $keranjangItems->where('custom_request_id', '!=', null)->first()?->customRequest;
+// Hitung total
+foreach ($keranjangItems as $item) {
+if ($item->produk_id) {
+$total += $item->subtotal ?? ($item->harga_satuan * $item->jumlah);
 }
-?>
+}
+
+// Ambil custom request jika ada
+$customRequest = $keranjangItems->where('custom_request_id', '!=', null)->first()?->customRequest;
+}
+@endphp
 
 <div class="max-w-4xl mx-auto px-4 py-12">
     <h1 class="text-2xl md:text-3xl font-extrabold text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-2">
@@ -178,14 +181,231 @@ if ($pelanggan) {
                 }}</span>
         </div>
 
+        @if($keranjangItems->count() > 0)
+        <!-- Form Checkout -->
+        <form action="{{ route('checkout.process') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+            @csrf
+
+            <!-- Data Pelanggan -->
+            <div
+                class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                <div class="bg-gradient-to-r from-indigo-500 to-purple-600 px-6 py-4">
+                    <h3 class="text-xl font-bold text-white flex items-center gap-3">
+                        <i class="fa-solid fa-user-circle text-2xl"></i>
+                        Data Pelanggan
+                    </h3>
+                </div>
+
+                <div class="p-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                                    <i class="fa-solid fa-user text-indigo-500 mr-2"></i>Nama Lengkap
+                                </label>
+                                <div class="relative">
+                                    <input type="text" value="{{ $user->name }}"
+                                        class="w-full px-4 py-3 border-2 border-slate-200 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 cursor-not-allowed font-medium"
+                                        readonly>
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                        <i class="fa-solid fa-lock text-slate-400"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                                    <i class="fa-solid fa-envelope text-indigo-500 mr-2"></i>Email
+                                </label>
+                                <div class="relative">
+                                    <input type="email" value="{{ $user->email }}"
+                                        class="w-full px-4 py-3 border-2 border-slate-200 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 cursor-not-allowed font-medium"
+                                        readonly>
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                        <i class="fa-solid fa-lock text-slate-400"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                                    <i class="fa-solid fa-phone text-indigo-500 mr-2"></i>No. Telepon
+                                </label>
+                                <div class="relative">
+                                    <input type="tel" value="{{ $pelanggan->no_telepon ?? 'Belum diisi' }}"
+                                        class="w-full px-4 py-3 border-2 border-slate-200 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 cursor-not-allowed font-medium"
+                                        readonly>
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                        <i class="fa-solid fa-lock text-slate-400"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                                    <i class="fa-solid fa-map-marker-alt text-indigo-500 mr-2"></i>Alamat Lengkap
+                                </label>
+                                <div class="relative">
+                                    <textarea rows="3"
+                                        class="w-full px-4 py-3 border-2 border-slate-200 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 cursor-not-allowed resize-none font-medium"
+                                        readonly>{{ $pelanggan->alamat ?? 'Belum diisi' }}</textarea>
+                                    <div class="absolute top-3 right-3">
+                                        <i class="fa-solid fa-lock text-slate-400"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-700 rounded-xl">
+                        <div class="flex items-start gap-3">
+                            <div class="flex-shrink-0">
+                                <i class="fa-solid fa-info-circle text-blue-500 text-lg"></i>
+                            </div>
+                            <div class="text-sm">
+                                <p class="font-semibold text-blue-800 dark:text-blue-200 mb-1">Data Pelanggan</p>
+                                <p class="text-blue-700 dark:text-blue-300">Data diambil dari profil Anda. Untuk
+                                    mengubah data, silakan perbarui profil di halaman pengaturan.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metode Pembayaran -->
+            <div
+                class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                <div class="bg-gradient-to-r from-emerald-500 to-teal-600 px-6 py-4">
+                    <h3 class="text-xl font-bold text-white flex items-center gap-3">
+                        <i class="fa-solid fa-credit-card text-2xl"></i>
+                        Metode Pembayaran
+                    </h3>
+                </div>
+
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <label class="group relative cursor-pointer">
+                            <input type="radio" name="metode_pembayaran" value="cash" class="sr-only" checked>
+                            <div
+                                class="p-6 border-2 border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl transition-all duration-200 group-hover:shadow-lg">
+                                <div class="flex items-center gap-4">
+                                    <div class="flex-shrink-0">
+                                        <div
+                                            class="w-12 h-12 rounded-full bg-emerald-500 flex items-center justify-center">
+                                            <i class="fa-solid fa-money-bill-wave text-white text-xl"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h4 class="text-lg font-bold text-slate-800 dark:text-slate-200">Cash</h4>
+                                        <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">Bayar langsung saat
+                                            barang diterima</p>
+                                    </div>
+                                    <div class="flex-shrink-0">
+                                        <div
+                                            class="w-6 h-6 rounded-full border-2 border-emerald-500 bg-emerald-500 flex items-center justify-center">
+                                            <i class="fa-solid fa-check text-white text-xs"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+
+                        <label class="group relative cursor-pointer">
+                            <input type="radio" name="metode_pembayaran" value="transfer" class="sr-only">
+                            <div
+                                class="p-6 border-2 border-slate-200 dark:border-slate-600 rounded-2xl transition-all duration-200 group-hover:border-blue-300 dark:group-hover:border-blue-500 group-hover:shadow-lg bg-white dark:bg-slate-700">
+                                <div class="flex items-center gap-4">
+                                    <div class="flex-shrink-0">
+                                        <div
+                                            class="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-600 flex items-center justify-center">
+                                            <i class="fa-solid fa-university text-white text-xl"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h4 class="text-lg font-bold text-slate-800 dark:text-slate-200">Transfer Bank
+                                        </h4>
+                                        <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">Transfer ke rekening
+                                            yang tersedia</p>
+                                    </div>
+                                    <div class="flex-shrink-0">
+                                        <div
+                                            class="w-6 h-6 rounded-full border-2 border-slate-300 dark:border-slate-600 flex items-center justify-center">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tipe Pesanan -->
+            <div
+                class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                <div class="bg-gradient-to-r from-purple-500 to-pink-600 px-6 py-4">
+                    <h3 class="text-xl font-bold text-white flex items-center gap-3">
+                        <i class="fa-solid fa-tag text-2xl"></i>
+                        Tipe Pesanan
+                    </h3>
+                </div>
+
+                <div class="p-6">
+                    <div class="space-y-3">
+                        <label
+                            class="flex items-center p-4 border-2 border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl cursor-pointer">
+                            <input type="radio" name="tipe_pesanan" value="biasa" class="mr-3" checked>
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-shopping-bag text-indigo-500 text-xl"></i>
+                                <div>
+                                    <div class="font-bold text-slate-800 dark:text-slate-200">Pesanan Biasa</div>
+                                    <div class="text-sm text-slate-600 dark:text-slate-400">Produk yang sudah tersedia
+                                    </div>
+                                </div>
+                            </div>
+                        </label>
+
+                        @if($customRequest)
+                        <label
+                            class="flex items-center p-4 border-2 border-slate-200 dark:border-slate-600 rounded-xl cursor-pointer hover:border-purple-300 dark:hover:border-purple-500">
+                            <input type="radio" name="tipe_pesanan" value="custom" class="mr-3">
+                            <div class="flex items-center gap-3">
+                                <i class="fa-solid fa-wand-magic-sparkles text-purple-500 text-xl"></i>
+                                <div>
+                                    <div class="font-bold text-slate-800 dark:text-slate-200">Pesanan Custom</div>
+                                    <div class="text-sm text-slate-600 dark:text-slate-400">Produk sesuai permintaan
+                                        khusus</div>
+                                </div>
+                            </div>
+                        </label>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tombol Aksi -->
+            <div class="flex flex-col sm:flex-row gap-3">
+                <a href="{{ route('produk') }}"
+                    class="flex-1 sm:flex-none sm:px-5 sm:py-3 px-4 py-3 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold transition flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-solid fa-arrow-left"></i> Lanjut Belanja
+                </a>
+
+                <button type="submit"
+                    class="flex-1 sm:flex-none sm:px-8 sm:py-3 px-4 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-solid fa-credit-card"></i>
+                    Proses Checkout
+                </button>
+            </div>
+        </form>
+        @else
         <div class="flex flex-col sm:flex-row gap-3">
             <a href="{{ route('produk') }}"
                 class="flex-1 sm:flex-none sm:px-5 sm:py-3 px-4 py-3 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold transition flex items-center justify-center gap-2 text-sm">
                 <i class="fa-solid fa-arrow-left"></i> Lanjut Belanja
             </a>
-            @if($keranjangItems->count() > 0)
-            <livewire:checkout-modal />
-            @endif
         </div>
+        @endif
     </div>
 </div>
