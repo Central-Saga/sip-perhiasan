@@ -13,17 +13,17 @@ class Transaksi extends Model
     protected $table = 'transaksi'; // Explicitly set the table name
 
     protected $fillable = [
+        'user_id',
         'pelanggan_id',
-        'jumlah',
+        'kode_transaksi',
         'total_harga',
         'status',
-        'metode',
-        'bukti_transfer',
-        'tanggal_transaksi'
+        'tipe_pesanan'
     ];
 
     protected $casts = [
-        'tanggal_transaksi' => 'datetime'
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime'
     ];
 
     protected $with = ['pelanggan.user'];
@@ -37,13 +37,18 @@ class Transaksi extends Model
     {
         return $this->belongsTo(Pelanggan::class);
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
     public function customRequest()
     {
-        return $this->hasOne(CustomRequest::class);     
+        return $this->hasOne(CustomRequest::class);
     }
     public function detailTransaksi()
     {
-        return $this->hasMany(DetailTransaksi::class, 'transaksi_id');  
+        return $this->hasMany(DetailTransaksi::class, 'transaksi_id');
     }
 
     // Relasi ke produk melalui detail transaksi
