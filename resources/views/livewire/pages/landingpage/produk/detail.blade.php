@@ -70,8 +70,10 @@ $addToCart = action(function () {
             session()->flash('success', 'Produk berhasil ditambahkan ke keranjang.');
         }
 
-        // Redirect ke halaman keranjang setelah 1 detik untuk menampilkan notifikasi
+        // Dispatch event untuk update cart count
         $this->dispatch('cart-updated');
+
+        // Redirect ke halaman keranjang setelah 1 detik untuk menampilkan notifikasi
         $this->redirect(route('cart'), navigate: true);
 
     } catch (\Exception $e) {
@@ -414,7 +416,10 @@ function updateCartCount(){
 }
 
 document.addEventListener('DOMContentLoaded', function(){
-  updateCartCount();
+  // Update cart count when page loads
+  if (window.updateCartCount) {
+    updateCartCount();
+  }
 
   // Auto-hide notification messages
   const errorMessage = document.getElementById('errorMessage');
@@ -433,12 +438,28 @@ document.addEventListener('DOMContentLoaded', function(){
       setTimeout(() => successMessage.remove(), 300);
     }, 3000);
   }
+});
 
-  // Listen for cart updates
-  document.addEventListener('cart-updated', function() {
-    // Update cart count if cart count element exists
-    updateCartCount();
+// Listen for Livewire events
+document.addEventListener('livewire:init', () => {
+  Livewire.on('cart-updated', () => {
+    // Update cart count when cart is updated
+    if (window.updateCartCount) {
+      setTimeout(() => {
+        updateCartCount();
+      }, 100);
+    }
   });
+});
+
+// Also listen for page navigation events
+document.addEventListener('livewire:navigated', () => {
+  if (window.updateCartCount) {
+    setTimeout(() => {
+      updateCartCount();
+    }, 100);
+  }
+});
 
   // Detail Hero Section Animations
   if (typeof gsap !== "undefined") {

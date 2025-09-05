@@ -302,6 +302,7 @@ $addToCart = action(function ($produkId) {
                                     </div>
                                 </div>
 
+                                {{--
                                 <!-- Add to Cart Button -->
                                 @auth
                                 <button wire:click="addToCart({{ $produk->id }})"
@@ -315,7 +316,7 @@ $addToCart = action(function ($produkId) {
                                     <i class="fa-solid fa-cart-plus"></i>
                                     <span>Login untuk Belanja</span>
                                 </a>
-                                @endauth
+                                @endauth --}}
                             </div>
                         </div>
 
