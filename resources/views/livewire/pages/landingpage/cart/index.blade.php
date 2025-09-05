@@ -1,11 +1,54 @@
 <?php
-use function Livewire\Volt\layout;
+use function Livewire\Volt\{ layout, state, mount };
 use App\Models\Keranjang;
 use App\Models\Pelanggan;
+use App\Models\CustomRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 layout('components.layouts.landing');
+
+state(['keranjangItems' => [], 'customRequest' => null, 'total' => 0]);
+
+mount(function () {
+    $this->loadCartData();
+});
+
+$loadCartData = function () {
+    if (!Auth::check()) {
+        $this->keranjangItems = collect();
+        $this->customRequest = null;
+        $this->total = 0;
+        return;
+    }
+
+    $user = Auth::user();
+    $pelanggan = Pelanggan::where('user_id', $user->id)->first();
+
+    if (!$pelanggan) {
+        $this->keranjangItems = collect();
+        $this->customRequest = null;
+        $this->total = 0;
+        return;
+    }
+
+    // Load cart items from database
+    $this->keranjangItems = Keranjang::with(['produk', 'customRequest'])
+        ->where('pelanggan_id', $pelanggan->id)
+        ->get();
+
+    // Calculate total
+    $this->total = 0;
+    foreach ($this->keranjangItems as $item) {
+        if ($item->produk_id) {
+            $this->total += $item->subtotal ?? ($item->harga_satuan * $item->jumlah);
+        }
+    }
+
+    // Get custom request if exists
+    $this->customRequest = $this->keranjangItems->where('custom_request_id', '!=', null)->first()?->customRequest;
+};
+
 
 $updateQty = function($id, $delta) {
     $item = Keranjang::find($id);
@@ -154,35 +197,7 @@ $removeItem = function($id) {
             <!-- Cart Content -->
             <div
                 class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-white/20 dark:border-slate-700/50 rounded-2xl overflow-hidden shadow-xl">
-                @php
-                $keranjangItems = collect();
-                $customRequest = null;
-                $total = 0;
-
-                // Ambil data keranjang dari database
-                if (Auth::check()) {
-                $user = Auth::user();
-                $pelanggan = Pelanggan::where('user_id', $user->id)->first();
-
-                if ($pelanggan) {
-                $keranjangItems = Keranjang::with(['produk', 'customRequest'])
-                ->where('pelanggan_id', $pelanggan->id)
-                ->get();
-
-                // Hitung total
-                foreach ($keranjangItems as $item) {
-                if ($item->produk_id) {
-                $total += $item->subtotal ?? ($item->harga_satuan * $item->jumlah);
-                }
-                }
-
-                // Ambil custom request jika ada
-                $customRequest = $keranjangItems->where('custom_request_id', '!=', null)->first()?->customRequest;
-                }
-                }
-                @endphp
-
-                @if($keranjangItems->count() > 0)
+                @if($keranjangItems && count($keranjangItems) > 0)
                 <div class="divide-y divide-slate-200 dark:divide-slate-700">
                     @foreach($keranjangItems as $item)
                     @if($item->produk)

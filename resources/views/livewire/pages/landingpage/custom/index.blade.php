@@ -200,42 +200,6 @@ layout('components.layouts.landing');
                                 @enderror
                             </div>
                         </div>
-                        <script>
-                            // Intercept form submit to store Custom Request locally and redirect to cart
-  document.addEventListener('DOMContentLoaded', function(){
-    const form = document.querySelector('form[action="{{ route('custom.submit') }}"]');
-    if(!form) return;
-    form.addEventListener('submit', function(e){
-      e.preventDefault();
-      const kategori = document.getElementById('kategori')?.value?.trim() || '';
-      const material = document.getElementById('material')?.value || '';
-      const ukuran = document.getElementById('ukuran')?.value?.trim() || '';
-      const berat = parseFloat(document.getElementById('berat')?.value || '0') || 0;
-      const deskripsi = document.getElementById('deskripsi')?.value?.trim() || '';
-      const fileInput = document.getElementById('file-upload');
-
-      const saveAndGo = (gambarRefDataUrl = null) => {
-        const customReq = {
-          kategori, material, ukuran, berat, deskripsi,
-          gambar_referensi: gambarRefDataUrl, // data URL atau null
-          status: 'pending',
-          created_at: new Date().toISOString(),
-        };
-        try { localStorage.setItem('customRequest', JSON.stringify(customReq)); } catch(_) {}
-        window.location.href = "{{ route('cart') }}";
-      };
-
-      if (fileInput && fileInput.files && fileInput.files[0]) {
-        const reader = new FileReader();
-        reader.onload = function(ev){ saveAndGo(ev.target.result); };
-        reader.onerror = function(){ saveAndGo(null); };
-        reader.readAsDataURL(fileInput.files[0]);
-      } else {
-        saveAndGo(null);
-      }
-    });
-  });
-                        </script>
 
                         <!-- Second Row -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">

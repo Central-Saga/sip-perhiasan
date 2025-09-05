@@ -23,19 +23,69 @@ Route::prefix('/')->group(function () {
 
     // Handle Custom Request form submission (POST)
     Route::post('custom/submit', function (Request $request) {
+        if (!Auth::check()) {
+            return redirect()->route('login')->with('error', 'Anda harus login terlebih dahulu');
+        }
+
         $validated = $request->validate([
             'kategori' => 'required|string|max:255',
             'material' => 'required|string|max:100',
             'ukuran' => 'nullable|string|max:255',
+            'berat' => 'nullable|numeric|min:0',
             'deskripsi' => 'required|string',
             'gambar_referensi' => 'nullable|image|max:2048',
         ]);
 
-        if ($request->hasFile('gambar_referensi')) {
-            $request->file('gambar_referensi')->store('custom-referensi', 'public');
-        }
+        try {
+            $user = Auth::user();
+            $pelanggan = \App\Models\Pelanggan::where('user_id', $user->id)->first();
 
-        return back()->with('message', 'Custom request berhasil dikirim. Kami akan menghubungi Anda.');
+            if (!$pelanggan) {
+                return back()->with('error', 'Data pelanggan tidak ditemukan');
+            }
+
+            // Check if there's already a custom request in cart
+            $existingCustomRequest = \App\Models\Keranjang::where('pelanggan_id', $pelanggan->id)
+                ->whereNotNull('custom_request_id')
+                ->first();
+
+            if ($existingCustomRequest) {
+                return redirect()->route('cart')->with('info', 'Custom request sudah ada di keranjang');
+            }
+
+            // Handle file upload
+            $gambarPath = null;
+            if ($request->hasFile('gambar_referensi')) {
+                $gambarPath = $request->file('gambar_referensi')->store('custom-referensi', 'public');
+            }
+
+            // Create custom request
+            $customRequest = \App\Models\CustomRequest::create([
+                'pelanggan_id' => $pelanggan->id,
+                'kategori' => $validated['kategori'],
+                'material' => $validated['material'],
+                'ukuran' => $validated['ukuran'] ?? '',
+                'berat' => $validated['berat'] ?? 0,
+                'deskripsi' => $validated['deskripsi'],
+                'gambar_referensi' => $gambarPath,
+                'status' => 'pending',
+                'estimasi_harga' => 0,
+            ]);
+
+            // Add to cart
+            \App\Models\Keranjang::create([
+                'pelanggan_id' => $pelanggan->id,
+                'custom_request_id' => $customRequest->id,
+                'jumlah' => 1,
+                'harga_satuan' => 0,
+                'subtotal' => 0,
+            ]);
+
+            return redirect()->route('cart')->with('success', 'Custom request berhasil ditambahkan ke keranjang!');
+        } catch (\Exception $e) {
+            \Log::error('Error saving custom request: ' . $e->getMessage());
+            return back()->with('error', 'Gagal menyimpan custom request: ' . $e->getMessage());
+        }
     })->name('custom.submit');
     Volt::route('cart', 'pages.landingpage.cart.index')->name('cart');
 
