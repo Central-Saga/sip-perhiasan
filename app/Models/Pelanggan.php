@@ -61,4 +61,9 @@ class Pelanggan extends Model
     {
         return $this->hasMany(CustomRequest::class);
     }
+
+    public function keranjang()
+    {
+        return $this->hasMany(Keranjang::class);
+    }
 }

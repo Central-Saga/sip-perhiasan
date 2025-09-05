@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use App\Models\Keranjang;
 use App\Models\Produk;
 use App\Models\CustomRequest;
-use App\Models\User;
+use App\Models\Pelanggan;
 use Illuminate\Database\Seeder;
 
 class KeranjangSeeder extends Seeder
@@ -18,16 +18,15 @@ class KeranjangSeeder extends Seeder
         if (CustomRequest::count() === 0) {
             CustomRequest::factory()->count(5)->create();
         }
-        if (User::count() === 0) {
-            User::factory()->count(5)->pelanggan()->create();
+        if (Pelanggan::count() === 0) {
+            Pelanggan::factory()->count(5)->create();
         }
 
-        // For each user, create 1-3 cart items
-        User::all()->each(function ($user) {
+        // For each pelanggan, create 1-3 cart items
+        Pelanggan::all()->each(function ($pelanggan) {
             Keranjang::factory()->count(fake()->numberBetween(1, 3))->create([
-                'user_id' => $user->id,
+                'pelanggan_id' => $pelanggan->id,
             ]);
         });
     }
 }
-

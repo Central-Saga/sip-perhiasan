@@ -12,7 +12,7 @@ class Keranjang extends Model
     protected $table = 'keranjang';
 
     protected $fillable = [
-        'user_id',
+        'pelanggan_id',
         'produk_id',
         'custom_request_id',
         'jumlah',
@@ -25,9 +25,9 @@ class Keranjang extends Model
         'subtotal' => 'decimal:2',
     ];
 
-    public function user()
+    public function pelanggan()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Pelanggan::class);
     }
 
     public function produk()
@@ -40,4 +40,3 @@ class Keranjang extends Model
         return $this->belongsTo(CustomRequest::class);
     }
 }
-

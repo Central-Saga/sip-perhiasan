@@ -1,20 +1,117 @@
 <?php
 use function Livewire\Volt\{ layout, state, mount };
 use App\Models\Produk;
+use App\Models\Keranjang;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 layout('components.layouts.landing');
 
 state([
     'produk' => null,
+    'isAddingToCart' => false,
 ]);
 
 mount(function ($id) {
     $this->produk = Produk::findOrFail($id);
 });
+
+function addToCart()
+{
+    if (!Auth::check()) {
+        session()->flash('error', 'Anda harus login terlebih dahulu.');
+        return;
+    }
+
+    // Cek apakah user memiliki profil pelanggan
+    $pelanggan = Auth::user()->pelanggan;
+    if (!$pelanggan) {
+        session()->flash('error', 'Profil pelanggan tidak ditemukan. Silakan hubungi administrator.');
+        return;
+    }
+
+    // Cek status pelanggan
+    if (!$pelanggan->isActive()) {
+        session()->flash('error', 'Akun pelanggan Anda tidak aktif. Silakan hubungi administrator.');
+        return;
+    }
+
+    // Cek stok produk
+    if ($this->produk->stok <= 0) {
+        session()->flash('error', 'Maaf, produk ini sedang tidak tersedia.');
+        return;
+    }
+
+    $this->isAddingToCart = true;
+
+    try {
+        // Cek apakah produk sudah ada di keranjang pelanggan
+        $existingCart = Keranjang::where('pelanggan_id', $pelanggan->id)
+            ->where('produk_id', $this->produk->id)
+            ->first();
+
+        if ($existingCart) {
+            // Cek apakah jumlah di keranjang + 1 tidak melebihi stok
+            if (($existingCart->jumlah + 1) > $this->produk->stok) {
+                session()->flash('error', 'Jumlah yang diminta melebihi stok yang tersedia. Stok tersisa: ' . $this->produk->stok);
+                return;
+            }
+
+            // Update jumlah jika sudah ada
+            $existingCart->increment('jumlah');
+            $existingCart->update([
+                'subtotal' => $existingCart->jumlah * $existingCart->harga_satuan
+            ]);
+
+            session()->flash('success', 'Jumlah produk di keranjang berhasil diperbarui.');
+        } else {
+            // Buat baru jika belum ada
+            Keranjang::create([
+                'pelanggan_id' => $pelanggan->id,
+                'produk_id' => $this->produk->id,
+                'jumlah' => 1,
+                'harga_satuan' => $this->produk->harga,
+                'subtotal' => $this->produk->harga,
+            ]);
+
+            session()->flash('success', 'Produk berhasil ditambahkan ke keranjang.');
+        }
+
+        // Redirect ke halaman keranjang setelah 1 detik untuk menampilkan notifikasi
+        $this->dispatch('cart-updated');
+        $this->redirect(route('cart'), navigate: true);
+
+    } catch (\Exception $e) {
+        // Handle error jika diperlukan
+        session()->flash('error', 'Gagal menambahkan ke keranjang: ' . $e->getMessage());
+    } finally {
+        $this->isAddingToCart = false;
+    }
+}
 ?>
 
 <div>
+    <!-- Success/Error Messages -->
+    @if (session()->has('error'))
+    <div class="fixed top-4 right-4 z-50 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300"
+        id="errorMessage">
+        <div class="flex items-center gap-2">
+            <i class="fa-solid fa-exclamation-circle"></i>
+            <span>{{ session('error') }}</span>
+        </div>
+    </div>
+    @endif
+
+    @if (session()->has('success'))
+    <div class="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300"
+        id="successMessage">
+        <div class="flex items-center gap-2">
+            <i class="fa-solid fa-check-circle"></i>
+            <span>{{ session('success') }}</span>
+        </div>
+    </div>
+    @endif
+
     <!-- Hero Section -->
     <section
         class="relative min-h-[60vh] py-20 flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -149,7 +246,11 @@ mount(function ($id) {
                                 </p>
                                 <p class="text-slate-500 dark:text-slate-300">
                                     <i class="fa-solid fa-box mr-2"></i>
+                                    @if($this->produk->stok > 0)
                                     Stok: {{ $this->produk->stok }} tersedia
+                                    @else
+                                    <span class="text-red-500 font-semibold">Stok Habis</span>
+                                    @endif
                                 </p>
                             </div>
 
@@ -163,16 +264,39 @@ mount(function ($id) {
 
                             <!-- Action Buttons -->
                             <div class="space-y-4">
-                                <button id="btnAddDetail"
-                                    class="w-full px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-bold rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-3"
-                                    data-id="{{ $this->produk->id }}" data-nama="{{ e($this->produk->nama_produk) }}"
-                                    data-kategori="{{ e($this->produk->kategori) }}"
-                                    data-harga="{{ (float) $this->produk->harga }}"
-                                    data-stok="{{ (int) $this->produk->stok }}"
-                                    data-foto="{{ $this->produk->foto ? e(Storage::url($this->produk->foto)) : '' }}">
-                                    <i class="fa-solid fa-cart-plus"></i>
-                                    <span>Tambah ke Keranjang</span>
+                                @auth
+                                @if($this->produk->stok > 0)
+                                <button wire:click="addToCart" wire:loading.attr="disabled" wire:target="addToCart"
+                                    class="w-full px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed flex items-center justify-center gap-3">
+                                    <div wire:loading.remove wire:target="addToCart">
+                                        <i class="fa-solid fa-cart-plus"></i>
+                                        <span>Tambah ke Keranjang</span>
+                                    </div>
+                                    <div wire:loading wire:target="addToCart" class="flex items-center gap-2">
+                                        <i class="fa-solid fa-spinner fa-spin"></i>
+                                        <span>Menambahkan...</span>
+                                    </div>
                                 </button>
+                                @else
+                                <button disabled
+                                    class="w-full px-8 py-4 bg-gray-400 text-white font-bold rounded-full shadow-lg cursor-not-allowed flex items-center justify-center gap-3">
+                                    <i class="fa-solid fa-times-circle"></i>
+                                    <span>Stok Habis</span>
+                                </button>
+                                @endif
+                                @else
+                                <button id="btnAddDetailDisabled"
+                                    class="w-full px-8 py-4 bg-gray-400 text-white font-bold rounded-full shadow-lg cursor-not-allowed flex items-center justify-center gap-3"
+                                    disabled>
+                                    <i class="fa-solid fa-lock"></i>
+                                    <span>Login untuk Menambah ke Keranjang</span>
+                                </button>
+                                <button id="btnShowLoginModal"
+                                    class="w-full px-8 py-4 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-bold rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-3">
+                                    <i class="fa-solid fa-sign-in-alt"></i>
+                                    <span>Login Sekarang</span>
+                                </button>
+                                @endauth
 
                                 <div class="flex gap-4">
                                     <a href="{{ url()->previous() }}"
@@ -232,10 +356,57 @@ mount(function ($id) {
             </div>
         </div>
     </section>
-</div>
 
-<script>
-    function getCart(){
+    <!-- Login Modal -->
+    <div id="loginModal" class="fixed inset-0 bg-white/20 backdrop-blur-md z-50 hidden items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl p-8 max-w-md w-full mx-4 transform transition-all duration-300 scale-95 opacity-0"
+            id="loginModalContent">
+            <!-- Modal Header -->
+            <div class="text-center mb-6">
+                <div
+                    class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-indigo-500/20 to-purple-500/20 mb-4">
+                    <i class="fa-solid fa-lock text-2xl text-indigo-500"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">Login Diperlukan</h3>
+                <p class="text-slate-600 dark:text-slate-300">Anda perlu login terlebih dahulu untuk menambahkan produk
+                    ke
+                    keranjang.</p>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="space-y-4">
+                <div
+                    class="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg p-4">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-info-circle text-indigo-500"></i>
+                        <div>
+                            <p class="text-sm font-medium text-indigo-800 dark:text-indigo-200">Manfaat Login:</p>
+                            <ul class="text-xs text-indigo-700 dark:text-indigo-300 mt-1 space-y-1">
+                                <li>• Menyimpan produk di keranjang</li>
+                                <li>• Melacak pesanan Anda</li>
+                                <li>• Akses ke riwayat pembelian</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="flex gap-3 mt-8">
+                <button id="btnCloseModal"
+                    class="flex-1 px-6 py-3 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 rounded-full font-semibold transition-all duration-300 hover:bg-gray-200 dark:hover:bg-slate-600">
+                    Nanti Saja
+                </button>
+                <a href="{{ route('login') }}"
+                    class="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-center">
+                    Login Sekarang
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function getCart(){
   try { return JSON.parse(localStorage.getItem('cart') || '{}'); } catch(e){ return {}; }
 }
 function setCart(cart){ localStorage.setItem('cart', JSON.stringify(cart)); }
@@ -243,6 +414,30 @@ function updateCartCount(){ let c=getCart(),n=0; for(const id in c) n+=c[id].qty
 
 document.addEventListener('DOMContentLoaded', function(){
   updateCartCount();
+
+  // Auto-hide notification messages
+  const errorMessage = document.getElementById('errorMessage');
+  const successMessage = document.getElementById('successMessage');
+
+  if (errorMessage) {
+    setTimeout(() => {
+      errorMessage.style.transform = 'translateX(100%)';
+      setTimeout(() => errorMessage.remove(), 300);
+    }, 5000);
+  }
+
+  if (successMessage) {
+    setTimeout(() => {
+      successMessage.style.transform = 'translateX(100%)';
+      setTimeout(() => successMessage.remove(), 300);
+    }, 3000);
+  }
+
+  // Listen for cart updates
+  document.addEventListener('cart-updated', function() {
+    // Update cart count if cart count element exists
+    updateCartCount();
+  });
 
   // Detail Hero Section Animations
   if (typeof gsap !== "undefined") {
@@ -424,65 +619,65 @@ document.addEventListener('DOMContentLoaded', function(){
     }
   }
 
-  const addBtn = document.querySelector('#btnAddDetail');
-  if(addBtn){
-    addBtn.addEventListener('click', function(){
-      // Check if user is logged in
-      const isLoggedIn = {{ auth()->check() ? 'true' : 'false' }};
 
-      if (!isLoggedIn) {
-        // Redirect to login page if not logged in
-        window.location.href = "{{ route('login') }}";
-        return;
-      }
+  // Handle login modal for non-logged in users
+  const showLoginModalBtn = document.querySelector('#btnShowLoginModal');
+  const loginModal = document.querySelector('#loginModal');
+  const loginModalContent = document.querySelector('#loginModalContent');
+  const closeModalBtn = document.querySelector('#btnCloseModal');
 
-      const prod = {
-        id: this.dataset.id,
-        nama: this.dataset.nama,
-        kategori: this.dataset.kategori,
-        harga: Number(this.dataset.harga) || 0,
-        stok: Number(this.dataset.stok) || 0,
-        foto: this.dataset.foto || ''
-      };
-
-      // Use CartManager if available, otherwise fallback
-      if (window.cartManager) {
-        const success = window.cartManager.addToCart(prod);
-        if (success) {
-          // Redirect to cart page
-          window.location.href = "{{ route('cart') }}";
-        }
-      } else {
-        // Fallback implementation
-        const cart = getCart();
-        const key = String(prod.id);
-        if(!cart[key]){
-          cart[key] = { id: prod.id, nama_produk: prod.nama, kategori: prod.kategori, harga: prod.harga, stok: prod.stok, foto: prod.foto, qty: 0 };
-        }
-        if(cart[key].qty < (cart[key].stok || 0)){
-          cart[key].qty += 1;
-        }
-        setCart(cart);
-        updateCartCount();
-      }
-
-      // Button animation
-      if (typeof gsap !== "undefined") {
-        gsap.to(this, {
-          scale: 0.95,
-          duration: 0.1,
-          yoyo: true,
-          repeat: 1,
-          ease: "power2.inOut",
-        });
-      }
-
-      // Feedback dan opsi menuju keranjang
-      this.disabled = true;
-      const old = this.innerHTML;
-      this.innerHTML = '<i class="fa-solid fa-check"></i> Ditambahkan';
-      setTimeout(() => { this.disabled = false; this.innerHTML = old; }, 1200);
+  if(showLoginModalBtn && loginModal) {
+    showLoginModalBtn.addEventListener('click', function() {
+      showLoginModal();
     });
   }
+
+  if(closeModalBtn && loginModal) {
+    closeModalBtn.addEventListener('click', function() {
+      hideLoginModal();
+    });
+  }
+
+  // Close modal when clicking outside
+  if(loginModal) {
+    loginModal.addEventListener('click', function(e) {
+      if(e.target === loginModal) {
+        hideLoginModal();
+      }
+    });
+  }
+
+  // Close modal with Escape key
+  document.addEventListener('keydown', function(e) {
+    if(e.key === 'Escape' && loginModal && !loginModal.classList.contains('hidden')) {
+      hideLoginModal();
+    }
+  });
+
+  function showLoginModal() {
+    if(loginModal && loginModalContent) {
+      loginModal.classList.remove('hidden');
+      loginModal.classList.add('flex');
+
+      // Trigger animation
+      setTimeout(() => {
+        loginModalContent.classList.remove('scale-95', 'opacity-0');
+        loginModalContent.classList.add('scale-100', 'opacity-100');
+      }, 10);
+    }
+  }
+
+  function hideLoginModal() {
+    if(loginModal && loginModalContent) {
+      loginModalContent.classList.remove('scale-100', 'opacity-100');
+      loginModalContent.classList.add('scale-95', 'opacity-0');
+
+      setTimeout(() => {
+        loginModal.classList.add('hidden');
+        loginModal.classList.remove('flex');
+      }, 300);
+    }
+  }
 });
-</script>
+    </script>
+</div>

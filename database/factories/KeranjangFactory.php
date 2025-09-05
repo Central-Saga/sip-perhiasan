@@ -5,7 +5,7 @@ namespace Database\Factories;
 use App\Models\Keranjang;
 use App\Models\Produk;
 use App\Models\CustomRequest;
-use App\Models\User;
+use App\Models\Pelanggan;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class KeranjangFactory extends Factory
@@ -14,7 +14,7 @@ class KeranjangFactory extends Factory
 
     public function definition(): array
     {
-        $user = User::factory()->create();
+        $pelanggan = Pelanggan::factory()->create();
 
         // Decide: product or custom request
         $useProduct = fake()->boolean(70);
@@ -37,7 +37,7 @@ class KeranjangFactory extends Factory
         $subtotal = $jumlah * $hargaSatuan;
 
         return [
-            'user_id' => $user->id,
+            'pelanggan_id' => $pelanggan->id,
             'produk_id' => $produkId,
             'custom_request_id' => $customId,
             'jumlah' => $jumlah,
@@ -46,4 +46,3 @@ class KeranjangFactory extends Factory
         ];
     }
 }
-
