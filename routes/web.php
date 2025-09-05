@@ -20,7 +20,7 @@ Route::prefix('/')->group(function () {
     Volt::route('produk/{id}', 'pages.landingpage.produk.detail')->name('produk.detail');
     Volt::route('custom', 'pages.landingpage.custom.index')->name('custom');
     Volt::route('custom/detail', 'pages.landingpage.custom.detail')->name('custom.detail');
-    
+
     // Handle Custom Request form submission (POST)
     Route::post('custom/submit', function (Request $request) {
         $validated = $request->validate([
@@ -38,6 +38,19 @@ Route::prefix('/')->group(function () {
         return back()->with('message', 'Custom request berhasil dikirim. Kami akan menghubungi Anda.');
     })->name('custom.submit');
     Volt::route('cart', 'pages.landingpage.cart.index')->name('cart');
+
+    // Cart count API
+    Route::get('cart/count', function () {
+        $count = 0;
+        if (Auth::check()) {
+            $pelanggan = Auth::user()->pelanggan;
+            if ($pelanggan) {
+                $count = \App\Models\Keranjang::where('pelanggan_id', $pelanggan->id)->sum('jumlah');
+            }
+        }
+        return response()->json(['count' => $count]);
+    })->name('cart.count');
+
     Volt::route('checkout', 'pages.landingpage.checkout.index')->name('checkout');
     Volt::route('checkout/submit', 'pages.landingpage.checkout.index')->name('checkout.submit');
     Volt::route('transaksi', 'pages.landingpage.transaksi.index')->name('transaksi');
@@ -53,7 +66,7 @@ Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified', 'admin.access'])
     ->name('dashboard');
 
-Route::middleware(['auth','admin.access'])->prefix('admin')->group(function () {
+Route::middleware(['auth', 'admin.access'])->prefix('admin')->group(function () {
     // User Routes
     Volt::route('user', 'pages.users.index')->name('user.index');
     Volt::route('user/create', 'pages.users.create')->name('user.create');

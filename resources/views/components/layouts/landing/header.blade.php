@@ -288,22 +288,45 @@ document.addEventListener('DOMContentLoaded', function(){
         if (mobileMenuBtn) {
             mobileMenuBtn.addEventListener('click', toggleMobileMenu);
         }
-
-        // Initialize cart count for all pages using landing layout
-        updateCartCount();
     });
 
-    // Cart count function for landing layout - simplified approach
+    // Function to update cart count
     window.updateCartCount = function() {
-        // Cart count is now handled by Livewire components directly
-        // No need for API calls
+        @if(auth()->check())
+        fetch('{{ route("cart.count") }}', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const cartCountElement = document.getElementById('cartCount');
+            if (cartCountElement) {
+                cartCountElement.textContent = data.count || 0;
+            }
+        })
+        .catch(error => {
+            console.log('Error updating cart count:', error);
+        });
+        @endif
     }
 
     // Listen for cart count updates from Livewire
     document.addEventListener('livewire:init', () => {
         Livewire.on('cart-updated', () => {
-            // Dispatch event to update cart count
-            window.dispatchEvent(new CustomEvent('cartCountUpdated'));
+            // Update cart count when cart is updated
+            setTimeout(() => {
+                updateCartCount();
+            }, 500);
         });
+    });
+
+    // Also listen for page navigation events
+    document.addEventListener('livewire:navigated', () => {
+        setTimeout(() => {
+            updateCartCount();
+        }, 100);
     });
 </script>

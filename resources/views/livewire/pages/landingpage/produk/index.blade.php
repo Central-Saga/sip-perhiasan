@@ -347,30 +347,6 @@ $addToCart = action(function ($produkId) {
     // Util format
 function rupiah(n){ try { return 'Rp ' + Number(n||0).toLocaleString('id-ID'); } catch(e){ return 'Rp 0'; } }
 
-function getCart(){
-  try { return JSON.parse(localStorage.getItem('cart') || '{}'); } catch(e){ return {}; }
-}
-
-function setCart(cart){
-  localStorage.setItem('cart', JSON.stringify(cart));
-}
-
-function updateCartCount(){
-
-    // Use the same function as header - get from database
-  if (window.updateCartCount) {
-    window.updateCartCount();
-  } else {
-    // Fallback to localStorage if header function not available
-    const cart = getCart();
-    let count = 0; for(const id in cart) count += cart[id].qty || 0;
-    const el = document.getElementById('cartCount');
-    if(el) el.innerText = count;
-  }
-}
-
-// Function removed - now using Livewire action instead
-
 document.addEventListener('DOMContentLoaded', function(){
   updateCartCount();
 

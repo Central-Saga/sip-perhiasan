@@ -32,6 +32,7 @@ $updateQty = function($id, $delta) {
     }
 
     $this->dispatch('cart-updated');
+    // Refresh halaman untuk update cart count di header
     $this->redirect(route('cart'), navigate: true);
 };
 
@@ -40,6 +41,7 @@ $removeItem = function($id) {
     if ($item) {
         $item->delete();
         $this->dispatch('cart-updated');
+        // Refresh halaman untuk update cart count di header
         $this->redirect(route('cart'), navigate: true);
     }
 };
@@ -232,3 +234,21 @@ $removeItem = function($id) {
         </div>
     </div>
 </div>
+
+<script>
+    // Update cart count when cart page loads
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.updateCartCount) {
+        updateCartCount();
+    }
+});
+
+// Also update when Livewire navigates to this page
+document.addEventListener('livewire:navigated', function() {
+    if (window.updateCartCount) {
+        setTimeout(() => {
+            updateCartCount();
+        }, 100);
+    }
+});
+</script>
