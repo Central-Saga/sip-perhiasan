@@ -229,3 +229,26 @@ footer {
 .flux-main {
     flex: 1 !important;
 }
+
+/* Simple admin layout fix */
+@media (min-width: 1024px) {
+    .lg\:ml-64 {
+        margin-left: 16rem !important;
+    }
+}
+
+/* Admin layout flex container */
+.admin-layout-container {
+    display: flex !important;
+    height: 100vh !important;
+}
+
+.admin-sidebar {
+    flex-shrink: 0 !important;
+    width: 16rem !important;
+}
+
+.admin-main-content {
+    flex: 1 !important;
+    overflow-y: auto !important;
+}
