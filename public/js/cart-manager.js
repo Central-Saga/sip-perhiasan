@@ -52,27 +52,19 @@ class CartManager {
     }
 
     addToCart(product) {
-        const id = String(product.id);
-
-        if (!this.cart[id]) {
-            this.cart[id] = {
-                id: product.id,
-                nama_produk: product.nama_produk || product.nama,
-                kategori: product.kategori,
-                harga: Number(product.harga) || 0,
-                stok: Number(product.stok) || 0,
-                foto: product.foto || "",
-                qty: 0,
-            };
+        // This function is now deprecated in favor of Livewire actions
+        // Redirect to login if not authenticated
+        const isLoggedIn = document.querySelector(
+            'meta[name="user-authenticated"]'
+        );
+        if (!isLoggedIn || isLoggedIn.getAttribute("content") !== "true") {
+            window.location.href = "/login";
+            return false;
         }
 
-        if (this.cart[id].qty < (this.cart[id].stok || 0)) {
-            this.cart[id].qty += 1;
-            this.setCart(this.cart);
-            return true;
-        }
-
-        return false; // Stock limit reached
+        // Cart operations are now handled by Livewire components
+        // This function is kept for backward compatibility only
+        return false;
     }
 
     removeFromCart(productId) {

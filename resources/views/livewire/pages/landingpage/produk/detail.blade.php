@@ -403,7 +403,15 @@ $addToCart = action(function () {
   try { return JSON.parse(localStorage.getItem('cart') || '{}'); } catch(e){ return {}; }
 }
 function setCart(cart){ localStorage.setItem('cart', JSON.stringify(cart)); }
-function updateCartCount(){ let c=getCart(),n=0; for(const id in c) n+=c[id].qty||0; const el=document.getElementById('cartCount'); if(el) el.innerText=n; }
+function updateCartCount(){
+  // Use the same function as header - get from database
+  if (window.updateCartCount) {
+    window.updateCartCount();
+  } else {
+    // Fallback to localStorage if header function not available
+    let c=getCart(),n=0; for(const id in c) n+=c[id].qty||0; const el=document.getElementById('cartCount'); if(el) el.innerText=n;
+  }
+}
 
 document.addEventListener('DOMContentLoaded', function(){
   updateCartCount();
@@ -671,6 +679,7 @@ document.addEventListener('DOMContentLoaded', function(){
       }, 300);
     }
   }
+
 });
     </script>
 </div>

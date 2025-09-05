@@ -1,3 +1,13 @@
+@php
+$cartCount = 0;
+if (auth()->check()) {
+$pelanggan = auth()->user()->pelanggan;
+if ($pelanggan) {
+$cartCount = \App\Models\Keranjang::where('pelanggan_id', $pelanggan->id)->sum('jumlah');
+}
+}
+@endphp
+
 <nav
     class="w-full fixed top-0 left-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200/50 dark:border-slate-700/50 shadow-lg">
     <div class="max-w-7xl mx-auto flex items-center justify-between px-4 py-4">
@@ -58,7 +68,8 @@
                 class="relative p-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/20 transition-all duration-300">
                 <i class="fa-solid fa-cart-shopping text-sm"></i>
                 <span id="cartCount"
-                    class="absolute -top-1 -right-1 bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">0</span>
+                    class="absolute -top-1 -right-1 bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">{{
+                    $cartCount }}</span>
             </a>
             @endauth
 
@@ -75,10 +86,6 @@
                 </button>
                 <div id="userMenu"
                     class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg overflow-hidden z-[60]">
-                    <a href="{{ route('cart') }}"
-                        class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60">
-                        <i class="fa-solid fa-cart-shopping"></i> Keranjang
-                    </a>
                     <a href="{{ route('transaksi') }}"
                         class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60">
                         <i class="fa-solid fa-receipt"></i> Transaksi
@@ -94,16 +101,30 @@
                 </div>
             </div>
             @else
-            <a href="{{ url('/dashboard') }}"
-                class="flex items-center gap-2 px-4 py-2 rounded-full border border-slate-400 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/20 transition">
-                <i class="fa-solid fa-user"></i> {{ $user?->name ?? 'Profil' }}
-            </a>
+            <div class="relative">
+                <button id="adminMenuBtn"
+                    class="flex items-center gap-2 px-4 py-2 rounded-full border border-slate-400 text-slate-700 dark:text-slate-200 bg-white/50 dark:bg-slate-800/40 hover:bg-slate-100 dark:hover:bg-slate-700/30 transition">
+                    <i class="fa-solid fa-user"></i>
+                    <span class="max-w-[140px] truncate">{{ $user?->name ?? 'Admin' }}</span>
+                    <i class="fa-solid fa-chevron-down text-xs opacity-70"></i>
+                </button>
+                <div id="adminMenu"
+                    class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg overflow-hidden z-[60]">
+                    <a href="{{ url('/dashboard') }}"
+                        class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60">
+                        <i class="fa-solid fa-gauge-high"></i> Dashboard
+                    </a>
+                    <div class="h-px bg-slate-200 dark:bg-slate-700"></div>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit"
+                            class="w-full text-left flex items-center gap-2 px-4 py-2 text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20">
+                            <i class="fa-solid fa-right-from-bracket"></i> Keluar
+                        </button>
+                    </form>
+                </div>
+            </div>
             @endif
-            <a href="{{ url('/dashboard') }}"
-                class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/20 transition-all duration-300">
-                <i class="fa-solid fa-user text-sm"></i>
-                <span>Profil</span>
-            </a>
             @else
             <a href="{{ route('login') }}"
                 class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/20 transition-all duration-300">
@@ -235,6 +256,23 @@ document.addEventListener('DOMContentLoaded', function(){
     });
 });
 
+// Simple dropdown for admin menu
+document.addEventListener('DOMContentLoaded', function(){
+    const btn = document.getElementById('adminMenuBtn');
+    const menu = document.getElementById('adminMenu');
+    if(!btn || !menu) return;
+    btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        menu.classList.toggle('hidden');
+    });
+    document.addEventListener('click', function(){
+        if(!menu.classList.contains('hidden')) menu.classList.add('hidden');
+    });
+    document.addEventListener('keydown', function(e){
+        if(e.key === 'Escape' && !menu.classList.contains('hidden')) menu.classList.add('hidden');
+    });
+});
+
     // Initialize theme on load for landing layout
     (function() {
         const saved = localStorage.getItem('theme');
@@ -255,10 +293,17 @@ document.addEventListener('DOMContentLoaded', function(){
         updateCartCount();
     });
 
-    // Cart count function for landing layout - now handled by CartManager
+    // Cart count function for landing layout - simplified approach
     window.updateCartCount = function() {
-        if (window.cartManager) {
-            window.cartManager.updateCartCount();
-        }
+        // Cart count is now handled by Livewire components directly
+        // No need for API calls
     }
+
+    // Listen for cart count updates from Livewire
+    document.addEventListener('livewire:init', () => {
+        Livewire.on('cart-updated', () => {
+            // Dispatch event to update cart count
+            window.dispatchEvent(new CustomEvent('cartCountUpdated'));
+        });
+    });
 </script>

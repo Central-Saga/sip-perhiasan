@@ -1,7 +1,9 @@
 <?php
-use function Livewire\Volt\{ layout, state, mount };
+use function Livewire\Volt\{ layout, state, mount, action };
 use App\Models\Produk;
+use App\Models\Keranjang;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 layout('components.layouts.landing');
 
@@ -12,9 +14,94 @@ state([
 mount(function () {
     $this->produkList = Produk::where('status', true)->get();
 });
+
+$addToCart = action(function ($produkId) {
+    if (!Auth::check()) {
+        session()->flash('error', 'Anda harus login terlebih dahulu.');
+        return;
+    }
+
+    // Cek apakah user memiliki profil pelanggan
+    $pelanggan = Auth::user()->pelanggan;
+    if (!$pelanggan) {
+        session()->flash('error', 'Profil pelanggan tidak ditemukan. Silakan hubungi administrator.');
+        return;
+    }
+
+    $produk = Produk::find($produkId);
+    if (!$produk) {
+        session()->flash('error', 'Produk tidak ditemukan.');
+        return;
+    }
+
+    // Cek stok produk
+    if ($produk->stok <= 0) {
+        session()->flash('error', 'Maaf, produk ini sedang tidak tersedia.');
+        return;
+    }
+
+    try {
+        // Cek apakah produk sudah ada di keranjang pelanggan
+        $existingCart = Keranjang::where('pelanggan_id', $pelanggan->id)
+            ->where('produk_id', $produk->id)
+            ->first();
+
+        if ($existingCart) {
+            // Cek apakah jumlah di keranjang + 1 tidak melebihi stok
+            if (($existingCart->jumlah + 1) > $produk->stok) {
+                session()->flash('error', 'Jumlah yang diminta melebihi stok yang tersedia. Stok tersisa: ' . $produk->stok);
+                return;
+            }
+
+            // Update jumlah jika sudah ada
+            $existingCart->increment('jumlah');
+            $existingCart->update([
+                'subtotal' => $existingCart->jumlah * $existingCart->harga_satuan
+            ]);
+
+            session()->flash('success', 'Jumlah produk di keranjang berhasil diperbarui.');
+        } else {
+            // Buat baru jika belum ada
+            Keranjang::create([
+                'pelanggan_id' => $pelanggan->id,
+                'produk_id' => $produk->id,
+                'jumlah' => 1,
+                'harga_satuan' => $produk->harga,
+                'subtotal' => $produk->harga,
+            ]);
+
+            session()->flash('success', 'Produk berhasil ditambahkan ke keranjang.');
+        }
+
+        // Dispatch event untuk update cart count
+        $this->dispatch('cart-updated');
+
+        // Redirect ke halaman keranjang
+        $this->redirect(route('cart'), navigate: true);
+
+    } catch (\Exception $e) {
+        session()->flash('error', 'Gagal menambahkan ke keranjang: ' . $e->getMessage());
+    }
+});
 ?>
 
 <div>
+    <!-- Success/Error Messages -->
+    @if (session()->has('success'))
+    <div
+        class="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
+        <i class="fa-solid fa-check-circle"></i>
+        <span>{{ session('success') }}</span>
+    </div>
+    @endif
+
+    @if (session()->has('error'))
+    <div class="fixed top-4 right-4 z-50 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
+        <i class="fa-solid fa-exclamation-circle"></i>
+        <span>{{ session('error') }}</span>
+    </div>
+    @endif
+
     <!-- Hero Section -->
     <section
         class="relative min-h-[60vh] py-20 flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -204,7 +291,7 @@ mount(function () {
                                 </div>
 
                                 <!-- Features -->
-                                <div class="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-300">
+                                <div class="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-300 mb-4">
                                     <div class="flex items-center gap-1">
                                         <i class="fa-solid fa-medal text-indigo-500"></i>
                                         <span>Premium</span>
@@ -214,6 +301,21 @@ mount(function () {
                                         <span>Gratis Ongkir</span>
                                     </div>
                                 </div>
+
+                                <!-- Add to Cart Button -->
+                                @auth
+                                <button wire:click="addToCart({{ $produk->id }})"
+                                    class="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                                    <i class="fa-solid fa-cart-plus"></i>
+                                    <span>Tambah ke Keranjang</span>
+                                </button>
+                                @else
+                                <a href="{{ route('login') }}"
+                                    class="w-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 transform hover:scale-105 shadow-lg">
+                                    <i class="fa-solid fa-cart-plus"></i>
+                                    <span>Login untuk Belanja</span>
+                                </a>
+                                @endauth
                             </div>
                         </div>
 
@@ -254,11 +356,12 @@ function setCart(cart){
 }
 
 function updateCartCount(){
-  // Use CartManager if available, otherwise fallback
-  if (window.cartManager) {
-    window.cartManager.updateCartCount();
+
+    // Use the same function as header - get from database
+  if (window.updateCartCount) {
+    window.updateCartCount();
   } else {
-    // Fallback implementation
+    // Fallback to localStorage if header function not available
     const cart = getCart();
     let count = 0; for(const id in cart) count += cart[id].qty || 0;
     const el = document.getElementById('cartCount');
@@ -266,48 +369,27 @@ function updateCartCount(){
   }
 }
 
-function addToCart(prod){
-  // Check if user is logged in
-  const isLoggedIn = {{ auth()->check() ? 'true' : 'false' }};
-
-  if (!isLoggedIn) {
-    // Redirect to login page if not logged in
-    window.location.href = "{{ route('login') }}";
-    return;
-  }
-
-  // Use CartManager if available, otherwise fallback
-  if (window.cartManager) {
-    const success = window.cartManager.addToCart(prod);
-    if (success) {
-      // Redirect to cart page
-      window.location.href = "{{ route('cart') }}";
-    }
-  } else {
-    // Fallback implementation
-    const cart = getCart();
-    const id = String(prod.id);
-    if(!cart[id]){
-      cart[id] = {
-        id: prod.id,
-        nama_produk: prod.nama,
-        kategori: prod.kategori,
-        harga: Number(prod.harga) || 0,
-        stok: Number(prod.stok) || 0,
-        foto: prod.foto || '',
-        qty: 0,
-      };
-    }
-    if(cart[id].qty < (cart[id].stok || 0)){
-      cart[id].qty += 1;
-    }
-    setCart(cart);
-    updateCartCount();
-  }
-}
+// Function removed - now using Livewire action instead
 
 document.addEventListener('DOMContentLoaded', function(){
   updateCartCount();
+
+  // Auto-hide notifications
+  setTimeout(() => {
+    const notifications = document.querySelectorAll('.fixed.top-4.right-4');
+    notifications.forEach(notification => {
+      notification.style.opacity = '0';
+      notification.style.transform = 'translateX(100%)';
+      setTimeout(() => notification.remove(), 300);
+    });
+  }, 3000);
+
+  // Listen for cart updates from Livewire
+  document.addEventListener('livewire:init', () => {
+    Livewire.on('cart-updated', () => {
+      updateCartCount();
+    });
+  });
 
   // Category filter functionality
   const categoryTabs = document.querySelectorAll('.category-tab');
