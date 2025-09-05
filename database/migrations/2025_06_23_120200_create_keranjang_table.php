@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('keranjang', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('pelanggan_id')->constrained('pelanggan')->onDelete('cascade');
             $table->foreignId('produk_id')->nullable()->constrained('produk')->onDelete('cascade');
             $table->foreignId('custom_request_id')->nullable()->constrained('custom_request')->onDelete('cascade');
             $table->integer('jumlah')->default(1);
@@ -25,4 +25,3 @@ return new class extends Migration
         Schema::dropIfExists('keranjang');
     }
 };
-

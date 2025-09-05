@@ -1,5 +1,5 @@
 <?php
-use function Livewire\Volt\{ layout, state, mount };
+use function Livewire\Volt\{ layout, state, mount, action };
 use App\Models\Produk;
 use App\Models\Keranjang;
 use Illuminate\Support\Facades\Storage;
@@ -16,8 +16,7 @@ mount(function ($id) {
     $this->produk = Produk::findOrFail($id);
 });
 
-function addToCart()
-{
+$addToCart = action(function () {
     if (!Auth::check()) {
         session()->flash('error', 'Anda harus login terlebih dahulu.');
         return;
@@ -81,7 +80,7 @@ function addToCart()
     } finally {
         $this->isAddingToCart = false;
     }
-}
+});
 ?>
 
 <div>
