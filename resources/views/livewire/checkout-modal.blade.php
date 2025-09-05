@@ -101,8 +101,8 @@ new class extends Component {
                 'pelanggan_id' => $pelanggan->id,
                 'kode_transaksi' => 'TRX-' . date('Ymd') . '-' . Str::random(6),
                 'total_harga' => $this->total,
-                'status' => 'Pending',
-                'tipe_pesanan' => 'Ready',
+                'status' => 'pending',
+                'tipe_pesanan' => 'ready',
             ]);
 
             // Buat detail transaksi untuk setiap item di keranjang
@@ -121,11 +121,9 @@ new class extends Component {
             // Buat pengiriman
             Pengiriman::create([
                 'transaksi_id' => $transaksi->id,
-                'nama_penerima' => $this->nama_penerima,
-                'alamat_pengiriman' => $this->alamat_pengiriman,
-                'no_telepon' => $this->no_telepon,
                 'status' => 'pending',
-                'catatan' => $this->catatan,
+                'deskripsi' => "Penerima: {$this->nama_penerima}, Alamat: {$this->alamat_pengiriman}, Telepon: {$this->no_telepon}" . ($this->catatan ? ", Catatan: {$this->catatan}" : ''),
+                'tanggal_pengiriman' => null,
             ]);
 
             // Buat pembayaran

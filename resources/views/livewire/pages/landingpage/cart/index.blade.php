@@ -222,7 +222,10 @@ $removeItem = function($id) {
                 <i class="fa-solid fa-arrow-left"></i> Lanjut Belanja
             </a>
             @if($keranjangItems->count() > 0)
-            <livewire:checkout-modal />
+            <a href="{{ route('checkout') }}"
+                class="flex-1 sm:flex-none sm:px-5 sm:py-3 px-4 py-3 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg font-semibold transition flex items-center justify-center gap-2 text-sm">
+                <i class="fa-solid fa-credit-card"></i> Checkout
+            </a>
             @endif
         </div>
     </div>
