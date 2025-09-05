@@ -17,8 +17,8 @@ return new class extends Migration
             $table->foreignId('pelanggan_id')->constrained('pelanggan')->onDelete('cascade');
             $table->string('kode_transaksi')->unique();
             $table->decimal('total_harga', 12, 2);
-            $table->enum('status', ['Pending', 'Diproses', 'Selesai', 'Dibatalkan']);
-            $table->enum('tipe_pesanan', ['Ready', 'Custom']);
+            $table->enum('status', ['PENDING', 'DIPROSES', 'SELESAI', 'DIBATALKAN']);
+            $table->enum('tipe_pesanan', ['biasa', 'custom']);
             $table->timestamps();
         });
     }
