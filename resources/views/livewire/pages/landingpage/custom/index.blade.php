@@ -59,6 +59,9 @@ layout('components.layouts.landing');
                 <p class="hero-description text-lg md:text-xl text-white/70 leading-relaxed max-w-3xl mx-auto">
                     Wujudkan perhiasan impian Anda dengan desain custom yang unik dan personal.
                     Tim pengrajin berpengalaman kami siap mewujudkan visi Anda menjadi karya seni yang memukau.
+                    <br><br>
+                    <span class="text-purple-300 font-semibold">✨ Proses: Submit → Konsultasi → Penawaran Harga →
+                        Approval → Produksi</span>
                 </p>
 
                 <!-- CTA Button -->
@@ -370,7 +373,8 @@ layout('components.layouts.landing');
 
                         <h3 class="text-2xl font-bold text-white mb-4">Kirim Request</h3>
                         <p class="text-white/70 leading-relaxed">Isi form dengan detail permintaan Anda. Semakin
-                            spesifik, semakin baik hasilnya. Sertakan referensi gambar jika ada.</p>
+                            spesifik, semakin baik hasilnya. Sertakan referensi gambar jika ada. Request akan masuk ke
+                            status "Pending".</p>
                     </div>
 
                     <!-- Floating Elements -->
@@ -395,9 +399,10 @@ layout('components.layouts.landing');
                             <i class="fa-solid fa-comments text-3xl text-indigo-300"></i>
                         </div>
 
-                        <h3 class="text-2xl font-bold text-white mb-4">Konsultasi</h3>
+                        <h3 class="text-2xl font-bold text-white mb-4">Konsultasi & Review</h3>
                         <p class="text-white/70 leading-relaxed">Tim kami akan menghubungi untuk membahas detail,
-                            estimasi harga dan waktu pengerjaan. Konsultasi gratis!</p>
+                            estimasi harga dan waktu pengerjaan. Status berubah menjadi "Reviewed" → "Price Proposed".
+                        </p>
                     </div>
 
                     <!-- Floating Elements -->
@@ -422,9 +427,9 @@ layout('components.layouts.landing');
                             <i class="fa-solid fa-gem text-3xl text-green-300"></i>
                         </div>
 
-                        <h3 class="text-2xl font-bold text-white mb-4">Pembuatan</h3>
-                        <p class="text-white/70 leading-relaxed">Setelah konfirmasi, perhiasan Anda akan dibuat oleh
-                            pengrajin berpengalaman kami dengan kualitas terbaik.</p>
+                        <h3 class="text-2xl font-bold text-white mb-4">Approval & Produksi</h3>
+                        <p class="text-white/70 leading-relaxed">Setelah Anda setujui penawaran harga, perhiasan akan
+                            otomatis masuk keranjang dan mulai diproduksi oleh pengrajin berpengalaman kami.</p>
                     </div>
 
                     <!-- Floating Elements -->

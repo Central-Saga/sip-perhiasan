@@ -20,6 +20,7 @@ Route::prefix('/')->group(function () {
     Volt::route('produk/{id}', 'pages.landingpage.produk.detail')->name('produk.detail');
     Volt::route('custom', 'pages.landingpage.custom.index')->name('custom');
     Volt::route('custom/detail', 'pages.landingpage.custom.detail')->name('custom.detail');
+    Volt::route('custom/status', 'pages.landingpage.custom.status')->name('custom.status');
 
     // Handle Custom Request form submission (POST)
     Route::post('custom/submit', function (Request $request) {
@@ -44,14 +45,8 @@ Route::prefix('/')->group(function () {
                 return back()->with('error', 'Data pelanggan tidak ditemukan');
             }
 
-            // Check if there's already a custom request in cart
-            $existingCustomRequest = \App\Models\Keranjang::where('pelanggan_id', $pelanggan->id)
-                ->whereNotNull('custom_request_id')
-                ->first();
-
-            if ($existingCustomRequest) {
-                return redirect()->route('cart')->with('info', 'Custom request sudah ada di keranjang');
-            }
+            // Allow multiple custom requests in cart
+            // Removed the restriction that limited custom requests to only 1 per cart
 
             // Handle file upload
             $gambarPath = null;
@@ -72,16 +67,7 @@ Route::prefix('/')->group(function () {
                 'estimasi_harga' => 0,
             ]);
 
-            // Add to cart
-            \App\Models\Keranjang::create([
-                'pelanggan_id' => $pelanggan->id,
-                'custom_request_id' => $customRequest->id,
-                'jumlah' => 1,
-                'harga_satuan' => 0,
-                'subtotal' => 0,
-            ]);
-
-            return redirect()->route('cart')->with('success', 'Custom request berhasil ditambahkan ke keranjang!');
+            return redirect()->route('custom.status')->with('success', 'Custom request berhasil dikirim! Tim kami akan segera menghubungi Anda untuk konsultasi dan penawaran harga.');
         } catch (\Exception $e) {
             \Log::error('Error saving custom request: ' . $e->getMessage());
             return back()->with('error', 'Gagal menyimpan custom request: ' . $e->getMessage());
@@ -95,6 +81,7 @@ Route::prefix('/')->group(function () {
         if (Auth::check()) {
             $pelanggan = Auth::user()->pelanggan;
             if ($pelanggan) {
+                // Count both regular products and custom requests
                 $count = \App\Models\Keranjang::where('pelanggan_id', $pelanggan->id)->sum('jumlah');
             }
         }

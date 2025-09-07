@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Storage;
 
 layout('components.layouts.landing');
 
-state(['keranjangItems' => [], 'customRequest' => null, 'total' => 0]);
+state(['keranjangItems' => [], 'customRequests' => [], 'total' => 0]);
 
 mount(function () {
     $this->loadCartData();
@@ -17,7 +17,7 @@ mount(function () {
 $loadCartData = function () {
     if (!Auth::check()) {
         $this->keranjangItems = collect();
-        $this->customRequest = null;
+        $this->customRequests = collect();
         $this->total = 0;
         return;
     }
@@ -27,7 +27,7 @@ $loadCartData = function () {
 
     if (!$pelanggan) {
         $this->keranjangItems = collect();
-        $this->customRequest = null;
+        $this->customRequests = collect();
         $this->total = 0;
         return;
     }
@@ -45,8 +45,12 @@ $loadCartData = function () {
         }
     }
 
-    // Get custom request if exists
-    $this->customRequest = $this->keranjangItems->where('custom_request_id', '!=', null)->first()?->customRequest;
+    // Get only approved custom requests (should be in cart)
+    $this->customRequests = $this->keranjangItems->where('custom_request_id', '!=', null)->map(function($item) {
+        return $item->customRequest;
+    })->filter(function($customRequest) {
+        return $customRequest && $customRequest->status === 'approved';
+    });
 };
 
 
@@ -303,80 +307,85 @@ $removeItem = function($id) {
                 </div>
                 @endif
 
-                @if($customRequest)
+                @if($customRequests && count($customRequests) > 0)
                 <div class="border-t border-slate-200 dark:border-slate-700">
                     <div class="p-8">
                         <h3 class="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-3">
                             <i class="fa-solid fa-wand-magic-sparkles text-purple-500"></i>
-                            Custom Request
+                            Custom Requests ({{ count($customRequests) }})
                         </h3>
-                        <div
-                            class="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-2xl p-8 border border-purple-200 dark:border-purple-700">
-                            <div class="flex items-start gap-8">
-                                <div
-                                    class="w-32 h-32 flex-shrink-0 rounded-2xl overflow-hidden border border-purple-200 dark:border-purple-700 bg-white dark:bg-slate-800">
-                                    @if($customRequest->gambar_referensi)
-                                    <img src="{{ $customRequest->gambar_referensi }}"
-                                        class="w-full h-full object-cover" />
-                                    @else
-                                    <div class="w-full h-full flex items-center justify-center text-purple-400">
-                                        <i class="fa-solid fa-image text-4xl"></i>
-                                    </div>
-                                    @endif
-                                </div>
-                                <div class="flex-1">
-                                    <div class="flex items-center justify-between mb-4">
-                                        <div class="font-bold text-slate-800 dark:text-slate-100 text-xl">Detail Kustom
-                                        </div>
-                                        <span
-                                            class="inline-flex items-center gap-2 rounded-full bg-purple-100 dark:bg-purple-900/30 px-4 py-2 text-sm font-medium text-purple-700 dark:text-purple-300 ring-1 ring-inset ring-purple-700/10">
-                                            <i class="fa-solid fa-clock"></i>
-                                            {{ $customRequest->status ?? 'pending' }}
-                                        </span>
-                                    </div>
-                                    <dl
-                                        class="text-slate-600 dark:text-slate-300 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
-                                        <div class="flex items-center gap-3">
-                                            <i class="fa-solid fa-tag text-slate-400"></i>
-                                            <span class="font-medium">Kategori:</span>
-                                            <span>{{ $customRequest->kategori ?? '-' }}</span>
-                                        </div>
-                                        <div class="flex items-center gap-3">
-                                            <i class="fa-solid fa-cube text-slate-400"></i>
-                                            <span class="font-medium">Material:</span>
-                                            <span>{{ $customRequest->material ?? '-' }}</span>
-                                        </div>
-                                        <div class="flex items-center gap-3">
-                                            <i class="fa-solid fa-expand text-slate-400"></i>
-                                            <span class="font-medium">Ukuran:</span>
-                                            <span>{{ $customRequest->ukuran ?? '-' }}</span>
-                                        </div>
-                                        <div class="flex items-center gap-3">
-                                            <i class="fa-solid fa-weight text-slate-400"></i>
-                                            <span class="font-medium">Berat:</span>
-                                            <span>{{ $customRequest->berat ?? 0 }} gram</span>
-                                        </div>
-                                    </dl>
-                                    @if($customRequest->deskripsi)
-                                    <p
-                                        class="mt-4 text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-600">
-                                        {{ $customRequest->deskripsi }}
-                                    </p>
-                                    @endif
-                                    <a href="{{ route('custom.detail') }}"
-                                        class="mt-6 inline-flex items-center gap-2 text-purple-600 dark:text-purple-400 font-medium hover:underline">
-                                        <i class="fa-solid fa-eye"></i>
-                                        Lihat Detail Lengkap
-                                    </a>
-                                </div>
-                            </div>
+                        <div class="space-y-6">
+                            @foreach($customRequests as $index => $customRequest)
                             <div
-                                class="mt-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl">
-                                <div class="flex items-center gap-3 text-amber-700 dark:text-amber-300">
-                                    <i class="fa-solid fa-info-circle"></i>
-                                    <span class="font-medium">Harga akan ditentukan setelah konsultasi</span>
+                                class="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-2xl p-8 border border-purple-200 dark:border-purple-700">
+                                <div class="flex items-start gap-8">
+                                    <div
+                                        class="w-32 h-32 flex-shrink-0 rounded-2xl overflow-hidden border border-purple-200 dark:border-purple-700 bg-white dark:bg-slate-800">
+                                        @if($customRequest->gambar_referensi)
+                                        <img src="{{ asset('storage/' . $customRequest->gambar_referensi) }}"
+                                            class="w-full h-full object-cover" />
+                                        @else
+                                        <div class="w-full h-full flex items-center justify-center text-purple-400">
+                                            <i class="fa-solid fa-image text-4xl"></i>
+                                        </div>
+                                        @endif
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="flex items-center justify-between mb-4">
+                                            <div class="font-bold text-slate-800 dark:text-slate-100 text-xl">
+                                                Custom Request #{{ $index + 1 }}
+                                            </div>
+                                            <span
+                                                class="inline-flex items-center gap-2 rounded-full bg-purple-100 dark:bg-purple-900/30 px-4 py-2 text-sm font-medium text-purple-700 dark:text-purple-300 ring-1 ring-inset ring-purple-700/10">
+                                                <i class="fa-solid fa-clock"></i>
+                                                {{ $customRequest->status ?? 'pending' }}
+                                            </span>
+                                        </div>
+                                        <dl
+                                            class="text-slate-600 dark:text-slate-300 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
+                                            <div class="flex items-center gap-3">
+                                                <i class="fa-solid fa-tag text-slate-400"></i>
+                                                <span class="font-medium">Kategori:</span>
+                                                <span>{{ $customRequest->kategori ?? '-' }}</span>
+                                            </div>
+                                            <div class="flex items-center gap-3">
+                                                <i class="fa-solid fa-cube text-slate-400"></i>
+                                                <span class="font-medium">Material:</span>
+                                                <span>{{ $customRequest->material ?? '-' }}</span>
+                                            </div>
+                                            <div class="flex items-center gap-3">
+                                                <i class="fa-solid fa-expand text-slate-400"></i>
+                                                <span class="font-medium">Ukuran:</span>
+                                                <span>{{ $customRequest->ukuran ?? '-' }}</span>
+                                            </div>
+                                            <div class="flex items-center gap-3">
+                                                <i class="fa-solid fa-weight text-slate-400"></i>
+                                                <span class="font-medium">Berat:</span>
+                                                <span>{{ $customRequest->berat ?? 0 }} gram</span>
+                                            </div>
+                                        </dl>
+                                        @if($customRequest->deskripsi)
+                                        <p
+                                            class="mt-4 text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-600">
+                                            {{ $customRequest->deskripsi }}
+                                        </p>
+                                        @endif
+                                        <a href="{{ route('custom.detail') }}"
+                                            class="mt-6 inline-flex items-center gap-2 text-purple-600 dark:text-purple-400 font-medium hover:underline">
+                                            <i class="fa-solid fa-eye"></i>
+                                            Lihat Detail Lengkap
+                                        </a>
+                                    </div>
+                                </div>
+                                <div
+                                    class="mt-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl">
+                                    <div class="flex items-center gap-3 text-amber-700 dark:text-amber-300">
+                                        <i class="fa-solid fa-info-circle"></i>
+                                        <span class="font-medium">Harga akan ditentukan setelah konsultasi</span>
+                                    </div>
                                 </div>
                             </div>
+                            @endforeach
                         </div>
                     </div>
                 </div>

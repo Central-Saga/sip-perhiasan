@@ -86,6 +86,10 @@ $cartCount = \App\Models\Keranjang::where('pelanggan_id', $pelanggan->id)->sum('
                 </button>
                 <div id="userMenu"
                     class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg overflow-hidden z-[60]">
+                    <a href="{{ route('custom.status') }}"
+                        class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60">
+                        <i class="fa-solid fa-clipboard-list"></i> Status Request
+                    </a>
                     <a href="{{ route('transaksi') }}"
                         class="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700/60">
                         <i class="fa-solid fa-receipt"></i> Transaksi
@@ -172,6 +176,11 @@ $cartCount = \App\Models\Keranjang::where('pelanggan_id', $pelanggan->id)->sum('
             @auth
             @php($user = auth()->user())
             @if($user && $user->hasRole('Pelanggan'))
+            <a href="{{ route('custom.status') }}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-300">
+                <i class="fa-solid fa-clipboard-list text-sm"></i>
+                <span>Status Request</span>
+            </a>
             <a href="{{ route('transaksi') }}"
                 class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-300">
                 <i class="fa-solid fa-receipt text-sm"></i>
