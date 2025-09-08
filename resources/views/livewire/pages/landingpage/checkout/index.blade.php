@@ -200,12 +200,12 @@ new class extends Component
                 'transaksi_id' => $transaksi->id,
                 'metode' => $this->metode_pembayaran,
                 'bukti_transfer' => $buktiTransferPath,
-                'status' => $this->metode_pembayaran === 'cash' ? 'DIBAYAR' : 'PENDING',
-                'tanggal_bayar' => $this->metode_pembayaran === 'cash' ? now() : null,
+                'status' => $this->metode_pembayaran === 'transfer' ? 'DIBAYAR' : 'PENDING',
+                'tanggal_bayar' => $this->metode_pembayaran === 'transfer' ? now() : null,
             ]);
 
             // Update status transaksi
-            if ($this->metode_pembayaran === 'cash') {
+            if ($this->metode_pembayaran === 'transfer') {
                 $transaksi->update(['status' => 'DIPROSES']);
             }
 
