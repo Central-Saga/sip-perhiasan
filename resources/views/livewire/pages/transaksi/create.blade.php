@@ -12,7 +12,7 @@ state([
     'user_id' => '',
     'produk_id' => '',
     'jumlah' => 1,
-    'status' => 'pending',
+    'status' => 'PENDING',
 ]);
 
 with(function () {
@@ -41,11 +41,12 @@ $save = function () {
     $total = (int)$this->jumlah * (int)$produk->harga;
 
     $transaksi = Transaksi::create([
+        'user_id' => $this->user_id,
         'pelanggan_id' => $pelanggan->id,
-        'jumlah' => (int)$this->jumlah,
+        'kode_transaksi' => 'TRX-' . date('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT),
         'total_harga' => $total,
         'status' => $this->status,
-        'tanggal_transaksi' => now(),
+        'tipe_pesanan' => 'biasa',
     ]);
 
     DetailTransaksi::create([
@@ -72,11 +73,11 @@ $save = function () {
                                 <x-select id="user_id" class="mt-1 block w-full" wire:model="user_id">
                                     <option value="">Pilih Pelanggan</option>
                                     @foreach($users as $user)
-                                        <option value="{{ $user->id }}">{{ $user->name }} - {{ $user->email }}</option>
+                                    <option value="{{ $user->id }}">{{ $user->name }} - {{ $user->email }}</option>
                                     @endforeach
                                 </x-select>
                                 @error('user_id')
-                                    <span class="text-red-500 text-sm mt-2 block">{{ $message }}</span>
+                                <span class="text-red-500 text-sm mt-2 block">{{ $message }}</span>
                                 @enderror
                             </div>
 
@@ -85,43 +86,45 @@ $save = function () {
                                 <x-select id="produk_id" class="mt-1 block w-full" wire:model="produk_id">
                                     <option value="">Pilih Produk</option>
                                     @foreach($produks as $produk)
-                                        <option value="{{ $produk->id }}">{{ $produk->nama_produk }} - Rp {{ number_format($produk->harga, 0, ',', '.') }}</option>
+                                    <option value="{{ $produk->id }}">{{ $produk->nama_produk }} - Rp {{
+                                        number_format($produk->harga, 0, ',', '.') }}</option>
                                     @endforeach
                                 </x-select>
                                 @error('produk_id')
-                                    <span class="text-red-500 text-sm mt-2 block">{{ $message }}</span>
+                                <span class="text-red-500 text-sm mt-2 block">{{ $message }}</span>
                                 @enderror
                             </div>
 
                             <div class="col-span-6 sm:col-span-2">
                                 <x-label for="jumlah" value="Jumlah" />
-                                <x-input id="jumlah" type="number" class="mt-1 block w-full" wire:model="jumlah" min="1" />
+                                <x-input id="jumlah" type="number" class="mt-1 block w-full" wire:model="jumlah"
+                                    min="1" />
                                 @error('jumlah')
-                                    <span class="text-red-500 text-sm mt-2 block">{{ $message }}</span>
+                                <span class="text-red-500 text-sm mt-2 block">{{ $message }}</span>
                                 @enderror
                             </div>
 
                             <div class="col-span-6 sm:col-span-3">
                                 <x-label for="status" value="Status" />
                                 <x-select id="status" class="mt-1 block w-full" wire:model="status">
-                                    <option value="pending">Pending</option>
-                                    <option value="processing">Processing</option>
-                                    <option value="completed">Completed</option>
-                                    <option value="cancelled">Cancelled</option>
+                                    <option value="PENDING">Pending</option>
+                                    <option value="DIPROSES">Diproses</option>
+                                    <option value="SELESAI">Selesai</option>
+                                    <option value="DIBATALKAN">Dibatalkan</option>
                                 </x-select>
                                 @error('status')
-                                    <span class="text-red-500 text-sm mt-2 block">{{ $message }}</span>
+                                <span class="text-red-500 text-sm mt-2 block">{{ $message }}</span>
                                 @enderror
                             </div>
 
                             @if(isset($totalHarga) && $totalHarga)
-                                <div class="col-span-6">
-                                    <div class="bg-gray-50 px-4 py-3 sm:px-6">
-                                        <div class="text-lg font-medium text-gray-900">
-                                            Total Harga: Rp {{ number_format($totalHarga, 0, ',', '.') }}
-                                        </div>
+                            <div class="col-span-6">
+                                <div class="bg-gray-50 px-4 py-3 sm:px-6">
+                                    <div class="text-lg font-medium text-gray-900">
+                                        Total Harga: Rp {{ number_format($totalHarga, 0, ',', '.') }}
                                     </div>
                                 </div>
+                            </div>
                             @endif
                         </div>
 
