@@ -14,6 +14,7 @@ class DetailTransaksi extends Model
     protected $fillable = [
         'transaksi_id',
         'produk_id',
+        'custom_request_id',
         'jumlah',
         'sub_total',
     ];
@@ -29,10 +30,10 @@ class DetailTransaksi extends Model
     }
 
     /**
-     * Get the custom requests associated with this detail transaction
+     * Get the custom request associated with this detail transaction
      */
-    public function customRequests()
+    public function customRequest()
     {
-        return $this->hasMany(CustomRequest::class);
+        return $this->belongsTo(CustomRequest::class, 'custom_request_id');
     }
 }

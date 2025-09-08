@@ -21,7 +21,7 @@ mount(function () {
         return redirect()->route('home');
     }
 
-    $this->transaksis = Transaksi::with(['detailTransaksi.produk', 'pengiriman', 'pembayaran'])
+    $this->transaksis = Transaksi::with(['detailTransaksi.produk', 'detailTransaksi.customRequest', 'pengiriman', 'pembayaran'])
         ->where('pelanggan_id', $pelanggan->id)
         ->orderBy('created_at', 'desc')
         ->get();
@@ -205,11 +205,26 @@ function getStatusIcon($status) {
                                         <div
                                             class="flex items-center gap-4 p-4 bg-gradient-to-r from-slate-50 to-indigo-50 dark:from-slate-700/50 dark:to-indigo-900/20 rounded-xl border border-slate-200 dark:border-slate-600 hover:shadow-lg transition-all duration-300">
                                             <div class="w-16 h-16 flex-shrink-0">
-                                                @if($detail->produk && $detail->produk->foto)
+                                                @if($detail->customRequest)
+                                                <!-- Custom Request Image -->
+                                                @if($detail->customRequest->gambar_referensi)
+                                                <img src="{{ Storage::url($detail->customRequest->gambar_referensi) }}"
+                                                    alt="Custom Request"
+                                                    class="w-full h-full object-cover rounded-xl border border-slate-200 dark:border-slate-600">
+                                                @else
+                                                <div
+                                                    class="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-100 to-red-100 dark:from-orange-900/30 dark:to-red-900/30 rounded-xl border-2 border-dashed border-orange-200 dark:border-orange-700">
+                                                    <i
+                                                        class="fa-solid fa-tools text-2xl text-orange-600 dark:text-orange-400"></i>
+                                                </div>
+                                                @endif
+                                                @elseif($detail->produk && $detail->produk->foto)
+                                                <!-- Regular Product Image -->
                                                 <img src="{{ Storage::url($detail->produk->foto) }}"
                                                     alt="{{ $detail->produk->nama_produk }}"
                                                     class="w-full h-full object-cover rounded-xl border border-slate-200 dark:border-slate-600">
                                                 @else
+                                                <!-- Default Image -->
                                                 <div
                                                     class="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 rounded-xl border-2 border-dashed border-purple-200 dark:border-purple-700">
                                                     <i
@@ -218,6 +233,31 @@ function getStatusIcon($status) {
                                                 @endif
                                             </div>
                                             <div class="flex-grow">
+                                                @if($detail->customRequest)
+                                                <!-- Custom Request Info -->
+                                                <h5 class="font-bold text-slate-800 dark:text-slate-100 text-lg">
+                                                    Custom Request
+                                                </h5>
+                                                <div class="text-sm text-slate-500 dark:text-slate-400 mb-2">
+                                                    <i class="fa-solid fa-tools mr-1"></i>
+                                                    {{ $detail->customRequest->kategori }}
+                                                </div>
+                                                <div class="text-xs text-slate-400 dark:text-slate-500 mb-2">
+                                                    {{ Str::limit($detail->customRequest->deskripsi, 50) }}
+                                                </div>
+                                                <div class="flex items-center gap-4 mt-1">
+                                                    <span class="text-sm text-slate-500 dark:text-slate-400">
+                                                        <i class="fa-solid fa-hashtag mr-1"></i>
+                                                        {{ $detail->jumlah }} pcs
+                                                    </span>
+                                                    <span class="text-sm text-slate-500 dark:text-slate-400">
+                                                        <i class="fa-solid fa-tag mr-1"></i>
+                                                        @ {{ number_format($detail->sub_total / $detail->jumlah, 0, ',',
+                                                        '.') }}
+                                                    </span>
+                                                </div>
+                                                @else
+                                                <!-- Regular Product Info -->
                                                 <h5 class="font-bold text-slate-800 dark:text-slate-100 text-lg">
                                                     {{ $detail->produk ? $detail->produk->nama_produk : 'Produk Tidak
                                                     Tersedia' }}
@@ -229,13 +269,15 @@ function getStatusIcon($status) {
                                                     </span>
                                                     <span class="text-sm text-slate-500 dark:text-slate-400">
                                                         <i class="fa-solid fa-tag mr-1"></i>
-                                                        @ {{ number_format($detail->harga_satuan, 0, ',', '.') }}
+                                                        @ {{ number_format($detail->sub_total / $detail->jumlah, 0, ',',
+                                                        '.') }}
                                                     </span>
                                                 </div>
+                                                @endif
                                             </div>
                                             <div class="text-right">
                                                 <div class="text-xl font-bold text-indigo-600 dark:text-indigo-400">
-                                                    Rp {{ number_format($detail->subtotal, 0, ',', '.') }}
+                                                    Rp {{ number_format($detail->sub_total, 0, ',', '.') }}
                                                 </div>
                                             </div>
                                         </div>

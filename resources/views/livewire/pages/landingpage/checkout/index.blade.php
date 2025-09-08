@@ -40,51 +40,39 @@ new class extends Component
         $this->user = Auth::user();
         $this->pelanggan = Pelanggan::where('user_id', $this->user->id)->first();
         $this->loadCartData();
+
+        // Set tipe pesanan otomatis berdasarkan custom request
+        if ($this->customRequest) {
+            $this->tipe_pesanan = 'custom';
+        }
     }
 
     public function loadCartData()
     {
         try {
             $user = Auth::user();
-            \Log::info('Loading cart data for user', ['user_id' => $user ? $user->id : 'null']);
 
             if (!$user) {
-                \Log::error('No authenticated user found');
                 $this->keranjangItems = collect();
                 return;
             }
 
             $pelanggan = Pelanggan::where('user_id', $user->id)->first();
-            \Log::info('Pelanggan found', ['pelanggan_id' => $pelanggan ? $pelanggan->id : 'null']);
 
             if ($pelanggan) {
                 $this->keranjangItems = Keranjang::with(['produk', 'customRequest'])
                     ->where('pelanggan_id', $pelanggan->id)
                     ->get();
 
-                \Log::info('Keranjang items loaded', [
-                    'count' => $this->keranjangItems->count(),
-                    'items' => $this->keranjangItems->toArray()
-                ]);
-
                 $this->total = $this->keranjangItems->sum(function ($item) {
                     return $item->subtotal ?? ($item->harga_satuan * $item->jumlah);
                 });
 
                 $this->customRequest = $this->keranjangItems->where('custom_request_id', '!=', null)->first()?->customRequest;
-
-                \Log::info('Cart data loaded successfully', [
-                    'total' => $this->total,
-                    'custom_request' => $this->customRequest ? 'exists' : 'null'
-                ]);
             } else {
-                \Log::warning('No pelanggan found for user', ['user_id' => $user->id]);
                 $this->keranjangItems = collect();
             }
         } catch (\Exception $e) {
-            \Log::error('Error loading cart data: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
-            ]);
             $this->keranjangItems = collect();
         }
     }
@@ -93,16 +81,6 @@ new class extends Component
     {
         try {
             $this->isProcessing = true;
-
-            // Debug logging
-            \Log::info('Checkout process started', [
-                'user_id' => Auth::id(),
-                'metode_pembayaran' => $this->metode_pembayaran,
-                'tipe_pesanan' => $this->tipe_pesanan,
-                'keranjang_count' => $this->keranjangItems ? $this->keranjangItems->count() : 0,
-                'total' => $this->total,
-                'bukti_pembayaran' => $this->bukti_pembayaran ? 'File uploaded' : 'No file'
-            ]);
 
             // Check if user is authenticated
             if (!Auth::check()) {
@@ -122,19 +100,9 @@ new class extends Component
                 'tipe_pesanan' => 'required|in:biasa,custom',
             ];
 
-            // Debug validation data
-            \Log::info('Validation data before validation', [
-                'metode_pembayaran' => $this->metode_pembayaran,
-                'tipe_pesanan' => $this->tipe_pesanan,
-                'bukti_pembayaran' => $this->bukti_pembayaran ? 'File exists' : 'No file',
-                'bukti_pembayaran_type' => $this->bukti_pembayaran ? gettype($this->bukti_pembayaran) : 'null',
-            ]);
-
             try {
                 $this->validate($validationRules);
-                \Log::info('Validation passed');
             } catch (\Illuminate\Validation\ValidationException $e) {
-                \Log::error('Validation failed', ['errors' => $e->errors()]);
                 session()->flash('error', 'Validasi gagal: ' . implode(', ', Arr::flatten($e->errors())));
                 return;
             }
@@ -168,38 +136,27 @@ new class extends Component
                 try {
                     $filename = 'bukti_transfer_' . time() . '_' . uniqid() . '.' . $this->bukti_pembayaran->getClientOriginalExtension();
                     $buktiTransferPath = $this->bukti_pembayaran->storeAs('bukti_pembayaran', $filename, 'public');
-                    \Log::info('File uploaded successfully', ['path' => $buktiTransferPath]);
                 } catch (\Exception $e) {
-                    \Log::error('File upload failed', ['error' => $e->getMessage()]);
                     session()->flash('error', 'Gagal mengupload bukti pembayaran: ' . $e->getMessage());
                     return;
                 }
             }
 
             DB::beginTransaction();
-            \Log::info('Database transaction started');
 
             $user = Auth::user();
             $pelanggan = Pelanggan::where('user_id', $user->id)->first();
-            \Log::info('User and pelanggan check', [
-                'user_id' => $user->id,
-                'pelanggan_found' => !!$pelanggan,
-                'keranjang_count' => $this->keranjangItems->count()
-            ]);
 
             if (!$pelanggan) {
-                \Log::error('Pelanggan not found for user', ['user_id' => $user->id]);
                 session()->flash('error', 'Profil pelanggan tidak ditemukan.');
                 return;
             } elseif ($this->keranjangItems->isEmpty()) {
-                \Log::error('Keranjang is empty');
                 session()->flash('error', 'Keranjang belanja kosong.');
                 return;
             }
 
             // Generate kode transaksi
             $kodeTransaksi = 'TRX-' . date('Ymd') . '-' . strtoupper(Str::random(6));
-            \Log::info('Generated transaction code', ['kode_transaksi' => $kodeTransaksi]);
 
             // Buat transaksi
             $transaksi = Transaksi::create([
@@ -210,7 +167,6 @@ new class extends Component
                 'status' => 'Pending',
                 'tipe_pesanan' => $this->tipe_pesanan,
             ]);
-            \Log::info('Transaksi created', ['transaksi_id' => $transaksi->id]);
 
             // Buat detail transaksi
             foreach ($this->keranjangItems as $item) {
@@ -221,25 +177,21 @@ new class extends Component
                         'jumlah' => $item->jumlah,
                         'sub_total' => $item->subtotal ?? ($item->harga_satuan * $item->jumlah),
                     ]);
-                    \Log::info('Detail transaksi created', [
-                        'detail_id' => $detailTransaksi->id,
-                        'produk_id' => $item->produk_id,
-                        'jumlah' => $item->jumlah,
-                        'sub_total' => $item->subtotal ?? ($item->harga_satuan * $item->jumlah)
-                    ]);
 
                     // Update stok produk
                     $produk = Produk::find($item->produk_id);
                     if ($produk) {
-                        $oldStok = $produk->stok;
                         $produk->decrement('stok', $item->jumlah);
-                        \Log::info('Stok updated', [
-                            'produk_id' => $produk->id,
-                            'old_stok' => $oldStok,
-                            'new_stok' => $produk->fresh()->stok,
-                            'decrement' => $item->jumlah
-                        ]);
                     }
+                } elseif ($item->customRequest) {
+                    // Handle custom request
+                    $detailTransaksi = DetailTransaksi::create([
+                        'transaksi_id' => $transaksi->id,
+                        'produk_id' => null, // Custom request tidak punya produk_id
+                        'custom_request_id' => $item->custom_request_id, // Simpan custom_request_id
+                        'jumlah' => $item->jumlah,
+                        'sub_total' => $item->subtotal ?? ($item->harga_satuan * $item->jumlah),
+                    ]);
                 }
             }
 
@@ -251,44 +203,28 @@ new class extends Component
                 'status' => $this->metode_pembayaran === 'cash' ? 'DIBAYAR' : 'PENDING',
                 'tanggal_bayar' => $this->metode_pembayaran === 'cash' ? now() : null,
             ]);
-            \Log::info('Pembayaran created', ['pembayaran_id' => $pembayaran->id, 'metode' => $this->metode_pembayaran]);
 
             // Update status transaksi
             if ($this->metode_pembayaran === 'cash') {
                 $transaksi->update(['status' => 'Diproses']);
-                \Log::info('Transaksi status updated to Diproses');
             }
 
             // Hapus keranjang setelah checkout
-            $deletedKeranjang = Keranjang::where('pelanggan_id', $pelanggan->id)->delete();
-            \Log::info('Keranjang cleared', ['deleted_count' => $deletedKeranjang]);
+            Keranjang::where('pelanggan_id', $pelanggan->id)->delete();
 
             DB::commit();
-            \Log::info('Database transaction committed successfully');
 
             $message = $this->metode_pembayaran === 'cash'
                 ? 'Pesanan berhasil dibuat! Silakan tunggu konfirmasi dari admin.'
                 : 'Pesanan berhasil dibuat! Silakan upload bukti pembayaran dan tunggu konfirmasi dari admin.';
 
             session()->flash('success', $message);
-            \Log::info('Success message set', ['message' => $message]);
 
             // Redirect ke halaman transaksi
-            \Log::info('Redirecting to transaksi page');
             $this->redirect(route('transaksi'));
 
         } catch (\Exception $e) {
             DB::rollBack();
-
-            // Log error untuk debugging
-            \Log::error('Checkout Error: ' . $e->getMessage(), [
-                'user_id' => Auth::id(),
-                'metode_pembayaran' => $this->metode_pembayaran,
-                'tipe_pesanan' => $this->tipe_pesanan,
-                'keranjang_count' => $this->keranjangItems ? $this->keranjangItems->count() : 0,
-                'trace' => $e->getTraceAsString()
-            ]);
-
             session()->flash('error', 'Terjadi kesalahan saat memproses checkout: ' . $e->getMessage());
         } finally {
             $this->isProcessing = false;
@@ -418,13 +354,24 @@ new class extends Component
                     @if($this->keranjangItems && $this->keranjangItems->count() > 0)
                     <div class="space-y-4">
                         @foreach($this->keranjangItems as $item)
-                        @if($item->produk)
                         <div class="flex gap-6 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
                             <div class="w-20 h-20 flex-shrink-0">
-                                @if($item->produk->foto)
+                                @if($item->produk && $item->produk->foto)
                                 <img src="{{ Storage::url($item->produk->foto) }}"
                                     alt="{{ $item->produk->nama_produk }}"
                                     class="w-full h-full object-cover rounded-xl border border-slate-200 dark:border-slate-600" />
+                                @elseif($item->customRequest)
+                                @if($item->customRequest->gambar_referensi)
+                                <img src="{{ Storage::url($item->customRequest->gambar_referensi) }}"
+                                    alt="Custom Request"
+                                    class="w-full h-full object-cover rounded-xl border border-slate-200 dark:border-slate-600" />
+                                @else
+                                <div
+                                    class="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 rounded-xl border-2 border-dashed border-purple-200 dark:border-purple-700">
+                                    <i
+                                        class="fa-solid fa-wand-magic-sparkles text-2xl text-purple-600 dark:text-purple-400"></i>
+                                </div>
+                                @endif
                                 @else
                                 <div
                                     class="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 rounded-xl border-2 border-dashed border-purple-200 dark:border-purple-700">
@@ -433,6 +380,7 @@ new class extends Component
                                 @endif
                             </div>
                             <div class="flex-grow">
+                                @if($item->produk)
                                 <h4 class="font-bold text-slate-800 dark:text-slate-100 text-lg">{{
                                     $item->produk->nama_produk }}</h4>
                                 <div class="flex items-center gap-2 mt-1">
@@ -442,6 +390,16 @@ new class extends Component
                                     <span class="text-sm text-slate-500 dark:text-slate-400">Qty: {{ $item->jumlah
                                         }}</span>
                                 </div>
+                                @elseif($item->customRequest)
+                                <h4 class="font-bold text-slate-800 dark:text-slate-100 text-lg">Pesanan Custom</h4>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span class="text-sm text-slate-500 dark:text-slate-400">Deskripsi: {{
+                                        Str::limit($item->customRequest->deskripsi, 50) ?? '-' }}</span>
+                                    <span class="text-sm text-slate-500 dark:text-slate-400">•</span>
+                                    <span class="text-sm text-slate-500 dark:text-slate-400">Qty: {{ $item->jumlah
+                                        }}</span>
+                                </div>
+                                @endif
                             </div>
                             <div class="text-right">
                                 <div class="text-lg font-bold text-indigo-600 dark:text-indigo-400">
@@ -453,7 +411,6 @@ new class extends Component
                                 </div>
                             </div>
                         </div>
-                        @endif
                         @endforeach
                     </div>
 
@@ -478,23 +435,6 @@ new class extends Component
                 </div>
 
                 @if($this->keranjangItems && $this->keranjangItems->count() > 0)
-                <!-- Debug Information -->
-                <div class="p-4 bg-yellow-100 border border-yellow-400 rounded-lg mb-4">
-                    <h4 class="font-bold text-yellow-800">Debug Information:</h4>
-                    <p><strong>Keranjang Items:</strong> {{ $this->keranjangItems ? $this->keranjangItems->count() :
-                        'null' }}</p>
-                    <p><strong>Total:</strong> {{ $this->total }}</p>
-                    <p><strong>Metode Pembayaran:</strong> {{ $this->metode_pembayaran }}</p>
-                    <p><strong>Tipe Pesanan:</strong> {{ $this->tipe_pesanan }}</p>
-                    <p><strong>User ID:</strong> {{ $this->user ? $this->user->id : 'null' }}</p>
-                    <p><strong>Pelanggan ID:</strong> {{ $this->pelanggan ? $this->pelanggan->id : 'null' }}</p>
-                    <p><strong>Bukti Pembayaran:</strong> {{ $this->bukti_pembayaran ? 'File uploaded' : 'No file' }}
-                    </p>
-                    @if($this->bukti_pembayaran)
-                    <p><strong>File Type:</strong> {{ is_object($this->bukti_pembayaran) ?
-                        get_class($this->bukti_pembayaran) : gettype($this->bukti_pembayaran) }}</p>
-                    @endif
-                </div>
 
                 <!-- Checkout Form -->
                 <form wire:submit="processCheckout" class="p-8 space-y-8">
@@ -747,6 +687,37 @@ new class extends Component
                             </h3>
 
                             <div class="space-y-4">
+                                @if($this->customRequest)
+                                <!-- Custom Request - Auto Selected & Disabled -->
+                                <div
+                                    class="p-6 border-2 border-purple-400 bg-purple-500/20 backdrop-blur-sm rounded-2xl">
+                                    <div class="flex items-center gap-4">
+                                        <i class="fa-solid fa-wand-magic-sparkles text-white text-2xl"></i>
+                                        <div class="flex-grow">
+                                            <div class="font-bold text-white text-lg">Pesanan Custom</div>
+                                            <div class="text-white/80">Produk sesuai permintaan khusus</div>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <i class="fa-solid fa-lock text-white/70"></i>
+                                            <span class="text-white/70 text-sm">Otomatis</span>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" wire:model="tipe_pesanan" value="custom">
+                                </div>
+
+                                <!-- Info bahwa pesanan biasa tidak tersedia -->
+                                <div class="p-4 bg-slate-500/20 border border-slate-400/30 rounded-xl">
+                                    <div class="flex items-center gap-3">
+                                        <i class="fa-solid fa-info-circle text-white/70"></i>
+                                        <div class="text-sm text-white/80">
+                                            <p class="font-medium">Pesanan Custom Terdeteksi</p>
+                                            <p>Tipe pesanan otomatis diset ke "Custom" karena ada permintaan khusus
+                                                dalam keranjang.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                @else
+                                <!-- Normal Order Selection -->
                                 <label
                                     class="flex items-center p-6 border-2 border-white/30 bg-white/10 backdrop-blur-sm rounded-2xl cursor-pointer hover:bg-white/20 transition-all duration-300">
                                     <input type="radio" wire:model="tipe_pesanan" value="biasa" class="mr-4">
@@ -755,19 +726,6 @@ new class extends Component
                                         <div>
                                             <div class="font-bold text-white text-lg">Pesanan Biasa</div>
                                             <div class="text-white/80">Produk yang sudah tersedia</div>
-                                        </div>
-                                    </div>
-                                </label>
-
-                                @if($this->customRequest)
-                                <label
-                                    class="flex items-center p-6 border-2 border-white/30 bg-white/10 backdrop-blur-sm rounded-2xl cursor-pointer hover:bg-white/20 transition-all duration-300">
-                                    <input type="radio" wire:model="tipe_pesanan" value="custom" class="mr-4">
-                                    <div class="flex items-center gap-4">
-                                        <i class="fa-solid fa-wand-magic-sparkles text-white text-2xl"></i>
-                                        <div>
-                                            <div class="font-bold text-white text-lg">Pesanan Custom</div>
-                                            <div class="text-white/80">Produk sesuai permintaan khusus</div>
                                         </div>
                                     </div>
                                 </label>
@@ -849,8 +807,6 @@ new class extends Component
             timeline: null,
 
             init() {
-                console.log('Alpine.js checkoutApp initialized');
-
                 // Initialize GSAP
                 this.timeline = gsap.timeline();
 
@@ -858,26 +814,14 @@ new class extends Component
                 this.selectedMethod = this.$wire.metode_pembayaran || 'cash';
                 this.updateVisualState(this.selectedMethod);
 
-                console.log('Initial state set:', {
-                    selectedMethod: this.selectedMethod,
-                    livewireMethod: this.$wire.metode_pembayaran,
-                    filePreview: this.filePreview
-                });
-
-                // Test if Alpine.js is working
-                console.log('Alpine.js $data:', this.$data);
-                console.log('Alpine.js $el:', this.$el);
-
                 // Listen for Livewire updates
                 this.$watch('$wire.metode_pembayaran', (value) => {
-                    console.log('Livewire metode_pembayaran changed to:', value);
                     this.selectedMethod = value;
                     this.updateVisualState(value);
                 });
 
                 // Listen for file uploads
                 this.$watch('$wire.bukti_pembayaran', (file) => {
-                    console.log('Livewire bukti_pembayaran changed to:', file);
                     if (file) {
                         this.handleFileUpload(file);
                     }
@@ -887,14 +831,8 @@ new class extends Component
 
             // Payment method selection
             selectPaymentMethod(method) {
-                console.log('Payment method selected:', method);
                 this.selectedMethod = method;
                 this.showUploadSection = method === 'transfer';
-
-                console.log('State updated:', {
-                    selectedMethod: this.selectedMethod,
-                    showUploadSection: this.showUploadSection
-                });
 
                 // Update Livewire state first
                 this.$wire.set('metode_pembayaran', method);
@@ -905,27 +843,16 @@ new class extends Component
 
             // Update visual state with GSAP animations
             updateVisualState(method) {
-                console.log('Updating visual state for method:', method);
-
                 const cashCard = document.getElementById('cash-card');
                 const transferCard = document.getElementById('transfer-card');
                 const cashCheck = document.getElementById('cash-check');
                 const transferCheck = document.getElementById('transfer-check');
 
-                console.log('Elements found:', {
-                    cashCard: !!cashCard,
-                    transferCard: !!transferCard,
-                    cashCheck: !!cashCheck,
-                    transferCheck: !!transferCheck
-                });
-
                 if (method === 'cash') {
-                    console.log('Setting cash as selected');
                     // Cash selected
                     this.animateCardSelection(cashCard, cashCheck, true);
                     this.animateCardSelection(transferCard, transferCheck, false);
                 } else if (method === 'transfer') {
-                    console.log('Setting transfer as selected');
                     // Transfer selected
                     this.animateCardSelection(transferCard, transferCheck, true);
                     this.animateCardSelection(cashCard, cashCheck, false);
@@ -991,20 +918,15 @@ new class extends Component
 
             // Handle file input change
             handleFileChange(event) {
-                console.log('File input change event triggered');
                 const file = event.target.files[0];
                 if (file) {
-                    console.log('File selected:', file.name);
                     this.handleFileUpload(file);
                 }
             },
 
             // File upload handling
             handleFileUpload(file) {
-                console.log('File upload triggered:', file);
-
                 if (!file) {
-                    console.log('No file provided');
                     return;
                 }
 
@@ -1014,31 +936,19 @@ new class extends Component
                 // Check if this is a Livewire file object
                 if (typeof file === 'string' || (file && file.constructor && file.constructor.name === 'Proxy')) {
                     // Livewire file object - show basic info
-                    console.log('Livewire file object detected');
                     this.filePreview = {
                         src: null,
                         name: 'File uploaded successfully',
                         size: 'Ready for upload'
                     };
-                    console.log('filePreview set (Livewire):', this.filePreview);
                     return;
                 }
 
                 // Regular file object
-                console.log('Regular file object detected');
-                console.log('File details:', {
-                    name: file.name,
-                    size: file.size,
-                    type: file.type
-                });
-
                 // Validate file
                 if (!this.validateFile(file)) {
-                    console.log('File validation failed');
                     return;
                 }
-
-                console.log('File validation passed, showing preview');
 
                 // Show preview
                 this.showFilePreview(file);
@@ -1055,21 +965,13 @@ new class extends Component
                     'application/pdf'
                 ];
 
-                console.log('Validating file:', {
-                    name: file.name,
-                    type: file.type,
-                    size: file.size
-                });
-
                 // Handle Livewire file objects or files with undefined properties
                 if (!file || (file.name === undefined && file.type === undefined && file.size === undefined)) {
-                    console.log('Livewire file object detected, skipping validation');
                     return true; // Let Livewire handle the validation
                 }
 
                 // Check if file has valid properties
                 if (file.name === undefined || file.type === undefined || file.size === undefined) {
-                    console.log('File properties undefined, treating as valid Livewire file');
                     return true; // Let Livewire handle the validation
                 }
 
@@ -1084,55 +986,43 @@ new class extends Component
                 const hasValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
 
                 if (!allowedTypes.includes(file.type) && !hasValidExtension) {
-                    console.log('File type not supported:', file.type);
                     this.fileError = 'Format file tidak didukung. Gunakan JPG, PNG, atau PDF.';
                     return false;
                 }
 
-                console.log('File validation passed');
                 return true;
             },
 
             // Show file preview
             showFilePreview(file) {
-                console.log('Showing file preview for:', file);
-
                 // Handle Livewire file objects
                 if (!file || (file.name === undefined && file.type === undefined && file.size === undefined)) {
-                    console.log('Livewire file object detected, showing basic preview');
                     this.filePreview = {
                         src: null,
                         name: 'File uploaded successfully',
                         size: 'Ready for upload'
                     };
-                    console.log('filePreview set (Livewire):', this.filePreview);
                     return;
                 }
 
                 // Handle files with undefined properties
                 if (file.name === undefined || file.type === undefined || file.size === undefined) {
-                    console.log('File properties undefined, showing basic preview');
                     this.filePreview = {
                         src: null,
                         name: 'File uploaded successfully',
                         size: 'Ready for upload'
                     };
-                    console.log('filePreview set (undefined props):', this.filePreview);
                     return;
                 }
-
-                console.log('Showing file preview for:', file.name);
 
                 // Regular file object - use FileReader
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    console.log('File reader loaded, setting filePreview');
                     this.filePreview = {
                         src: e.target.result,
                         name: file.name,
                         size: this.formatFileSize(file.size)
                     };
-                    console.log('filePreview set:', this.filePreview);
                 };
                 reader.readAsDataURL(file);
             },
@@ -1148,7 +1038,6 @@ new class extends Component
 
             // Remove file
             removeFile() {
-                console.log('Removing file');
                 this.uploadedFile = null;
                 this.filePreview = null;
                 this.fileError = null;
@@ -1161,32 +1050,26 @@ new class extends Component
 
                 // Update Livewire state
                 this.$wire.set('bukti_pembayaran', null);
-                console.log('File removed successfully');
             },
 
             // Drag and drop handlers
             handleDragOver(e) {
                 e.preventDefault();
                 this.isDragOver = true;
-                console.log('Drag over');
             },
 
             handleDragLeave(e) {
                 e.preventDefault();
                 this.isDragOver = false;
-                console.log('Drag leave');
             },
 
             handleDrop(e) {
                 e.preventDefault();
                 this.isDragOver = false;
 
-                console.log('File dropped');
                 const files = e.dataTransfer.files;
-                console.log('Files dropped:', files.length);
 
                 if (files.length > 0) {
-                    console.log('Processing dropped file:', files[0].name);
                     this.handleFileUpload(files[0]);
                 }
             }

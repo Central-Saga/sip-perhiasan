@@ -18,7 +18,6 @@ return new class extends Migration
             $table->string('ukuran')->nullable();
             $table->string('gambar_referensi')->nullable();
             $table->decimal('berat', 8, 2);
-            $table->foreignId('detail_transaksi_id')->nullable()->constrained('detail_transaksi')->onDelete('cascade');
             $table->enum('status', [
                 'pending',
                 'reviewed',
@@ -39,4 +38,3 @@ return new class extends Migration
         Schema::dropIfExists('custom_request');
     }
 };
-

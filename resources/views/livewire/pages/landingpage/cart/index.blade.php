@@ -37,11 +37,21 @@ $loadCartData = function () {
         ->where('pelanggan_id', $pelanggan->id)
         ->get();
 
+
     // Calculate total
     $this->total = 0;
     foreach ($this->keranjangItems as $item) {
         if ($item->produk_id) {
+            // If harga_satuan is null, try to get it from produk
+            if (!$item->harga_satuan && $item->produk) {
+                $item->harga_satuan = $item->produk->harga;
+                $item->subtotal = $item->harga_satuan * $item->jumlah;
+                $item->save();
+            }
             $this->total += $item->subtotal ?? ($item->harga_satuan * $item->jumlah);
+        } elseif ($item->custom_request_id && $item->customRequest && $item->customRequest->status === 'approved') {
+            // Include approved custom requests in total (custom request is always quantity 1)
+            $this->total += $item->harga_satuan ?? 0;
         }
     }
 
@@ -66,6 +76,11 @@ $updateQty = function($id, $delta) {
         if ($newQty > $item->produk->stok) {
             session()->flash('error', 'Jumlah yang diminta melebihi stok yang tersedia. Stok tersisa: ' . $item->produk->stok);
             return;
+        }
+
+        // Ensure harga_satuan is set
+        if (!$item->harga_satuan && $item->produk) {
+            $item->harga_satuan = $item->produk->harga;
         }
 
         $item->update([
@@ -274,12 +289,80 @@ $removeItem = function($id) {
                                     <div class="text-right">
                                         <div class="text-sm text-slate-500 dark:text-slate-400 mb-1">Harga Satuan</div>
                                         <div class="text-xl font-bold text-indigo-600 dark:text-indigo-400 mb-2">
-                                            Rp {{ number_format($item->harga_satuan, 0, ',', '.') }}
+                                            Rp {{ number_format($item->harga_satuan ?? 0, 0, ',', '.') }}
                                         </div>
                                         <div class="text-sm text-slate-500 dark:text-slate-400 mb-1">Subtotal</div>
                                         <div class="text-2xl font-black text-slate-900 dark:text-white">
-                                            Rp {{ number_format($item->subtotal ?? ($item->harga_satuan *
+                                            Rp {{ number_format($item->subtotal ?? (($item->harga_satuan ?? 0) *
                                             $item->jumlah), 0, ',', '.') }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @elseif($item->customRequest && $item->customRequest->status === 'approved')
+                    <!-- Custom Request Item -->
+                    <div class="p-8 hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition duration-300">
+                        <div class="flex gap-8">
+                            <!-- Custom Request Image -->
+                            <div
+                                class="w-32 h-32 md:w-36 md:h-36 flex-shrink-0 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-600 bg-slate-100 dark:bg-slate-700">
+                                @if($item->customRequest->gambar_referensi)
+                                <img src="{{ Storage::url($item->customRequest->gambar_referensi) }}"
+                                    alt="Custom Request"
+                                    class="w-full h-full object-cover cursor-pointer hover:scale-105 transition-transform duration-300"
+                                    onclick="openImageModal('{{ Storage::url($item->customRequest->gambar_referensi) }}', 'Custom Request')" />
+                                @else
+                                <div class="w-full h-full flex items-center justify-center text-purple-400">
+                                    <i class="fa-solid fa-wand-magic-sparkles text-4xl"></i>
+                                </div>
+                                @endif
+                            </div>
+
+                            <!-- Custom Request Details -->
+                            <div class="flex-grow">
+                                <div class="flex justify-between items-start mb-4">
+                                    <div>
+                                        <h4 class="font-bold text-slate-800 dark:text-slate-100 text-2xl mb-2">
+                                            Custom Request
+                                        </h4>
+                                        <div class="flex items-center gap-3">
+                                            <span
+                                                class="inline-flex items-center gap-1 rounded-full bg-purple-100 dark:bg-purple-900/30 px-3 py-1 text-sm font-medium text-purple-700 dark:text-purple-300 ring-1 ring-inset ring-purple-700/10">
+                                                <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>
+                                                {{ $item->customRequest->kategori ?? 'Custom' }}
+                                            </span>
+                                            <span class="text-sm text-slate-500 dark:text-slate-400">ID: {{
+                                                $item->customRequest->id }}</span>
+                                        </div>
+                                    </div>
+                                    <button wire:click="removeItem({{ $item->id }})"
+                                        class="p-3 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all duration-300 hover:scale-110"
+                                        title="Hapus"
+                                        onclick="return confirm('Hapus custom request ini dari keranjang?')">
+                                        <i class="fa-solid fa-trash text-lg"></i>
+                                    </button>
+                                </div>
+
+                                <div class="flex justify-between items-center">
+                                    <!-- Custom Request Info -->
+                                    <div class="flex items-center gap-4">
+                                        <span class="text-lg font-medium text-slate-700 dark:text-slate-300">
+                                            <i class="fa-solid fa-wand-magic-sparkles text-purple-500 mr-2"></i>
+                                            Custom Request
+                                        </span>
+                                        <span class="text-sm text-slate-500 dark:text-slate-400">
+                                            Status: {{ ucfirst(str_replace('_', ' ', $item->customRequest->status)) }}
+                                        </span>
+                                    </div>
+
+                                    <!-- Price -->
+                                    <div class="text-right">
+                                        <div class="text-sm text-slate-500 dark:text-slate-400 mb-1">Estimasi Harga
+                                        </div>
+                                        <div class="text-2xl font-black text-purple-600 dark:text-purple-400">
+                                            Rp {{ number_format($item->harga_satuan ?? 0, 0, ',', '.') }}
                                         </div>
                                     </div>
                                 </div>
@@ -307,89 +390,6 @@ $removeItem = function($id) {
                 </div>
                 @endif
 
-                @if($customRequests && count($customRequests) > 0)
-                <div class="border-t border-slate-200 dark:border-slate-700">
-                    <div class="p-8">
-                        <h3 class="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-3">
-                            <i class="fa-solid fa-wand-magic-sparkles text-purple-500"></i>
-                            Custom Requests ({{ count($customRequests) }})
-                        </h3>
-                        <div class="space-y-6">
-                            @foreach($customRequests as $index => $customRequest)
-                            <div
-                                class="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-2xl p-8 border border-purple-200 dark:border-purple-700">
-                                <div class="flex items-start gap-8">
-                                    <div
-                                        class="w-32 h-32 flex-shrink-0 rounded-2xl overflow-hidden border border-purple-200 dark:border-purple-700 bg-white dark:bg-slate-800">
-                                        @if($customRequest->gambar_referensi)
-                                        <img src="{{ asset('storage/' . $customRequest->gambar_referensi) }}"
-                                            class="w-full h-full object-cover" />
-                                        @else
-                                        <div class="w-full h-full flex items-center justify-center text-purple-400">
-                                            <i class="fa-solid fa-image text-4xl"></i>
-                                        </div>
-                                        @endif
-                                    </div>
-                                    <div class="flex-1">
-                                        <div class="flex items-center justify-between mb-4">
-                                            <div class="font-bold text-slate-800 dark:text-slate-100 text-xl">
-                                                Custom Request #{{ $index + 1 }}
-                                            </div>
-                                            <span
-                                                class="inline-flex items-center gap-2 rounded-full bg-purple-100 dark:bg-purple-900/30 px-4 py-2 text-sm font-medium text-purple-700 dark:text-purple-300 ring-1 ring-inset ring-purple-700/10">
-                                                <i class="fa-solid fa-clock"></i>
-                                                {{ $customRequest->status ?? 'pending' }}
-                                            </span>
-                                        </div>
-                                        <dl
-                                            class="text-slate-600 dark:text-slate-300 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
-                                            <div class="flex items-center gap-3">
-                                                <i class="fa-solid fa-tag text-slate-400"></i>
-                                                <span class="font-medium">Kategori:</span>
-                                                <span>{{ $customRequest->kategori ?? '-' }}</span>
-                                            </div>
-                                            <div class="flex items-center gap-3">
-                                                <i class="fa-solid fa-cube text-slate-400"></i>
-                                                <span class="font-medium">Material:</span>
-                                                <span>{{ $customRequest->material ?? '-' }}</span>
-                                            </div>
-                                            <div class="flex items-center gap-3">
-                                                <i class="fa-solid fa-expand text-slate-400"></i>
-                                                <span class="font-medium">Ukuran:</span>
-                                                <span>{{ $customRequest->ukuran ?? '-' }}</span>
-                                            </div>
-                                            <div class="flex items-center gap-3">
-                                                <i class="fa-solid fa-weight text-slate-400"></i>
-                                                <span class="font-medium">Berat:</span>
-                                                <span>{{ $customRequest->berat ?? 0 }} gram</span>
-                                            </div>
-                                        </dl>
-                                        @if($customRequest->deskripsi)
-                                        <p
-                                            class="mt-4 text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-600">
-                                            {{ $customRequest->deskripsi }}
-                                        </p>
-                                        @endif
-                                        <a href="{{ route('custom.detail') }}"
-                                            class="mt-6 inline-flex items-center gap-2 text-purple-600 dark:text-purple-400 font-medium hover:underline">
-                                            <i class="fa-solid fa-eye"></i>
-                                            Lihat Detail Lengkap
-                                        </a>
-                                    </div>
-                                </div>
-                                <div
-                                    class="mt-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl">
-                                    <div class="flex items-center gap-3 text-amber-700 dark:text-amber-300">
-                                        <i class="fa-solid fa-info-circle"></i>
-                                        <span class="font-medium">Harga akan ditentukan setelah konsultasi</span>
-                                    </div>
-                                </div>
-                            </div>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-                @endif
 
                 <!-- Summary Section -->
                 <div class="border-t border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30">

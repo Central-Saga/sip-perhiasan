@@ -18,9 +18,7 @@ class CustomRequest extends Model
         'ukuran',
         'gambar_referensi',
         'berat',
-        'detail_transaksi_id',
         'status'
-
     ];
 
     protected $casts = [
@@ -54,6 +52,6 @@ class CustomRequest extends Model
      */
     public function detailTransaksi()
     {
-        return $this->belongsTo(DetailTransaksi::class);
+        return $this->hasMany(DetailTransaksi::class);
     }
 }

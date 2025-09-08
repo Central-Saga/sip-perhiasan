@@ -21,7 +21,7 @@ mount(function ($id) {
         return redirect()->route('home');
     }
 
-    $this->transaksi = Transaksi::with(['detailTransaksi.produk', 'pengiriman', 'pembayaran', 'pelanggan.user'])
+    $this->transaksi = Transaksi::with(['detailTransaksi.produk', 'detailTransaksi.customRequest', 'pengiriman', 'pembayaran', 'pelanggan.user'])
         ->where('id', $id)
         ->where('pelanggan_id', $pelanggan->id)
         ->first();
@@ -276,11 +276,26 @@ function getStatusIcon($status) {
                                 <div
                                     class="flex items-center gap-6 p-6 bg-gradient-to-r from-slate-50 to-indigo-50 dark:from-slate-700/50 dark:to-indigo-900/20 rounded-xl border border-slate-200 dark:border-slate-600 hover:shadow-lg transition-all duration-300">
                                     <div class="w-24 h-24 flex-shrink-0">
-                                        @if($detail->produk && $detail->produk->foto)
+                                        @if($detail->customRequest)
+                                        <!-- Custom Request Image -->
+                                        @if($detail->customRequest->gambar_referensi)
+                                        <img src="{{ Storage::url($detail->customRequest->gambar_referensi) }}"
+                                            alt="Custom Request"
+                                            class="w-full h-full object-cover rounded-xl border border-slate-200 dark:border-slate-600">
+                                        @else
+                                        <div
+                                            class="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-100 to-red-100 dark:from-orange-900/30 dark:to-red-900/30 rounded-xl border-2 border-dashed border-orange-200 dark:border-orange-700">
+                                            <i
+                                                class="fa-solid fa-tools text-3xl text-orange-600 dark:text-orange-400"></i>
+                                        </div>
+                                        @endif
+                                        @elseif($detail->produk && $detail->produk->foto)
+                                        <!-- Regular Product Image -->
                                         <img src="{{ Storage::url($detail->produk->foto) }}"
                                             alt="{{ $detail->produk->nama_produk }}"
                                             class="w-full h-full object-cover rounded-xl border border-slate-200 dark:border-slate-600">
                                         @else
+                                        <!-- Default Image -->
                                         <div
                                             class="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 rounded-xl border-2 border-dashed border-purple-200 dark:border-purple-700">
                                             <i
@@ -289,6 +304,44 @@ function getStatusIcon($status) {
                                         @endif
                                     </div>
                                     <div class="flex-grow">
+                                        @if($detail->customRequest)
+                                        <!-- Custom Request Info -->
+                                        <h4 class="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">
+                                            Custom Request
+                                        </h4>
+                                        <div class="text-sm text-slate-500 dark:text-slate-400 mb-3">
+                                            <i class="fa-solid fa-tools mr-1"></i>
+                                            Kategori: {{ $detail->customRequest->kategori }}
+                                        </div>
+                                        @if($detail->customRequest->material)
+                                        <div class="text-sm text-slate-500 dark:text-slate-400 mb-3">
+                                            <i class="fa-solid fa-gem mr-1"></i>
+                                            Material: {{ $detail->customRequest->material }}
+                                        </div>
+                                        @endif
+                                        @if($detail->customRequest->ukuran)
+                                        <div class="text-sm text-slate-500 dark:text-slate-400 mb-3">
+                                            <i class="fa-solid fa-ruler mr-1"></i>
+                                            Ukuran: {{ $detail->customRequest->ukuran }}
+                                        </div>
+                                        @endif
+                                        <div class="text-sm text-slate-600 dark:text-slate-300 mb-3">
+                                            <i class="fa-solid fa-file-text mr-1"></i>
+                                            Deskripsi: {{ $detail->customRequest->deskripsi }}
+                                        </div>
+                                        <div class="flex items-center gap-6">
+                                            <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                                                <i class="fa-solid fa-hashtag"></i>
+                                                <span>{{ $detail->jumlah }} pcs</span>
+                                            </div>
+                                            <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                                                <i class="fa-solid fa-tag"></i>
+                                                <span>@ {{ number_format($detail->sub_total / $detail->jumlah, 0, ',',
+                                                    '.') }}</span>
+                                            </div>
+                                        </div>
+                                        @else
+                                        <!-- Regular Product Info -->
                                         <h4 class="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">
                                             {{ $detail->produk ? $detail->produk->nama_produk : 'Produk Tidak Tersedia'
                                             }}
@@ -306,13 +359,15 @@ function getStatusIcon($status) {
                                             </div>
                                             <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
                                                 <i class="fa-solid fa-tag"></i>
-                                                <span>@ {{ number_format($detail->harga_satuan, 0, ',', '.') }}</span>
+                                                <span>@ {{ number_format($detail->sub_total / $detail->jumlah, 0, ',',
+                                                    '.') }}</span>
                                             </div>
                                         </div>
+                                        @endif
                                     </div>
                                     <div class="text-right">
                                         <div class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
-                                            Rp {{ number_format($detail->subtotal, 0, ',', '.') }}
+                                            Rp {{ number_format($detail->sub_total, 0, ',', '.') }}
                                         </div>
                                         <div class="text-sm text-slate-500 dark:text-slate-400">Subtotal</div>
                                     </div>
