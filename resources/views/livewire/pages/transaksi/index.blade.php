@@ -13,7 +13,14 @@ state([
     'sortDirection' => 'desc',
     'page' => 1,
     'showDetailDrawer' => false,
+    'showEditDrawer' => false,
+    'showDeleteDialog' => false,
     'selectedTransaksi' => null,
+    'transaksiToDelete' => null,
+    'editStatus' => '',
+    'editPembayaran' => [
+        'status' => ''
+    ]
 ]);
 
 with(function () {
@@ -52,8 +59,65 @@ $closeDetailDrawer = function () {
     $this->selectedTransaksi = null;
 };
 
+$openEditDrawer = function ($transaksiId) {
+    $this->selectedTransaksi = Transaksi::with(['pelanggan.user', 'pembayaran'])->find($transaksiId);
+    $this->editStatus = $this->selectedTransaksi->status;
+    $this->editPembayaran = [
+        'status' => $this->selectedTransaksi->pembayaran?->status ?? ''
+    ];
+    $this->showEditDrawer = true;
+};
+
+$closeEditDrawer = function () {
+    $this->showEditDrawer = false;
+    $this->selectedTransaksi = null;
+    $this->editStatus = '';
+    $this->editPembayaran = [
+        'status' => ''
+    ];
+};
+
+$updateTransaksi = function () {
+    try {
+        $this->selectedTransaksi->update([
+            'status' => $this->editStatus
+        ]);
+
+        if ($this->selectedTransaksi->pembayaran) {
+            $this->selectedTransaksi->pembayaran->update([
+                'status' => $this->editPembayaran['status']
+            ]);
+        }
+
+        session()->flash('message', 'Transaksi berhasil diperbarui!');
+        $this->closeEditDrawer();
+    } catch (\Exception $e) {
+        session()->flash('error', 'Terjadi kesalahan saat memperbarui transaksi: ' . $e->getMessage());
+    }
+};
+
+$openDeleteDialog = function ($transaksiId) {
+    $this->transaksiToDelete = $transaksiId;
+    $this->showDeleteDialog = true;
+};
+
+$closeDeleteDialog = function () {
+    $this->showDeleteDialog = false;
+    $this->transaksiToDelete = null;
+};
+
 $delete = function ($id) {
-    Transaksi::find($id)?->delete();
+    try {
+        $transaksi = Transaksi::find($id);
+        if ($transaksi) {
+            $transaksi->delete();
+            session()->flash('message', 'Transaksi berhasil dihapus!');
+        }
+        $this->closeDeleteDialog();
+    } catch (\Exception $e) {
+        session()->flash('error', 'Terjadi kesalahan saat menghapus transaksi: ' . $e->getMessage());
+        $this->closeDeleteDialog();
+    }
 };
 ?>
 
@@ -80,6 +144,28 @@ $delete = function ($id) {
             </a>
         </div>
     </div>
+
+    <!-- Flash Messages -->
+    @if (session()->has('success'))
+    <div class="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg flex items-center">
+        <flux:icon name="check-circle" class="h-5 w-5 mr-2" />
+        {{ session('success') }}
+    </div>
+    @endif
+
+    @if (session()->has('error'))
+    <div class="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center">
+        <flux:icon name="exclamation-triangle" class="h-5 w-5 mr-2" />
+        {{ session('error') }}
+    </div>
+    @endif
+
+    @if (session()->has('message'))
+    <div class="mb-6 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg flex items-center">
+        <flux:icon name="information-circle" class="h-5 w-5 mr-2" />
+        {{ session('message') }}
+    </div>
+    @endif
 
     <!-- Search and Stats Cards -->
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
@@ -232,21 +318,22 @@ $delete = function ($id) {
 
                         <!-- Aksi -->
                         <td class="px-3 py-4 text-right text-sm font-medium">
-                            <div class="flex items-center justify-end space-x-1">
+                            <div class="flex items-center justify-end space-x-2">
                                 <button wire:click="openDetailDrawer({{ $transaksi->id }})"
-                                    class="inline-flex items-center px-2 py-1.5 border border-blue-500 text-blue-600 hover:bg-blue-50 rounded-lg transition duration-150 text-xs"
-                                    title="Detail">
-                                    <flux:icon name="eye" class="h-4 w-4" />
+                                    class="inline-flex items-center px-2.5 py-1.5 border border-blue-500 text-blue-600 hover:bg-blue-50 rounded-lg transition duration-150"
+                                    wire:navigate>
+                                    <flux:icon name="eye" class="h-4 w-4 mr-1" />
+                                    Detail
                                 </button>
-                                <a href="{{ route('transaksi.edit', $transaksi) }}"
-                                    class="inline-flex items-center px-2 py-1.5 border border-indigo-500 text-indigo-600 hover:bg-indigo-50 rounded-lg transition duration-150 text-xs"
-                                    wire:navigate title="Edit">
-                                    <flux:icon name="pencil-square" class="h-4 w-4" />
-                                </a>
-                                <button wire:click="delete({{ $transaksi->id }})"
-                                    class="inline-flex items-center px-2 py-1.5 border border-red-500 text-red-600 hover:bg-red-50 rounded-lg transition duration-150 text-xs"
-                                    wire:confirm="Apakah anda yakin ingin menghapus data ini?" title="Hapus">
-                                    <flux:icon name="trash" class="h-4 w-4" />
+                                <button wire:click="openEditDrawer({{ $transaksi->id }})"
+                                    class="inline-flex items-center px-2.5 py-1.5 border border-indigo-500 text-indigo-600 hover:bg-indigo-50 rounded-lg transition duration-150">
+                                    <flux:icon name="pencil-square" class="h-4 w-4 mr-1" />
+                                    Edit
+                                </button>
+                                <button wire:click="openDeleteDialog({{ $transaksi->id }})"
+                                    class="inline-flex items-center px-2.5 py-1.5 border border-red-500 text-red-600 hover:bg-red-50 rounded-lg transition duration-150">
+                                    <flux:icon name="trash" class="h-4 w-4 mr-1" />
+                                    Hapus
                                 </button>
                             </div>
                         </td>
@@ -564,9 +651,176 @@ $delete = function ($id) {
         <x-slot:actions>
             <x-mary-button label="Tutup" wire:click="closeDetailDrawer" class="btn-ghost" />
             @if($selectedTransaksi)
-            <x-mary-button label="Edit" href="{{ route('transaksi.edit', $selectedTransaksi) }}" class="btn-primary" />
+            <x-mary-button label="Edit" wire:click="openEditDrawer({{ $selectedTransaksi->id }})" class="btn-primary" />
             @endif
         </x-slot:actions>
     </x-mary-drawer>
+
+    <!-- Edit Drawer -->
+    <x-mary-drawer wire:model="showEditDrawer" class="w-96" right>
+        <x-slot:title>
+            Edit Transaksi
+        </x-slot:title>
+
+        @if($selectedTransaksi)
+        <div class="space-y-6">
+            <!-- Status Transaksi -->
+            <x-mary-card class="bg-gradient-to-r from-blue-50 to-emerald-50">
+                <x-slot:title class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <flux:icon name="cog" class="h-4 w-4" />
+                    Edit Status Transaksi
+                </x-slot:title>
+                <div class="space-y-4 mt-3">
+                    <div>
+                        <x-mary-select wire:model="editStatus" label="Status Transaksi" placeholder="Pilih status..."
+                            :options="[
+                                        ['id' => 'PENDING', 'name' => 'PENDING'],
+                                        ['id' => 'DIPROSES', 'name' => 'DIPROSES'],
+                                        ['id' => 'SELESAI', 'name' => 'SELESAI'],
+                                        ['id' => 'DIBATALKAN', 'name' => 'DIBATALKAN']
+                                    ]" option-value="id" option-label="name" />
+                    </div>
+                </div>
+            </x-mary-card>
+
+            <!-- Status Pembayaran -->
+            @if($selectedTransaksi->pembayaran)
+            <x-mary-card class="bg-gradient-to-r from-purple-50 to-pink-50">
+                <x-slot:title class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <flux:icon name="credit-card" class="h-4 w-4" />
+                    Edit Status Pembayaran
+                </x-slot:title>
+                <div class="space-y-4 mt-3">
+                    <div>
+                        <x-mary-select wire:model="editPembayaran.status" label="Status Pembayaran"
+                            placeholder="Pilih status..." :options="[
+                                    ['id' => 'PENDING', 'name' => 'PENDING'],
+                                    ['id' => 'DIBAYAR', 'name' => 'DIBAYAR'],
+                                    ['id' => 'SELESAI', 'name' => 'SELESAI'],
+                                    ['id' => 'DITOLAK', 'name' => 'DITOLAK']
+                                ]" option-value="id" option-label="name" />
+                    </div>
+                </div>
+            </x-mary-card>
+            @else
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div class="flex items-center">
+                    <flux:icon name="exclamation-triangle" class="h-5 w-5 text-yellow-400 mr-2" />
+                    <p class="text-sm text-yellow-800">Transaksi ini belum memiliki data pembayaran.</p>
+                </div>
+            </div>
+            @endif
+
+            <!-- Preview Current Data -->
+            <x-mary-card class="bg-gradient-to-r from-gray-50 to-slate-50">
+                <x-slot:title class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <flux:icon name="eye" class="h-4 w-4" />
+                    Preview Data
+                </x-slot:title>
+                <div class="space-y-3">
+                    <div>
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Kode Transaksi</p>
+                        <p class="text-sm text-gray-900 mt-1 font-mono">{{ $selectedTransaksi->kode_transaksi }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Pelanggan</p>
+                        <p class="text-sm text-gray-900 mt-1">{{ $selectedTransaksi->pelanggan->user->name }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Harga</p>
+                        <p class="text-sm text-gray-900 mt-1">Rp {{ number_format($selectedTransaksi->total_harga, 0,
+                            ',', '.') }}</p>
+                    </div>
+                </div>
+            </x-mary-card>
+        </div>
+        @endif
+
+        <x-slot:actions>
+            <x-mary-button label="Batal" wire:click="closeEditDrawer" class="btn-ghost" />
+            <x-mary-button label="Simpan" wire:click="updateTransaksi" class="btn-primary" />
+        </x-slot:actions>
+    </x-mary-drawer>
+
+    <!-- Delete Modal -->
+    @if($showDeleteDialog)
+    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center;"
+        wire:click="closeDeleteDialog">
+        <div style="background: white; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-width: 400px; width: 90%; margin: 20px;"
+            wire:click.stop>
+
+            <!-- Header -->
+            <div
+                style="background: linear-gradient(135deg, #fef2f2 0%, #fff7ed 100%); padding: 24px; border-bottom: 1px solid #fecaca; border-radius: 16px 16px 0 0;">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div style="position: relative;">
+                        <div
+                            style="width: 56px; height: 56px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.3);">
+                            <flux:icon name="exclamation-triangle" style="width: 28px; height: 28px; color: white;" />
+                        </div>
+                        <div
+                            style="position: absolute; top: -4px; right: -4px; width: 20px; height: 20px; background: #f87171; border-radius: 50%; animation: pulse 2s infinite;">
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 18px; font-weight: 700; color: #111827; margin: 0 0 4px 0;">Konfirmasi
+                            Hapus Transaksi</h3>
+                        <p style="font-size: 14px; color: #6b7280; margin: 0;">Tindakan yang tidak dapat dibatalkan</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div style="padding: 24px;">
+                <div style="background: #fffbeb; border: 1px solid #fed7aa; border-radius: 12px; padding: 16px;">
+                    <div style="display: flex; align-items: flex-start; gap: 12px;">
+                        <flux:icon name="information-circle"
+                            style="width: 20px; height: 20px; color: #d97706; margin-top: 2px; flex-shrink: 0;" />
+                        <div>
+                            <p style="color: #92400e; font-weight: 600; font-size: 14px; margin: 0 0 4px 0;">⚠️
+                                Peringatan!</p>
+                            <p style="color: #b45309; font-size: 14px; line-height: 1.5; margin: 0;">
+                                Apakah Anda yakin ingin menghapus transaksi ini? Semua data terkait akan dihapus
+                                secara
+                                permanen dan tidak dapat dipulihkan.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div style="padding: 0 24px 24px 24px;">
+                <div style="display: flex; gap: 12px;">
+                    <button type="button" wire:click="closeDeleteDialog"
+                        style="flex: 1; padding: 12px 16px; font-size: 14px; font-weight: 500; color: #374151; background: white; border: 1px solid #d1d5db; border-radius: 8px; cursor: pointer; transition: all 0.2s;"
+                        onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='white'">
+                        Batal
+                    </button>
+                    <button type="button" wire:click="delete({{ $transaksiToDelete }})"
+                        style="flex: 1; padding: 12px 16px; font-size: 14px; font-weight: 500; color: white; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border: none; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3); transition: all 0.2s;"
+                        onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 10px 15px -3px rgba(239, 68, 68, 0.4)'"
+                        onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 6px -1px rgba(239, 68, 68, 0.3)'">
+                        Ya, Hapus
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+    </style>
+    @endif
 </div>
 </div>

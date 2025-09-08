@@ -206,7 +206,7 @@ new class extends Component
 
             // Update status transaksi
             if ($this->metode_pembayaran === 'cash') {
-                $transaksi->update(['status' => 'Diproses']);
+                $transaksi->update(['status' => 'DIPROSES']);
             }
 
             // Hapus keranjang setelah checkout
