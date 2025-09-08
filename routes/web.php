@@ -147,8 +147,6 @@ Route::middleware(['auth', 'admin.access'])->prefix('admin')->group(function () 
 
     // Custom Request Routes
     Volt::route('custom-request', 'pages.custom-request.index')->name('custom-request.index');
-    Volt::route('custom-request/create', 'pages.custom-request.create')->name('custom-request.create');
-    Volt::route('custom-request/{customRequest}/edit', 'pages.custom-request.edit')->name('custom-request.edit');
 });
 
 require __DIR__ . '/auth.php';
