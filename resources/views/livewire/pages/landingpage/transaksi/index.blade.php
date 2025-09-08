@@ -33,6 +33,7 @@ function getStatusColor($status) {
         'Diproses' => 'bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-800 dark:from-blue-900/20 dark:to-indigo-900/20 dark:text-blue-300 border border-blue-200 dark:border-blue-800',
         'Selesai' => 'bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 dark:from-green-900/20 dark:to-emerald-900/20 dark:text-green-300 border border-green-200 dark:border-green-800',
         'Dibatalkan' => 'bg-gradient-to-r from-red-100 to-pink-100 text-red-800 dark:from-red-900/20 dark:to-pink-900/20 dark:text-red-300 border border-red-200 dark:border-red-800',
+        'DITOLAK' => 'bg-gradient-to-r from-orange-100 to-red-100 text-orange-800 dark:from-orange-900/20 dark:to-red-900/20 dark:text-orange-300 border border-orange-200 dark:border-orange-800',
         default => 'bg-gradient-to-r from-slate-100 to-gray-100 text-slate-800 dark:from-slate-700 dark:to-gray-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600'
     };
 }
@@ -43,6 +44,7 @@ function getStatusIcon($status) {
         'Diproses' => 'fa-cog fa-spin',
         'Selesai' => 'fa-check-circle',
         'Dibatalkan' => 'fa-times-circle',
+        'DITOLAK' => 'fa-exclamation-triangle',
         default => 'fa-question-circle'
     };
 }
@@ -348,6 +350,15 @@ function getStatusIcon($status) {
                                         <i class="fa-solid fa-eye"></i>
                                         <span>Lihat Detail Lengkap</span>
                                     </a>
+
+                                    @if($transaksi->pembayaran && $transaksi->pembayaran->status === 'DITOLAK' &&
+                                    $transaksi->pembayaran->metode === 'transfer')
+                                    <a href="{{ route('transaksi.detail', $transaksi->id) }}"
+                                        class="flex-1 sm:flex-none px-8 py-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-3 shadow-xl hover:shadow-2xl transform hover:scale-105">
+                                        <i class="fa-solid fa-upload"></i>
+                                        <span>Upload Ulang Bukti</span>
+                                    </a>
+                                    @endif
 
                                     @if($transaksi->status === 'Pending')
                                     <button
