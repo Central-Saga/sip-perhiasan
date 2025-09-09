@@ -10,7 +10,9 @@ new class extends Component {
     @include('partials.settings-heading')
 
     <x-settings.layout :heading="__('Appearance')" :subheading=" __('Update the appearance settings for your account')">
-        <flux:radio.group x-data variant="segmented" x-model="$flux.appearance">
+        <flux:radio.group x-data="{ value: localStorage.getItem('theme') || 'dark' }"
+            x-init="if (window.themeManager) { window.themeManager.setTheme(value) }" x-model="value"
+            x-effect="if (window.themeManager) { window.themeManager.setTheme(value) }" variant="segmented">
             <flux:radio value="light" icon="sun">{{ __('Light') }}</flux:radio>
             <flux:radio value="dark" icon="moon">{{ __('Dark') }}</flux:radio>
             <flux:radio value="system" icon="computer-desktop">{{ __('System') }}</flux:radio>

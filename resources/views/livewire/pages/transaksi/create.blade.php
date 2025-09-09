@@ -1,0 +1,145 @@
+<?php
+use function Livewire\Volt\{ layout, title, state, with };
+use App\Models\Transaksi;
+use App\Models\DetailTransaksi;
+use App\Models\Produk;
+use App\Models\Pelanggan;
+
+layout('components.layouts.admin');
+title('Transaksi - Tambah');
+
+state([
+    'user_id' => '',
+    'produk_id' => '',
+    'jumlah' => 1,
+    'status' => 'PENDING',
+]);
+
+with(function () {
+    $users = Pelanggan::with('user')->get()->pluck('user')->filter();
+    $produks = Produk::where('status', true)->get();
+
+    $harga = 0;
+    if ($this->produk_id) {
+        $harga = optional(Produk::find($this->produk_id))->harga ?? 0;
+    }
+    $totalHarga = ((int)($this->jumlah ?: 0)) * ((int)$harga);
+
+    return compact('users', 'produks', 'totalHarga');
+});
+
+$save = function () {
+    $this->validate([
+        'user_id' => ['required', 'exists:users,id'],
+        'produk_id' => ['required', 'exists:produk,id'],
+        'jumlah' => ['required', 'integer', 'min:1'],
+        'status' => ['required', 'string'],
+    ]);
+
+    $pelanggan = Pelanggan::where('user_id', $this->user_id)->firstOrFail();
+    $produk = Produk::findOrFail($this->produk_id);
+    $total = (int)$this->jumlah * (int)$produk->harga;
+
+    $transaksi = Transaksi::create([
+        'user_id' => $this->user_id,
+        'pelanggan_id' => $pelanggan->id,
+        'kode_transaksi' => 'TRX-' . date('Ymd') . '-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT),
+        'total_harga' => $total,
+        'status' => $this->status,
+        'tipe_pesanan' => 'biasa',
+    ]);
+
+    DetailTransaksi::create([
+        'transaksi_id' => $transaksi->id,
+        'produk_id' => $produk->id,
+        'jumlah' => (int)$this->jumlah,
+        'sub_total' => $total,
+    ]);
+
+    session()->flash('message', 'Transaksi berhasil dibuat.');
+    return redirect()->route('transaksi.index');
+};
+?>
+
+<div>
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
+                <div class="p-6 lg:p-8">
+                    <form wire:submit="save">
+                        <div class="grid grid-cols-6 gap-6">
+                            <div class="col-span-6 sm:col-span-4">
+                                <x-label for="user_id" value="Pelanggan" />
+                                <x-select id="user_id" class="mt-1 block w-full" wire:model="user_id">
+                                    <option value="">Pilih Pelanggan</option>
+                                    @foreach($users as $user)
+                                    <option value="{{ $user->id }}">{{ $user->name }} - {{ $user->email }}</option>
+                                    @endforeach
+                                </x-select>
+                                @error('user_id')
+                                <span class="text-red-500 text-sm mt-2 block">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <div class="col-span-6 sm:col-span-4">
+                                <x-label for="produk_id" value="Produk" />
+                                <x-select id="produk_id" class="mt-1 block w-full" wire:model="produk_id">
+                                    <option value="">Pilih Produk</option>
+                                    @foreach($produks as $produk)
+                                    <option value="{{ $produk->id }}">{{ $produk->nama_produk }} - Rp {{
+                                        number_format($produk->harga, 0, ',', '.') }}</option>
+                                    @endforeach
+                                </x-select>
+                                @error('produk_id')
+                                <span class="text-red-500 text-sm mt-2 block">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <div class="col-span-6 sm:col-span-2">
+                                <x-label for="jumlah" value="Jumlah" />
+                                <x-input id="jumlah" type="number" class="mt-1 block w-full" wire:model="jumlah"
+                                    min="1" />
+                                @error('jumlah')
+                                <span class="text-red-500 text-sm mt-2 block">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            <div class="col-span-6 sm:col-span-3">
+                                <x-label for="status" value="Status" />
+                                <x-select id="status" class="mt-1 block w-full" wire:model="status">
+                                    <option value="PENDING">Pending</option>
+                                    <option value="DIPROSES">Diproses</option>
+                                    <option value="SELESAI">Selesai</option>
+                                    <option value="DIBATALKAN">Dibatalkan</option>
+                                </x-select>
+                                @error('status')
+                                <span class="text-red-500 text-sm mt-2 block">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            @if(isset($totalHarga) && $totalHarga)
+                            <div class="col-span-6">
+                                <div class="bg-gray-50 px-4 py-3 sm:px-6">
+                                    <div class="text-lg font-medium text-gray-900">
+                                        Total Harga: Rp {{ number_format($totalHarga, 0, ',', '.') }}
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
+                        </div>
+
+                        <div class="flex items-center justify-end mt-8">
+                            <x-button.link href="{{ route('transaksi.index') }}" class="mr-3">
+                                {{ __('Batal') }}
+                            </x-button.link>
+
+                            <x-button type="submit">
+                                {{ __('Simpan') }}
+                            </x-button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
