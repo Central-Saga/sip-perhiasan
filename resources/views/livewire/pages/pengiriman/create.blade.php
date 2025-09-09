@@ -1,76 +1,142 @@
 <?php
+use function Livewire\Volt\layout;
+use function Livewire\Volt\title;
+use function Livewire\Volt\state;
 
-use Livewire\Volt\Component;
-use function Livewire\Volt\{ layout, title };
 layout('components.layouts.admin');
 title('Pengiriman - Tambah');
+use App\Models\Pengiriman;
+use App\Models\Transaksi;
 
-new class extends Component {
-    //
-}; ?>
+// Form state
+state([
+    'transaksi_id' => '',
+    'status' => 'PENDING',
+    'deskripsi' => '',
+    'tanggal_pengiriman' => '',
+]);
 
-@php
-    use App\Models\Transaksi;
-    $transaksis = Transaksi::all();
-@endphp
+$getStatusOptions = function () {
+    return [
+        ['id' => 'PENDING', 'name' => 'Pending', 'hint' => 'Menunggu pengiriman.'],
+        ['id' => 'DIKIRIM', 'name' => 'Dikirim', 'hint' => 'Sedang dalam perjalanan.'],
+        ['id' => 'SELESAI', 'name' => 'Selesai', 'hint' => 'Sudah sampai tujuan.'],
+    ];
+};
+
+$getTransaksiOptions = function () {
+    return Transaksi::all()->map(function ($transaksi) {
+        return [
+            'id' => $transaksi->id,
+            'name' => $transaksi->kode_transaksi,
+            'hint' => 'Transaksi #' . $transaksi->id
+        ];
+    })->toArray();
+};
+
+$save = function () {
+    $this->validate([
+        'transaksi_id' => 'required|exists:transaksi,id',
+        'status' => 'required|in:PENDING,DIKIRIM,SELESAI',
+        'deskripsi' => 'required|string|max:500',
+        'tanggal_pengiriman' => 'required|date',
+    ]);
+
+    Pengiriman::create([
+        'transaksi_id' => $this->transaksi_id,
+        'status' => $this->status,
+        'deskripsi' => $this->deskripsi,
+        'tanggal_pengiriman' => $this->tanggal_pengiriman,
+    ]);
+
+    session()->flash('success', 'Pengiriman berhasil ditambahkan!');
+    return redirect()->route('pengiriman.index');
+};
+?>
+
 <div>
-    <div class="py-10 bg-white min-h-screen">
-        <div class="max-w-7xl mx-auto">
-            <div class="mb-8">
-                <h2 class="text-3xl font-bold text-gray-900">Tambah Pengiriman Baru</h2>
-                <p class="text-base text-gray-600 mt-1">Masukkan detail pengiriman dengan lengkap.</p>
+    <div class="py-12 bg-gradient-to-br from-indigo-50 to-purple-50 min-h-screen">
+        <div class="max-w-2xl mx-auto">
+            <!-- Header Card -->
+            <div class="flex items-center space-x-4 mb-8">
+                <div class="p-3 bg-white rounded-lg shadow-sm">
+                    <flux:icon name="paper-airplane" class="h-8 w-8 text-indigo-600" />
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">Tambah Pengiriman Baru</h2>
+                    <p class="text-sm text-gray-600 mt-1 flex items-center">
+                        <flux:icon name="information-circle" class="h-4 w-4 mr-1 text-gray-400" />
+                        Isi data pengiriman dengan benar untuk melacak pesanan perhiasan.
+                    </p>
+                </div>
             </div>
-            <div class="bg-white border border-gray-200 shadow-xl rounded-2xl p-10">
-                <form method="POST" action="{{ route('pengiriman.store') }}">
-                    @csrf
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                        <div class="space-y-6">
-                            <div>
-                                <label for="transaksi_id" class="block text-base font-medium text-gray-700 mb-1">Transaksi</label>
-                                <select id="transaksi_id" name="transaksi_id" class="w-full py-3 px-4 rounded-lg text-base border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 bg-white">
-                                    <option value="">Pilih Transaksi</option>
-                                    @foreach($transaksis as $transaksi)
-                                        <option value="{{ $transaksi->id }}">{{ $transaksi->kode_transaksi }}</option>
-                                    @endforeach
-                                </select>
-                                @error('transaksi_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                            </div>
-                            <div>
-                                <label for="status" class="block text-base font-medium text-gray-700 mb-1">Status</label>
-                                <select id="status" name="status" class="w-full py-3 px-4 rounded-lg text-base border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 bg-white">
-                                    <option value="">Pilih Status</option>
-                                    <option value="PENDING">Pending</option>
-                                    <option value="DIKIRIM">Dikirim</option>
-                                    <option value="SELESAI">Selesai</option>
-                                </select>
-                                @error('status') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                            </div>
-                            <div>
-                                <label for="kurir" class="block text-base font-medium text-gray-700 mb-1">Kurir</label>
-                                <input type="text" id="kurir" name="kurir" class="w-full py-3 px-4 rounded-lg text-base border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 bg-white" placeholder="Nama kurir" value="{{ old('kurir') }}">
-                                @error('kurir') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                            </div>
-                            <div>
-                                <label for="no_resi" class="block text-base font-medium text-gray-700 mb-1">Nomor Resi</label>
-                                <input type="text" id="no_resi" name="no_resi" class="w-full py-3 px-4 rounded-lg text-base border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 bg-white" placeholder="Nomor resi pengiriman" value="{{ old('no_resi') }}">
-                                @error('no_resi') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                            </div>
-                            <div>
-                                <label for="alamat" class="block text-base font-medium text-gray-700 mb-1">Alamat</label>
-                                <textarea id="alamat" name="alamat" rows="4" class="w-full py-3 px-4 rounded-lg text-base border border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 bg-white" placeholder="Alamat pengiriman">{{ old('alamat') }}</textarea>
-                                @error('alamat') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                            </div>
+
+            <!-- Form Card dengan Mary UI -->
+            <x-mary-card class="bg-white/90 backdrop-blur-xl shadow-xl p-8">
+                <form wire:submit.prevent="save">
+                    <div class="grid grid-cols-1 gap-6">
+                        <!-- Transaksi -->
+                        <div class="form-control">
+                            <x-mary-select label="Transaksi" wire:model="transaksi_id"
+                                :options="$this->getTransaksiOptions()" icon="o-shopping-cart"
+                                placeholder="Pilih Transaksi" />
                         </div>
+                        @error('transaksi_id')
+                        <x-mary-alert icon="o-exclamation-triangle" class="alert-error text-sm">
+                            {{ $message }}
+                        </x-mary-alert>
+                        @enderror
+
+                        <!-- Status -->
+                        <div class="form-control">
+                            <x-mary-radio label="Status Pengiriman" wire:model="status"
+                                :options="$this->getStatusOptions()" class="radio-primary" />
+                        </div>
+                        @error('status')
+                        <x-mary-alert icon="o-exclamation-triangle" class="alert-error text-sm">
+                            {{ $message }}
+                        </x-mary-alert>
+                        @enderror
+
+                        <!-- Deskripsi -->
+                        <x-mary-textarea label="Deskripsi" wire:model="deskripsi" placeholder="Deskripsi pengiriman..."
+                            icon="o-document-text" rows="4" class="textarea-bordered" />
+                        @error('deskripsi')
+                        <x-mary-alert icon="o-exclamation-triangle" class="alert-error text-sm">
+                            {{ $message }}
+                        </x-mary-alert>
+                        @enderror
+
+                        <!-- Tanggal Pengiriman -->
+                        <x-mary-input label="Tanggal Pengiriman" wire:model="tanggal_pengiriman" type="date"
+                            icon="o-calendar" class="input-bordered" />
+                        @error('tanggal_pengiriman')
+                        <x-mary-alert icon="o-exclamation-triangle" class="alert-error text-sm">
+                            {{ $message }}
+                        </x-mary-alert>
+                        @enderror
                     </div>
+
+                    <!-- Tombol -->
                     <div class="flex items-center justify-end mt-10 gap-3">
-                        <a href="{{ route('pengiriman.index') }}" class="px-6 py-3 text-indigo-600 border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 rounded-lg font-medium shadow">Batal</a>
-                        <button type="submit" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold shadow-md flex items-center">
-                            <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
-                            Simpan
-                        </button>
+                        <x-mary-button label="Batal" link="{{ route('pengiriman.index') }}" class="btn-outline" />
+                        <x-mary-button label="Simpan" type="submit" class="btn-primary" spinner="save" />
                     </div>
                 </form>
-            </div>
+
+                <!-- Flash Messages -->
+                @if (session()->has('success'))
+                <x-mary-alert icon="o-check-circle" class="alert-success mt-6">
+                    {{ session('success') }}
+                </x-mary-alert>
+                @endif
+
+                @if (session()->has('error'))
+                <x-mary-alert icon="o-exclamation-triangle" class="alert-error mt-6">
+                    {{ session('error') }}
+                </x-mary-alert>
+                @endif
+            </x-mary-card>
         </div>
     </div>
 </div>

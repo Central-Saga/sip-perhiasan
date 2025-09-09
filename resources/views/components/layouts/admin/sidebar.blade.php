@@ -52,12 +52,12 @@
             </flux:navlist.item>
             @endcan
 
-            @can('mengelola pembayaran')
+            {{-- @can('mengelola pembayaran')
             <flux:navlist.item icon="currency-dollar" :href="route('pembayaran.index')"
                 :current="request()->routeIs('pembayaran.*')">
                 {{ __('Pembayaran') }}
             </flux:navlist.item>
-            @endcan
+            @endcan --}}
 
             @can('mengelola custom request')
             <flux:navlist.item icon="document-text" :href="route('custom-request.index')"
