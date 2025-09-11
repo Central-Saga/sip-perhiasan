@@ -70,7 +70,10 @@ $openEditDrawer = function ($transaksiId) {
 
 $closeEditDrawer = function () {
     $this->showEditDrawer = false;
-    $this->selectedTransaksi = null;
+    // Hanya reset selectedTransaksi bila drawer detail tidak terbuka
+    if (!$this->showDetailDrawer) {
+        $this->selectedTransaksi = null;
+    }
     $this->editStatus = '';
     $this->editPembayaran = [
         'status' => ''
@@ -86,6 +89,17 @@ $updateTransaksi = function () {
         if ($this->selectedTransaksi->pembayaran) {
             $this->selectedTransaksi->pembayaran->update([
                 'status' => $this->editPembayaran['status']
+            ]);
+        }
+
+        // Refresh data pada panel detail bila masih terbuka
+        if ($this->showDetailDrawer && $this->selectedTransaksi) {
+            $this->selectedTransaksi = $this->selectedTransaksi->fresh()->load([
+                'pelanggan.user',
+                'detailTransaksi.produk',
+                'detailTransaksi.customRequest',
+                'pembayaran',
+                'pengiriman'
             ]);
         }
 
