@@ -156,6 +156,21 @@ $save = function () {
                             {{ $message }}
                         </x-mary-alert>
                         @enderror
+
+                        <!-- Preview Foto -->
+                        <div class="mt-2">
+                            <div class="text-sm text-gray-600 mb-2">Preview:</div>
+                            <div class="relative w-48 h-48 rounded-lg overflow-hidden border bg-gray-50 flex items-center justify-center">
+                                <div wire:loading wire:target="foto" class="absolute inset-0 grid place-content-center bg-white/60 text-gray-700 text-sm">
+                                    Mengunggah...
+                                </div>
+                                @if ($foto)
+                                    <img src="{{ $foto->temporaryUrl() }}" alt="Preview Foto Produk" class="object-cover w-full h-full">
+                                @else
+                                    <span class="text-gray-400 text-sm">Belum ada gambar</span>
+                                @endif
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Tombol -->
