@@ -5,6 +5,7 @@ use App\Models\Pelanggan;
 use App\Models\CustomRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 layout('components.layouts.landing');
 
@@ -224,21 +225,34 @@ $removeItem = function($id) {
                         <div class="flex gap-8">
                             <!-- Product Image -->
                             <div class="w-32 h-32 md:w-36 md:h-36 flex-shrink-0">
-                                @if($item->produk->foto)
+                                @php
+                                    $fotoPath = $item->produk->foto ?? null;
+                                    if ($fotoPath) {
+                                        $fotoPath = str_replace('\\', '/', $fotoPath);
+                                        if (Str::startsWith($fotoPath, ['http://', 'https://', '/'])) {
+                                            $imgSrc = $fotoPath;
+                                        } elseif (Str::startsWith($fotoPath, ['assets/', 'img/', 'images/', 'storage/'])) {
+                                            $imgSrc = asset($fotoPath);
+                                        } else {
+                                            $imgSrc = Storage::url($fotoPath);
+                                        }
+                                    }
+                                @endphp
+                                @if(!empty($fotoPath))
                                 <div class="relative group">
-                                    <img src="{{ Storage::url($item->produk->foto) }}"
+                                    <img src="{{ $imgSrc }}"
                                         alt="{{ $item->produk->nama_produk }}"
                                         class="w-full h-full object-cover rounded-2xl border border-slate-200 dark:border-slate-600 bg-slate-100 dark:bg-slate-700 cursor-pointer group-hover:scale-105 transition-transform duration-300"
-                                        onclick="openImageModal('{{ Storage::url($item->produk->foto) }}', '{{ $item->produk->nama_produk }}')" />
+                                        onclick="openImageModal('{{ $imgSrc }}', '{{ $item->produk->nama_produk }}')" />
                                     <div
-                                        class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 rounded-2xl transition-all duration-300">
+                                        class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 rounded-2xl transition-opacity duration-300">
                                     </div>
                                 </div>
                                 @else
-                                <div
-                                    class="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 rounded-2xl border-2 border-dashed border-purple-200 dark:border-purple-700">
-                                    <i class="fa-solid fa-gem text-4xl text-purple-600 dark:text-purple-400"></i>
-                                </div>
+                                    <div
+                                        class="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 rounded-2xl border-2 border-dashed border-purple-200 dark:border-purple-700">
+                                        <i class="fa-solid fa-gem text-4xl text-purple-600 dark:text-purple-400"></i>
+                                    </div>
                                 @endif
                             </div>
 

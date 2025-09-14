@@ -39,16 +39,6 @@
                         <i
                             class="fa-brands fa-instagram text-white group-hover:scale-110 transition-transform duration-300"></i>
                     </a>
-                    <a href="#"
-                        class="group w-10 h-10 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center hover:bg-white/20 transition-all duration-300">
-                        <i
-                            class="fa-brands fa-twitter text-white group-hover:scale-110 transition-transform duration-300"></i>
-                    </a>
-                    <a href="#"
-                        class="group w-10 h-10 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center hover:bg-white/20 transition-all duration-300">
-                        <i
-                            class="fa-brands fa-youtube text-white group-hover:scale-110 transition-transform duration-300"></i>
-                    </a>
                     <a href="https://wa.me/6281338887248"
                         class="group w-10 h-10 rounded-full bg-green-500 flex items-center justify-center hover:bg-green-600 transition-all duration-300">
                         <i

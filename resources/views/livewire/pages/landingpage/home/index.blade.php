@@ -130,8 +130,9 @@ mount(function () {
                                 <div
                                     class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-2xl hover:shadow-purple-500/25 transition-shadow duration-500 max-w-sm">
                                     <div
-                                        class="aspect-square bg-gradient-to-br from-purple-100 to-indigo-100 rounded-xl mb-4 flex items-center justify-center">
-                                        <i class="fa-solid fa-gem text-4xl text-purple-500"></i>
+                                        class="aspect-square bg-gradient-to-br from-purple-100 to-indigo-100 rounded-xl mb-4 flex items-center justify-center overflow-hidden">
+                                        <img src="{{ asset('assets/img/ring.png') }}" alt="Silver Ring Premium"
+                                            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                                     </div>
                                     <h3 class="text-lg font-bold text-white mb-2">Silver Ring Premium</h3>
                                     <p class="text-white/70 mb-3 text-sm">Desain eksklusif dengan kualitas terbaik</p>
@@ -429,13 +430,6 @@ mount(function () {
                                     class="absolute inset-0 bg-gradient-to-r from-purple-400 to-indigo-400 rounded-full blur opacity-0 group-hover:opacity-30 transition-opacity duration-300">
                                 </div>
                             </a>
-                            <a href="#"
-                                class="px-8 py-4 bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 text-white font-medium rounded-full transition-all duration-300 transform hover:scale-105">
-                                <span class="flex items-center justify-center gap-2">
-                                    <i class="fa-solid fa-images"></i>
-                                    Portofolio
-                                </span>
-                            </a>
                         </div>
                     </div>
                 </div>
@@ -575,8 +569,7 @@ mount(function () {
                                     </div>
                                     <div class="flex-1">
                                         <h4 class="font-semibold text-slate-800 dark:text-slate-100 mb-1">Email</h4>
-                                        <p class="text-slate-600 dark:text-slate-300">info@blisssilversmith.com</p>
-                                        <p class="text-slate-600 dark:text-slate-300">order@blisssilversmith.com</p>
+                                        <p class="text-slate-600 dark:text-slate-300">blisssilversmith@gmail.com</p>
                                     </div>
                                 </div>
 
@@ -629,30 +622,6 @@ mount(function () {
                                     <div>
                                         <p class="font-semibold text-slate-800 dark:text-slate-100">Instagram</p>
                                         <p class="text-sm text-slate-600 dark:text-slate-300">@blisssilversmith</p>
-                                    </div>
-                                </a>
-
-                                <a href="#"
-                                    class="group flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-blue-400/10 to-blue-500/10 hover:from-blue-400/20 hover:to-blue-500/20 transition-all duration-300">
-                                    <div
-                                        class="w-10 h-10 rounded-full bg-blue-400 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                                        <i class="fa-brands fa-twitter text-white"></i>
-                                    </div>
-                                    <div>
-                                        <p class="font-semibold text-slate-800 dark:text-slate-100">Twitter</p>
-                                        <p class="text-sm text-slate-600 dark:text-slate-300">@blisssilversmith</p>
-                                    </div>
-                                </a>
-
-                                <a href="#"
-                                    class="group flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-red-500/10 to-red-600/10 hover:from-red-500/20 hover:to-red-600/20 transition-all duration-300">
-                                    <div
-                                        class="w-10 h-10 rounded-full bg-red-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                                        <i class="fa-brands fa-youtube text-white"></i>
-                                    </div>
-                                    <div>
-                                        <p class="font-semibold text-slate-800 dark:text-slate-100">YouTube</p>
-                                        <p class="text-sm text-slate-600 dark:text-slate-300">Bliss Silversmith</p>
                                     </div>
                                 </a>
                             </div>

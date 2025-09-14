@@ -33,7 +33,7 @@
                             Sistem Informasi Penjualan<br>
                             <span class="text-indigo-200">Perhiasan Premium</span>
                         </h1>
-                        <p class="text-slate-200 mb-8 max-w-md">Koleksi perhiasan silver dan emas eksklusif dengan desain modern dan elegan.</p>
+                        <p class="text-slate-200 mb-8 max-w-md">Koleksi perhiasan silver eksklusif dengan desain modern dan elegan.</p>
                         
                         <!-- Showcase Images -->
                         <div class="flex flex-col space-y-4 items-center max-w-xs">
@@ -43,16 +43,6 @@
                                     <div class="text-left">
                                         <h3 class="text-white font-medium">Cincin Silver Premium</h3>
                                         <p class="text-indigo-200 text-sm">Elegan dan modern</p>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/20">
-                                <div class="flex items-center space-x-4">
-                                    <img src="https://images.unsplash.com/photo-1599643477877-530eb83abc8e?auto=format&fit=crop&w=200&q=80" alt="Gold Necklace" class="w-16 h-16 object-cover rounded-lg">
-                                    <div class="text-left">
-                                        <h3 class="text-white font-medium">Kalung Gold Collection</h3>
-                                        <p class="text-indigo-200 text-sm">Mewah dan berkelas</p>
                                     </div>
                                 </div>
                             </div>
