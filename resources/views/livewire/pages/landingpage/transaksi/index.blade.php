@@ -290,6 +290,28 @@ function getStatusIcon($status) {
                                 <!-- Informasi Tambahan -->
                                 <div class="grid md:grid-cols-2 gap-6">
                                     @if($transaksi->pengiriman)
+                                    @php
+                                        $pengiriman = $transaksi->pengiriman;
+                                        $receiver = $pengiriman->nama_penerima ?? $transaksi->pelanggan?->user?->name;
+                                        $address = $pengiriman->alamat_pengiriman ?? $transaksi->pelanggan?->alamat;
+                                        $phone = $pengiriman->no_telepon ?? $transaksi->pelanggan?->no_telepon;
+                                        $notes = $pengiriman->catatan ?? $pengiriman->deskripsi;
+                                        $statusRaw = $pengiriman->status ?? null;
+                                        $statusLabel = $statusRaw ? ucfirst(str_replace('_', ' ', strtolower($statusRaw))) : null;
+                                        $statusColorMap = [
+                                            'pending' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200',
+                                            'diproses' => 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200',
+                                            'processing' => 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200',
+                                            'dikirim' => 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-200',
+                                            'shipped' => 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-200',
+                                            'delivered' => 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200',
+                                            'selesai' => 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200',
+                                            'dibatalkan' => 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200',
+                                            'cancelled' => 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200'
+                                        ];
+                                        $statusColor = $statusColorMap[strtolower($statusRaw ?? '')] ?? 'bg-slate-100 text-slate-700 dark:bg-slate-800/40 dark:text-slate-200';
+                                        $scheduledAt = $pengiriman->tanggal_pengiriman ? $pengiriman->tanggal_pengiriman->format('d M Y H:i') : null;
+                                    @endphp
                                     <div
                                         class="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
                                         <h5
@@ -298,17 +320,33 @@ function getStatusIcon($status) {
                                             Informasi Pengiriman
                                         </h5>
                                         <div class="space-y-2 text-sm text-slate-600 dark:text-slate-300">
-                                            <div><strong>Penerima:</strong> {{ $transaksi->pengiriman->nama_penerima }}
+                                            <div><strong>Penerima:</strong> {{ $receiver ?? '-' }}</div>
+                                            <div><strong>Alamat:</strong> {{ $address ?? '-' }}</div>
+                                            <div><strong>Telepon:</strong> {{ $phone ?? '-' }}</div>
+                                            @if($scheduledAt)
+                                            <div><strong>Jadwal:</strong> {{ $scheduledAt }}</div>
+                                            @endif
+                                            @if($statusLabel)
+                                            <div><strong>Status:</strong>
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded {{ $statusColor }}">
+                                                    {{ $statusLabel }}
+                                                </span>
                                             </div>
-                                            <div><strong>Alamat:</strong> {{ $transaksi->pengiriman->alamat_pengiriman
-                                                }}
-                                            </div>
-                                            <div><strong>Telepon:</strong> {{ $transaksi->pengiriman->no_telepon }}
-                                            </div>
-                                            @if($transaksi->pengiriman->catatan)
-                                            <div><strong>Catatan:</strong> {{ $transaksi->pengiriman->catatan }}</div>
+                                            @endif
+                                            @if($notes)
+                                            <div><strong>Catatan:</strong> {{ $notes }}</div>
                                             @endif
                                         </div>
+                                    </div>
+                                    @else
+                                    <div
+                                        class="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                                        <h5
+                                            class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
+                                            <i class="fa-solid fa-shipping-fast text-blue-500"></i>
+                                            Informasi Pengiriman
+                                        </h5>
+                                        <p class="text-sm text-slate-500 dark:text-slate-400">Pengiriman belum tersedia untuk transaksi ini.</p>
                                     </div>
                                     @endif
 

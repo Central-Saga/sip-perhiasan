@@ -645,8 +645,30 @@ function getStatusIcon($status) {
                     </div>
                 </div>
 
-                <!-- Shipping Information -->
+                                <!-- Shipping Information -->
                 @if($transaksi->pengiriman)
+                @php
+                    $pengiriman = $transaksi->pengiriman;
+                    $receiver = $pengiriman->nama_penerima ?? $transaksi->pelanggan?->user?->name;
+                    $address = $pengiriman->alamat_pengiriman ?? $transaksi->pelanggan?->alamat;
+                    $phone = $pengiriman->no_telepon ?? $transaksi->pelanggan?->no_telepon;
+                    $notes = $pengiriman->catatan ?? $pengiriman->deskripsi;
+                    $statusRaw = $pengiriman->status ?? null;
+                    $statusLabel = $statusRaw ? ucfirst(str_replace('_', ' ', strtolower($statusRaw))) : null;
+                    $statusColorMap = [
+                        'pending' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200',
+                        'diproses' => 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200',
+                        'processing' => 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200',
+                        'dikirim' => 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-200',
+                        'shipped' => 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-200',
+                        'delivered' => 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200',
+                        'selesai' => 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200',
+                        'dibatalkan' => 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200',
+                        'cancelled' => 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200'
+                    ];
+                    $statusColor = $statusColorMap[strtolower($statusRaw ?? '')] ?? 'bg-slate-100 text-slate-700 dark:bg-slate-800/40 dark:text-slate-200';
+                    $scheduledAt = $pengiriman->tanggal_pengiriman ? $pengiriman->tanggal_pengiriman->format('d M Y H:i') : null;
+                @endphp
                 <div class="group relative mb-8">
                     <div
                         class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-white/20 dark:border-slate-700/50 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-1">
@@ -670,23 +692,32 @@ function getStatusIcon($status) {
                                             <i class="fa-solid fa-user text-blue-500 w-5 mt-1"></i>
                                             <div>
                                                 <strong>Penerima:</strong><br>
-                                                {{ $transaksi->pengiriman->nama_penerima }}
+                                                {{ $receiver ?? '-' }}
                                             </div>
                                         </div>
                                         <div class="flex items-start gap-3">
                                             <i class="fa-solid fa-map-marker-alt text-blue-500 w-5 mt-1"></i>
                                             <div>
                                                 <strong>Alamat:</strong><br>
-                                                {{ $transaksi->pengiriman->alamat_pengiriman }}
+                                                {{ $address ?? '-' }}
                                             </div>
                                         </div>
                                         <div class="flex items-start gap-3">
                                             <i class="fa-solid fa-phone text-blue-500 w-5 mt-1"></i>
                                             <div>
                                                 <strong>Telepon:</strong><br>
-                                                {{ $transaksi->pengiriman->no_telepon }}
+                                                {{ $phone ?? '-' }}
                                             </div>
                                         </div>
+                                        @if($notes)
+                                        <div class="flex items-start gap-3">
+                                            <i class="fa-solid fa-sticky-note text-blue-500 w-5 mt-1"></i>
+                                            <div>
+                                                <strong>Catatan:</strong><br>
+                                                {{ $notes }}
+                                            </div>
+                                        </div>
+                                        @endif
                                     </div>
                                 </div>
 
@@ -701,19 +732,26 @@ function getStatusIcon($status) {
                                         <div class="flex items-center gap-3">
                                             <i class="fa-solid fa-truck text-green-500 w-5"></i>
                                             <span><strong>Status:</strong>
+                                                @if($statusLabel)
                                                 <span
-                                                    class="px-2 py-1 rounded text-xs font-semibold ml-2 {{ getStatusColor($transaksi->pengiriman->status) }}">
-                                                    {{ ucfirst($transaksi->pengiriman->status) }}
+                                                    class="px-2 py-1 rounded text-xs font-semibold ml-2 {{ $statusColor }}">
+                                                    {{ $statusLabel }}
                                                 </span>
+                                                @else
+                                                <span class="ml-2">-</span>
+                                                @endif
                                             </span>
                                         </div>
-                                        @if($transaksi->pengiriman->catatan)
-                                        <div class="flex items-start gap-3">
-                                            <i class="fa-solid fa-sticky-note text-green-500 w-5 mt-1"></i>
-                                            <div>
-                                                <strong>Catatan:</strong><br>
-                                                {{ $transaksi->pengiriman->catatan }}
-                                            </div>
+                                        @if($scheduledAt)
+                                        <div class="flex items-center gap-3">
+                                            <i class="fa-solid fa-calendar-days text-green-500 w-5"></i>
+                                            <span><strong>Jadwal:</strong> {{ $scheduledAt }}</span>
+                                        </div>
+                                        @endif
+                                        @if($pengiriman->tanggal_pengiriman && $pengiriman->tanggal_pengiriman->isPast())
+                                        <div class="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
+                                            <i class="fa-solid fa-circle-check text-green-500 w-5"></i>
+                                            <span>Diperbarui pada {{ $pengiriman->updated_at?->format('d M Y H:i') }}</span>
                                         </div>
                                         @endif
                                     </div>
@@ -722,7 +760,27 @@ function getStatusIcon($status) {
                         </div>
                     </div>
 
-                    <!-- Floating Elements -->
+                    <div
+                        class="absolute -top-2 -right-2 w-4 h-4 bg-gradient-to-r from-pink-400 to-purple-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                    </div>
+                    <div
+                        class="absolute -bottom-2 -left-2 w-3 h-3 bg-gradient-to-r from-indigo-400 to-blue-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">
+                    </div>
+                </div>
+                @else
+                <div class="group relative mb-8">
+                    <div
+                        class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-white/20 dark:border-slate-700/50 rounded-2xl overflow-hidden shadow-xl">
+                        <div class="p-8">
+                            <h3
+                                class="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-3">
+                                <i class="fa-solid fa-shipping-fast text-blue-500"></i>
+                                Informasi Pengiriman
+                            </h3>
+                            <p class="text-slate-500 dark:text-slate-400">Pengiriman belum tersedia untuk transaksi ini.</p>
+                        </div>
+                    </div>
+
                     <div
                         class="absolute -top-2 -right-2 w-4 h-4 bg-gradient-to-r from-pink-400 to-purple-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                     </div>
