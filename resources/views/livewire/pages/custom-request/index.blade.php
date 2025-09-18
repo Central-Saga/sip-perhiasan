@@ -71,17 +71,32 @@ $openEditDrawer = function ($customRequestId) {
 
 $closeEditDrawer = function () {
     $this->showEditDrawer = false;
-    $this->selectedCustomRequest = null;
+
+    if (!$this->showDetailDrawer) {
+        $this->selectedCustomRequest = null;
+    }
+
     $this->editStatus = '';
     $this->editHarga = '';
 };
 
 $updateCustomRequest = function () {
+    if (!$this->selectedCustomRequest) {
+        session()->flash('error', 'Tidak ada custom request yang dipilih untuk diperbarui.');
+        return;
+    }
+
     try {
         $this->selectedCustomRequest->update([
             'status' => $this->editStatus,
             'estimasi_harga' => $this->editHarga,
         ]);
+
+        $this->selectedCustomRequest->refresh();
+
+        if ($this->showDetailDrawer) {
+            $this->selectedCustomRequest->load(['pelanggan.user']);
+        }
 
         Log::channel('custom_request_management')->info('Custom Request Updated', [
             'custom_request_id' => $this->selectedCustomRequest->id,
