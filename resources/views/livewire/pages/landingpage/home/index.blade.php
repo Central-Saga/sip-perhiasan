@@ -136,7 +136,6 @@ mount(function () {
                                     </div>
                                     <h3 class="text-lg font-bold text-white mb-2">Silver Ring Premium</h3>
                                     <p class="text-white/70 mb-3 text-sm">Desain eksklusif dengan kualitas terbaik</p>
-                                    <div class="text-xl font-bold text-purple-300">Rp 1.500.000</div>
                                 </div>
                             </div>
 

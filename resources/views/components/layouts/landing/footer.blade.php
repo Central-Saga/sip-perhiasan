@@ -79,12 +79,6 @@
                         </a>
                     </li>
                     <li>
-                        <a href="#"
-                            class="text-white/70 hover:text-white transition-colors duration-300 flex items-center gap-2 group">
-                            <i
-                                class="fa-solid fa-chevron-right text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-300"></i>
-                            <span>Portofolio</span>
-                        </a>
                     </li>
                 </ul>
             </div>
@@ -124,7 +118,7 @@
                             <i class="fa-solid fa-envelope text-purple-300 text-sm"></i>
                         </div>
                         <div>
-                            <p class="text-white/70 text-sm">info@blisssilversmith.com</p>
+                            <p class="text-white/70 text-sm">blisssilversmith@gmail.com.com</p>
                         </div>
                     </div>
                 </div>
