@@ -20,8 +20,6 @@ state([
     'sortField' => 'id',
     'sortDirection' => 'asc',
     'page' => 1,
-    'showDetailModal' => false,
-    'selectedPelanggan' => null,
     'showDeleteDialog' => false,
     'pelangganToDelete' => null,
 ]);
@@ -51,6 +49,7 @@ $pelanggans = computed(function () {
         })
         ->paginate(10);
 });
+
 
 // Action: delete
 $delete = function ($id) {
@@ -113,17 +112,6 @@ $sortBy = function ($field) {
     }
 };
 
-// Action: open detail modal
-$openDetailModal = function ($pelangganId) {
-    $this->selectedPelanggan = Pelanggan::with('user')->find($pelangganId);
-    $this->showDetailModal = true;
-};
-
-// Action: close detail modal
-$closeDetailModal = function () {
-    $this->showDetailModal = false;
-    $this->selectedPelanggan = null;
-};
 
 // Action: open delete dialog
 $openDeleteDialog = function ($pelangganId) {
@@ -316,11 +304,12 @@ $closeDeleteDialog = function () {
                             </td>
                             <td class="px-4 py-4 text-right text-sm font-medium">
                                 <div class="flex items-center justify-end space-x-2">
-                                    <button wire:click="openDetailModal({{ $pelanggan->id }})"
-                                        class="inline-flex items-center px-2.5 py-1.5 border border-blue-500 text-blue-600 hover:bg-blue-50 rounded-lg transition duration-150">
+                                    <a href="{{ route('pelanggan.detail', $pelanggan) }}"
+                                        class="inline-flex items-center px-2.5 py-1.5 border border-blue-500 text-blue-600 hover:bg-blue-50 rounded-lg transition duration-150"
+                                        wire:navigate>
                                         <flux:icon name="eye" class="h-4 w-4 mr-1" />
                                         Detail
-                                    </button>
+                                    </a>
                                     <a href="{{ route('pelanggan.edit', $pelanggan) }}"
                                         class="inline-flex items-center px-2.5 py-1.5 border border-indigo-500 text-indigo-600 hover:bg-indigo-50 rounded-lg transition duration-150"
                                         wire:navigate>
@@ -387,129 +376,6 @@ $closeDeleteDialog = function () {
         </div>
     </div>
 
-    <!-- Detail Modal -->
-    @if($showDetailModal && $selectedPelanggan)
-    <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <!-- Background overlay -->
-            <div class="fixed inset-0 backdrop-blur-sm bg-white/30 transition-opacity" aria-hidden="true"
-                wire:click="closeDetailModal"></div>
-
-            <!-- This element is to trick the browser into centering the modal contents. -->
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-            <!-- Modal panel -->
-            <div
-                class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
-                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                    <div class="sm:flex sm:items-start">
-                        <div
-                            class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10">
-                            <flux:icon name="user-circle" class="h-6 w-6 text-indigo-600" />
-                        </div>
-                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                                Detail Pelanggan
-                            </h3>
-                            <div class="mt-4">
-                                <div class="bg-gray-50 rounded-lg p-6 space-y-4">
-                                    <!-- Profile Section -->
-                                    <div class="flex items-center space-x-4 pb-4 border-b border-gray-200">
-                                        <div
-                                            class="h-16 w-16 flex-shrink-0 rounded-full bg-indigo-100 flex items-center justify-center">
-                                            <span class="text-lg font-medium text-indigo-700">
-                                                {{ $selectedPelanggan->user ?
-                                                strtoupper(substr($selectedPelanggan->user->name, 0, 2)) : 'NA' }}
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <h4 class="text-lg font-semibold text-gray-900">
-                                                {{ $selectedPelanggan->user ? $selectedPelanggan->user->name : 'Nama
-                                                tidak tersedia' }}
-                                            </h4>
-                                            <p class="text-sm text-gray-600">
-                                                ID: {{ $selectedPelanggan->id }}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <!-- Information Grid -->
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <!-- Email -->
-                                        <div class="bg-white p-4 rounded-lg border border-gray-200">
-                                            <div class="flex items-center space-x-2 mb-2">
-                                                <flux:icon name="envelope" class="h-5 w-5 text-blue-600" />
-                                                <span class="text-sm font-medium text-gray-700">Email</span>
-                                            </div>
-                                            <p class="text-sm text-gray-900">
-                                                {{ $selectedPelanggan->user ? $selectedPelanggan->user->email : 'Email
-                                                tidak tersedia' }}
-                                            </p>
-                                        </div>
-
-                                        <!-- Phone -->
-                                        <div class="bg-white p-4 rounded-lg border border-gray-200">
-                                            <div class="flex items-center space-x-2 mb-2">
-                                                <flux:icon name="phone" class="h-5 w-5 text-green-600" />
-                                                <span class="text-sm font-medium text-gray-700">No. Telepon</span>
-                                            </div>
-                                            <p class="text-sm text-gray-900">{{ $selectedPelanggan->no_telepon }}</p>
-                                        </div>
-
-                                        <!-- Status -->
-                                        <div class="bg-white p-4 rounded-lg border border-gray-200">
-                                            <div class="flex items-center space-x-2 mb-2">
-                                                <flux:icon name="check-circle" class="h-5 w-5 text-purple-600" />
-                                                <span class="text-sm font-medium text-gray-700">Status</span>
-                                            </div>
-                                            <span
-                                                class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset"
-                                                :class="$selectedPelanggan->status === 'Aktif' ? 'bg-emerald-50 text-emerald-700 ring-emerald-700/10' : 'bg-red-50 text-red-700 ring-red-700/10'">
-                                                <flux:icon
-                                                    name="{{ $selectedPelanggan->status === 'Aktif' ? 'check-circle' : 'x-circle' }}"
-                                                    class="h-3 w-3" />
-                                                {{ $selectedPelanggan->status }}
-                                            </span>
-                                        </div>
-
-                                        <!-- Created Date -->
-                                        <div class="bg-white p-4 rounded-lg border border-gray-200">
-                                            <div class="flex items-center space-x-2 mb-2">
-                                                <flux:icon name="calendar" class="h-5 w-5 text-orange-600" />
-                                                <span class="text-sm font-medium text-gray-700">Tanggal Dibuat</span>
-                                            </div>
-                                            <p class="text-sm text-gray-900">
-                                                {{ $selectedPelanggan->created_at->format('d M Y H:i') }}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <!-- Address Section -->
-                                    <div class="bg-white p-4 rounded-lg border border-gray-200">
-                                        <div class="flex items-center space-x-2 mb-2">
-                                            <flux:icon name="map-pin" class="h-5 w-5 text-red-600" />
-                                            <span class="text-sm font-medium text-gray-700">Alamat</span>
-                                        </div>
-                                        <p class="text-sm text-gray-900 leading-relaxed">
-                                            {{ $selectedPelanggan->alamat }}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                    <button type="button" wire:click="closeDetailModal"
-                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm transition duration-150">
-                        <flux:icon name="x-mark" class="h-4 w-4 mr-2" />
-                        Tutup
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-    @endif
 
     <!-- Simple but Beautiful Delete Modal -->
     @if($showDeleteDialog)
@@ -546,8 +412,7 @@ $closeDeleteDialog = function () {
                         <flux:icon name="information-circle"
                             style="width: 20px; height: 20px; color: #d97706; margin-top: 2px; flex-shrink: 0;" />
                         <div>
-                            <p style="color: #92400e; font-weight: 600; font-size: 14px; margin: 0 0 4px 0;">⚠️
-                                Peringatan!</p>
+                            <p style="color: #92400e; font-weight: 600; font-size: 14px; margin: 0 0 4px 0;">Peringatan!</p>
                             <p style="color: #b45309; font-size: 14px; line-height: 1.5; margin: 0;">
                                 Apakah Anda yakin ingin menghapus pelanggan ini? Semua data terkait akan dihapus secara
                                 permanen dan tidak dapat dipulihkan.
@@ -591,3 +456,4 @@ $closeDeleteDialog = function () {
     </style>
     @endif
 </div>
+

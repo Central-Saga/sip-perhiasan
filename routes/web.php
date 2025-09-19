@@ -122,6 +122,7 @@ Route::middleware(['auth', 'admin.access'])->prefix('admin')->group(function () 
     // Pelanggan Routes
     Volt::route('pelanggan', 'pages.pelanggan.index')->name('pelanggan.index');
     Volt::route('pelanggan/create', 'pages.pelanggan.create')->name('pelanggan.create');
+    Volt::route('pelanggan/{pelanggan}', 'pages.pelanggan.detail')->name('pelanggan.detail');
     Volt::route('pelanggan/{pelanggan}/edit', 'pages.pelanggan.edit')->name('pelanggan.edit');
 
     // Produk Routes

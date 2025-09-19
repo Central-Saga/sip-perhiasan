@@ -197,7 +197,6 @@ $allRoles = computed(function () {
                         </x-mary-alert>
                         @enderror
 
-                        @if(!empty($password))
                         <!-- Konfirmasi Password Baru -->
                         <x-mary-input label="Konfirmasi Password Baru" wire:model="password_confirmation"
                             placeholder="Ulangi password baru" icon="o-lock-closed" type="password"
@@ -207,7 +206,6 @@ $allRoles = computed(function () {
                             {{ $message }}
                         </x-mary-alert>
                         @enderror
-                        @endif
 
                         <!-- Roles Section -->
                         <div class="form-control">

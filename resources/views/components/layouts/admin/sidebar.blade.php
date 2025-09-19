@@ -105,20 +105,6 @@
                     </flux:menu.item>
                 </flux:menu.radio.group>
 
-                <flux:menu.separator />
-
-                <flux:menu.radio.group>
-                    <flux:menu.item icon="folder-git-2" href="https://github.com/laravel/livewire-starter-kit"
-                        target="_blank">
-                        {{ __('Repository') }}
-                    </flux:menu.item>
-                    <flux:menu.item icon="book-open-text" href="https://laravel.com/docs/starter-kits#livewire"
-                        target="_blank">
-                        {{ __('Documentation') }}
-                    </flux:menu.item>
-                </flux:menu.radio.group>
-
-                <flux:menu.separator />
 
                 <form method="POST" action="{{ route('logout') }}" class="w-full">
                     @csrf
