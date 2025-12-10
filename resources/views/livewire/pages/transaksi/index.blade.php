@@ -3,6 +3,7 @@ use function Livewire\Volt\{ layout, title, usesPagination, state, with };
 use App\Models\Transaksi;
 use App\Models\Pembayaran;
 use App\Models\Pengiriman;
+use Illuminate\Support\Facades\Storage;
 layout('components.layouts.admin');
 title('Transaksi');
 usesPagination();
@@ -601,13 +602,31 @@ $delete = function ($id) {
                     </div>
                     @endif
                     @if($selectedTransaksi->pembayaran->bukti_transfer)
-                    <div>
-                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Bukti Transfer</p>
-                        <a href="{{ Storage::url($selectedTransaksi->pembayaran->bukti_transfer) }}" target="_blank"
-                            class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 text-sm mt-1">
-                            <flux:icon name="photo" class="h-4 w-4" />
-                            Lihat Bukti
-                        </a>
+                    <div class="col-span-2">
+                        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Bukti Transfer</p>
+                        @php
+                        $imageUrl = Storage::url($selectedTransaksi->pembayaran->bukti_transfer);
+                        @endphp
+                        <div class="relative group">
+                            <img src="{{ $imageUrl }}" alt="Bukti Pembayaran"
+                                class="w-full max-w-md h-auto rounded-lg border border-gray-200 shadow-sm cursor-pointer hover:shadow-lg transition-all duration-200 object-contain bg-gray-50"
+                                onclick="openPaymentImageModal('{{ $imageUrl }}', 'Bukti Pembayaran')"
+                                onerror="this.onerror=null; this.style.display='none';" />
+                            <div
+                                class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                                <div class="bg-black bg-opacity-50 rounded-full p-2">
+                                    <flux:icon name="magnifying-glass-plus" class="h-5 w-5 text-white" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 mt-2">
+                            <p class="text-xs text-gray-500">Klik gambar untuk melihat dalam ukuran penuh</p>
+                            <a href="{{ $imageUrl }}" target="_blank"
+                                class="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 text-xs">
+                                <flux:icon name="arrow-top-right-on-square" class="h-3 w-3" />
+                                Buka di tab baru
+                            </a>
+                        </div>
                     </div>
                     @endif
                 </div>
@@ -836,5 +855,75 @@ $delete = function ($id) {
         }
     </style>
     @endif
+
+    <!-- Payment Image Modal -->
+    <div id="paymentImageModal"
+        class="fixed inset-0 bg-black bg-opacity-75 hidden z-50 items-center justify-center p-4">
+        <div class="relative max-w-4xl max-h-full w-full">
+            <button onclick="closePaymentImageModal()"
+                class="absolute top-4 right-4 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors">
+                <flux:icon name="x-mark" class="h-6 w-6 text-gray-700" />
+            </button>
+            <img id="paymentModalImage" src="" alt="" class="max-w-full max-h-[90vh] object-contain rounded-xl mx-auto">
+            <p id="paymentModalImageTitle" class="text-white text-center mt-4 text-lg font-medium"></p>
+        </div>
+    </div>
+
+    <script>
+        function openPaymentImageModal(imageSrc, imageTitle) {
+            const modal = document.getElementById('paymentImageModal');
+            const modalImage = document.getElementById('paymentModalImage');
+            const modalTitle = document.getElementById('paymentModalImageTitle');
+
+            if (modal && modalImage && modalTitle) {
+                modalImage.src = imageSrc;
+                modalTitle.textContent = imageTitle;
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closePaymentImageModal() {
+            const modal = document.getElementById('paymentImageModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Initialize event listeners when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('paymentImageModal');
+            if (modal) {
+                // Close modal when clicking outside the image
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closePaymentImageModal();
+                    }
+                });
+            }
+
+            // Close modal with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closePaymentImageModal();
+                }
+            });
+        });
+
+        // Also handle Livewire updates
+        document.addEventListener('livewire:init', function() {
+            const modal = document.getElementById('paymentImageModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closePaymentImageModal();
+                    }
+                });
+            }
+        });
+    </script>
 </div>
 </div>

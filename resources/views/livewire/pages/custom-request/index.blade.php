@@ -10,6 +10,7 @@ title('Custom Request');
 usesPagination();
 use App\Models\CustomRequest;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 state([
     'search' => '',
@@ -561,6 +562,35 @@ $delete = function ($id) {
                 </div>
             </x-mary-card>
 
+            <!-- Gambar Referensi -->
+            @if($selectedCustomRequest->gambar_referensi)
+            <x-mary-card class="bg-gradient-to-r from-amber-50 to-yellow-50">
+                <x-slot:title class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                    <flux:icon name="photo" class="h-4 w-4" />
+                    Gambar Referensi Perhiasan
+                </x-slot:title>
+                <div class="mt-3">
+                    @php
+                    $imageUrl = Storage::url($selectedCustomRequest->gambar_referensi);
+                    @endphp
+                    <div class="relative group">
+                        <img src="{{ $imageUrl }}" alt="Gambar Referensi Custom Request"
+                            class="w-full h-auto max-h-96 rounded-lg border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-200 object-contain bg-gray-50 cursor-pointer"
+                            loading="lazy"
+                            onclick="openImageModal('{{ $imageUrl }}', 'Gambar Referensi Custom Request')"
+                            onerror="this.onerror=null; this.style.display='none';" />
+                        <div
+                            class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                            <div class="bg-black bg-opacity-50 rounded-full p-2">
+                                <flux:icon name="magnifying-glass-plus" class="h-5 w-5 text-white" />
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2 text-center">Klik gambar untuk melihat dalam ukuran penuh</p>
+                </div>
+            </x-mary-card>
+            @endif
+
             <!-- Status & Price -->
             <x-mary-card class="bg-gradient-to-r from-purple-50 to-pink-50">
                 <x-slot:title class="text-sm font-semibold text-gray-700 flex items-center gap-2">
@@ -705,4 +735,73 @@ $delete = function ($id) {
             <x-mary-button label="Simpan" wire:click="updateCustomRequest" class="btn-primary" />
         </x-slot:actions>
     </x-mary-drawer>
+
+    <!-- Image Modal -->
+    <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 hidden z-50 items-center justify-center p-4">
+        <div class="relative max-w-4xl max-h-full w-full">
+            <button onclick="closeImageModal()"
+                class="absolute top-4 right-4 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition-colors">
+                <flux:icon name="x-mark" class="h-6 w-6 text-gray-700" />
+            </button>
+            <img id="modalImage" src="" alt="" class="max-w-full max-h-[90vh] object-contain rounded-xl mx-auto">
+            <p id="modalImageTitle" class="text-white text-center mt-4 text-lg font-medium"></p>
+        </div>
+    </div>
+
+    <script>
+        function openImageModal(imageSrc, imageTitle) {
+            const modal = document.getElementById('imageModal');
+            const modalImage = document.getElementById('modalImage');
+            const modalTitle = document.getElementById('modalImageTitle');
+
+            if (modal && modalImage && modalTitle) {
+                modalImage.src = imageSrc;
+                modalTitle.textContent = imageTitle;
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function closeImageModal() {
+            const modal = document.getElementById('imageModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Initialize event listeners when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('imageModal');
+            if (modal) {
+                // Close modal when clicking outside the image
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeImageModal();
+                    }
+                });
+            }
+
+            // Close modal with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeImageModal();
+                }
+            });
+        });
+
+        // Also handle Livewire updates
+        document.addEventListener('livewire:init', function() {
+            const modal = document.getElementById('imageModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeImageModal();
+                    }
+                });
+            }
+        });
+    </script>
 </div>
