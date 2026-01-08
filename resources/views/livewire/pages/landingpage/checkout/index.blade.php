@@ -593,6 +593,73 @@ new class extends Component
                         </div>
                     </div>
 
+                    <!-- Informasi Rekening Bank (untuk transfer) -->
+                    <div id="bank-info-section"
+                        class="bg-gradient-to-r from-amber-500 to-orange-600 rounded-2xl overflow-hidden"
+                        x-show="$wire.metode_pembayaran === 'transfer'"
+                        x-transition:enter="transition ease-out duration-500"
+                        x-transition:enter-start="opacity-0 transform -translate-y-4"
+                        x-transition:enter-end="opacity-100 transform translate-y-0"
+                        x-transition:leave="transition ease-in duration-300"
+                        x-transition:leave-start="opacity-100 transform translate-y-0"
+                        x-transition:leave-end="opacity-0 transform -translate-y-4">
+                        <div class="p-6">
+                            <h3 class="text-2xl font-bold text-white flex items-center gap-3 mb-6">
+                                <i class="fa-solid fa-university text-3xl"></i>
+                                Informasi Rekening Tujuan
+                            </h3>
+
+                            <div class="bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl p-6 space-y-4">
+                                <div class="flex items-center gap-4">
+                                    <div class="flex-shrink-0">
+                                        <div class="w-16 h-16 rounded-full bg-white/30 flex items-center justify-center">
+                                            <i class="fa-solid fa-building-columns text-white text-2xl"></i>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="text-white/80 text-sm font-medium mb-1">Bank</div>
+                                        <div class="text-white text-xl font-bold">BANK BRI</div>
+                                    </div>
+                                </div>
+
+                                <div class="border-t border-white/30 pt-4">
+                                    <div class="text-white/80 text-sm font-medium mb-2">Nomor Rekening</div>
+                                    <div class="flex items-center gap-3">
+                                        <div class="bg-white/20 px-4 py-3 rounded-lg flex-1">
+                                            <div class="text-white text-2xl font-mono font-bold tracking-wider" id="account-number">
+                                                098501032958530
+                                            </div>
+                                        </div>
+                                        <button type="button" 
+                                            onclick="copyToClipboard('098501032958530', this)"
+                                            class="px-4 py-3 bg-white/30 hover:bg-white/40 rounded-lg transition-all duration-300 flex items-center gap-2 text-white font-medium"
+                                            title="Salin nomor rekening">
+                                            <i class="fa-solid fa-copy"></i>
+                                            <span class="hidden sm:inline">Salin</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="border-t border-white/30 pt-4">
+                                    <div class="text-white/80 text-sm font-medium mb-2">Atas Nama</div>
+                                    <div class="bg-white/20 px-4 py-3 rounded-lg">
+                                        <div class="text-white text-lg font-semibold">I GP. DIVKA NANDA SAPUTRA</div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-4 p-4 bg-yellow-500/20 border border-yellow-400/30 rounded-lg">
+                                    <div class="flex items-start gap-3">
+                                        <i class="fa-solid fa-info-circle text-yellow-200 text-lg mt-0.5"></i>
+                                        <div class="text-sm text-white/90">
+                                            <p class="font-semibold mb-1">Penting!</p>
+                                            <p>Pastikan Anda transfer ke rekening di atas dengan benar. Setelah transfer, upload bukti pembayaran di bawah ini.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Upload Bukti Pembayaran (untuk transfer) -->
                     <div id="upload-section"
                         class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl overflow-hidden"
@@ -788,6 +855,24 @@ new class extends Component
             setTimeout(() => notification.remove(), 300);
         });
     }, 3000);
+
+    // Copy to clipboard function
+    function copyToClipboard(text, buttonElement) {
+        navigator.clipboard.writeText(text).then(() => {
+            // Show success notification
+            const originalHTML = buttonElement.innerHTML;
+            buttonElement.innerHTML = '<i class="fa-solid fa-check"></i><span class="hidden sm:inline">Tersalin!</span>';
+            buttonElement.classList.add('bg-green-500/40');
+            
+            setTimeout(() => {
+                buttonElement.innerHTML = originalHTML;
+                buttonElement.classList.remove('bg-green-500/40');
+            }, 2000);
+        }).catch(err => {
+            console.error('Failed to copy:', err);
+            alert('Gagal menyalin ke clipboard');
+        });
+    }
 </script>
 
 <script>
